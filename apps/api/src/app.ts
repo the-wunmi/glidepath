@@ -462,6 +462,18 @@ export function createApp(e: Engine) {
     if (method === 'eth_call') {
       const to = typeof first?.to === 'string' ? first.to.toLowerCase() : '';
       if (!(await engine.evmPlanTokens(e)).has(to)) return 'eth_call may only read plan tokens';
+      // Only a plain read: {to, data} and a block tag. State overrides, gas or value would let a
+      // caller make the node do arbitrary work against a plan token's address.
+      if (!Array.isArray(params) || params.length > 2) return 'eth_call takes [{to, data}, block]';
+      if (Object.keys(first ?? {}).some((k) => k !== 'to' && k !== 'data' && k !== 'input'))
+        return 'eth_call may only set to and data';
+      const tag = params[1];
+      if (
+        tag !== undefined &&
+        tag !== 'latest' &&
+        !(typeof tag === 'string' && /^0x[0-9a-f]+$/i.test(tag))
+      )
+        return "eth_call's block must be 'latest' or a block number";
     }
     return null;
   }

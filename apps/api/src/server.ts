@@ -47,7 +47,7 @@ if (config.NEAR_NETWORK === 'testnet') {
   const deployment = loadDeployment(config);
   log('using NEAR testnet', {
     registry: deployment.registry,
-    rpc: config.NEAR_RPC_URL,
+    rpc: new URL(config.NEAR_RPC_URL).host,
     evm: config.EVM_NETWORK,
   });
   const evm =
