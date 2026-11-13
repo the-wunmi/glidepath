@@ -1,0 +1,47 @@
+[package]
+name = "vsp-enclave-wasi"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "The Glidepath enclave logic as a WASI command, for OutLayer"
+publish = false
+
+[[bin]]
+name = "vsp-enclave"
+path = "src/main.rs"
+
+[[bin]]
+name = "vsp-enclave-outlayer"
+path = "src/bin/outlayer.rs"
+required-features = ["outlayer"]
+
+[[bin]]
+name = "vsp-enclave-local"
+path = "src/bin/local.rs"
+
+[dependencies]
+wit-bindgen = { version = "0.36", optional = true }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+hkdf = "0.12"
+chacha20poly1305 = "0.10"
+x25519-dalek = { version = "2", features = ["static_secrets"] }
+ed25519-dalek = "2"
+bs58 = "0.5"
+base64 = "0.22"
+hex = "0.4"
+uint = "0.10"
+getrandom = "0.2"
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+
+[features]
+vectors = []
+# The OutLayer module: host bindings for the keystore's signing and encryption keys.
+outlayer = ["dep:wit-bindgen"]

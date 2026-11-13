@@ -1,0 +1,17 @@
+{
+  "network": "testnet",
+  "deployed_at": "2026-11-12T21:15:10.892Z",
+  "rpc": "https://rpc.testnet.near.org",
+  "registry": "vsp-registry.zyx-dev.testnet",
+  "governance": "zyx-dev.testnet",
+  "signer_contract": "v1.signer-prod.testnet",
+  "mpc_root_public_key": "secp256k1:4NfTiv3UsGahebgTaHyD9vF8KYKMBnfd6kh94mK6xv8fGBiJB8TBtFMP5WWXz6B89Ac1fbpzPwAvoyQebemHFwx3",
+  "min_cooling_off_ms": 600000,
+  "proceeds_asset": "nep141:vusdc.zyx-dev.testnet",
+  "usdc": "vusdc.zyx-dev.testnet",
+  "enclave_key": "ed25519:5QJhJwz7Kp7ssUWL8XS7ZjGmnuq1iDCXh75MVpowR1WE",
+  "quote_signer": "ed25519:B96gpqFD7DTxGLMSn7eWr6XTaVFg3Y9wdXWhZwqzQUB3",
+  "near_spent": "20.528",
+  "plan_account_code_hash": "9mDQvyFxjHhLqXCfdFpty6pb3ZRdnqLVnzHmyuRTDZcD",
+  "sha256sums": "fea386e5aa7f365757c881053cf4353a20e09510653e4791fe23def24466adc0  plan_registry.wasm\n82311602889ec6f931b7ca70a41752e23d60061e84d95fecb3b162669d1709fa  plan_account.wasm\ne809fd0c8cfae5bf6fe8b3b8e1d6d7b4f17d1540cb0a0c5409b978ebdcbcb510  mpc_signer_sim.wasm\n91ac7b95860b33bd257024df2013e4b8eafc65d2abfcb4203f1eda1d58ccb0a7  demo_token.wasm\n"
+}

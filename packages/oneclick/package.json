@@ -1,0 +1,22 @@
+{
+  "name": "@vsp/oneclick",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@vsp/core": "workspace:*",
+    "@vsp/db": "workspace:*",
+    "@vsp/prices": "workspace:*",
+    "drizzle-orm": "^0.45.4",
+    "hono": "^4.13.17",
+    "zod": "^4.6.7",
+    "@noble/curves": "^2.4.0"
+  }
+}

@@ -1,0 +1,22 @@
+[package]
+name = "plan-registry"
+description = "Glidepath plan registry: sealed-plan commitments, keyless plan accounts, enclave-signed execution with on-chain envelope limits."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+# `unstable` exposes env::ecrecover, used to check MPC signatures recover to the plan's address.
+near-sdk = { workspace = true, features = ["unstable"] }
+uint.workspace = true
+hex.workspace = true
+
+[dev-dependencies]
+near-sdk = { workspace = true, features = ["unit-testing", "unstable"] }
+ed25519-dalek = "2"
+k256 = { version = "0.13", features = ["ecdsa", "arithmetic", "std"] }
+sha3 = "0.10"

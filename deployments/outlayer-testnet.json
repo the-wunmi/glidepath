@@ -1,0 +1,31 @@
+{
+  "network": "testnet",
+  "contract": "outlayer.testnet",
+  "api": "https://testnet-api.outlayer.ai",
+  "workerRegistry": "worker.outlayer.testnet",
+  "caller": "zyx-dev.testnet",
+  "wasm": {
+    "url": "https://test.fastfs.io/zyx-dev.testnet/outlayer.testnet/bc84483901fa81fdd510bebcc98cd385a4dfc901f4dfb80a500d1b3beffd069c.wasm",
+    "sha256": "bc84483901fa81fdd510bebcc98cd385a4dfc901f4dfb80a500d1b3beffd069c"
+  },
+  "signingKey": "ed25519:5HrfcRs5fLyx3MGib9UoQqbrZGVqivQsvEKCCg5BbEY9",
+  "encryptionKeyHex": "39c4753e0cf27170a5c12a3b1cb196816d5428dc0db85396dfc78fdbb6abc776",
+  "quoteSignerKey": "ed25519:B96gpqFD7DTxGLMSn7eWr6XTaVFg3Y9wdXWhZwqzQUB3",
+  "keyProof": {
+    "txHash": "3XV6BodWG598prmcFVENFmSFi7EmfffSJyTy3rpmeh9e",
+    "json": "{\"caller\":\"zyx-dev.testnet\",\"encryption_key_hex\":\"39c4753e0cf27170a5c12a3b1cb196816d5428dc0db85396dfc78fdbb6abc776\",\"quote_signer_key\":\"ed25519:B96gpqFD7DTxGLMSn7eWr6XTaVFg3Y9wdXWhZwqzQUB3\",\"signing_key\":\"ed25519:5HrfcRs5fLyx3MGib9UoQqbrZGVqivQsvEKCCg5BbEY9\",\"type\":\"key_proof\"}",
+    "signature": "KecZZeGXoks0y+6aEtDLNkxtIbD5dV8JX1vgaJIId4jGVwk9dqgMro+dGbMa2dzGc3ncCgAH0MEbaazmx72vAg=="
+  },
+  "attestation": {
+    "url": "https://testnet-api.outlayer.ai/attestations/by-tx/3XV6BodWG598prmcFVENFmSFi7EmfffSJyTy3rpmeh9e",
+    "measurements": {
+      "mrtd": "7fe60787222bd394cb516abca2435f22f035ab2cc9c0a4b4b3b148e46297f3d931a237b72f359052c6e657d8c1409173",
+      "rtmr0": "573aadb4d478839c803c4b1d3e03dd748976b63a89622f377e32a54dd60546e88ec2097f595ceafc324f48a0d0d31db6",
+      "rtmr1": "e7b3ffa0e72b50557d85f7ecd8dc98a4ffc3dd6f82d01f122ef522d61361abeac310d70d2877e56be9c9408d9bcc320c",
+      "rtmr2": "764489f277a8540189761e72b4238ba36d4d647e11bd958d8ab5522af2a4867b0ff63e06b0c4967f1857236244040a5d",
+      "rtmr3": "528235764e42c8ec9bbd3d58543dddba5f2eb43f18ad580385bd03991bbeaded7fde1b0f24697a4506742a44a7f7b884"
+    },
+    "quoteHash": "f594c8820a0fa459d7cb92f71dd910bde9b77e6b3242c9874dce25540c8ffc3e"
+  },
+  "registerTx": "Fya1hSLGUcH9gbHHdBivdfrmg7W1kL9DLQQzUzRSdTRg"
+}

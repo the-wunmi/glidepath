@@ -1,0 +1,216 @@
+{
+  "generated_at": "2026-11-13T04:18:23.780Z",
+  "network": "local",
+  "plan_id": 1,
+  "registry": "registry.sandbox",
+  "attempts": [
+    {
+      "attack": "Move tokens straight out of the plan account",
+      "attacker": "founder key",
+      "expected": "only_registry",
+      "got": "only_registry",
+      "verdict": "refused",
+      "tx_hash": "37BWN8EnxjmqD6giZQfVHFZcatU7PMi3GpJUQ1GjGT9Y"
+    },
+    {
+      "attack": "Release the plan account balance to themselves",
+      "attacker": "founder key",
+      "expected": "only_registry",
+      "got": "only_registry",
+      "verdict": "refused",
+      "tx_hash": "9mhE44z3m3GhA3QVJZeggoMxtpBFJV6F23u8FpLPgEnS"
+    },
+    {
+      "attack": "Add their own key to the plan account",
+      "attacker": "founder key",
+      "expected": "no_access_key",
+      "got": "no_access_key",
+      "verdict": "refused",
+      "tx_hash": ""
+    },
+    {
+      "attack": "Redeploy the registry with new code",
+      "attacker": "founder key",
+      "expected": "no_access_key",
+      "got": "no_access_key",
+      "verdict": "refused",
+      "tx_hash": ""
+    },
+    {
+      "attack": "Register their own \"enclave\" key",
+      "attacker": "founder key",
+      "expected": "only_governance",
+      "got": "only_governance",
+      "verdict": "refused",
+      "tx_hash": "2389osSdwcSjEUNNu8g8snU8YmM1hZ5yXxWZ3gp6kdTr"
+    },
+    {
+      "attack": "Sign a sale with a key that is not on the allowlist",
+      "attacker": "founder key",
+      "expected": "unknown_enclave",
+      "got": "unknown_enclave",
+      "verdict": "refused",
+      "tx_hash": "dnK1px8s67sbCPcSbSErniKk6dLBVzfmisqvaQgeiRF"
+    },
+    {
+      "attack": "Replay an earlier enclave-signed sale",
+      "attacker": "anyone",
+      "expected": "bad_seq",
+      "got": "bad_seq",
+      "verdict": "refused",
+      "tx_hash": "Aa6uTW9aH2QU4TnhNgcc1CyfhAeZj9MZqLY5egEbicV"
+    },
+    {
+      "attack": "Change the amount in a genuine signed sale",
+      "attacker": "anyone",
+      "expected": "bad_signature",
+      "got": "bad_signature",
+      "verdict": "refused",
+      "tx_hash": "GjcLSEYj8aUQWj9LmFwJK5BYZKc1UdL1Y7hzENhR9RDz"
+    },
+    {
+      "attack": "Claim the enclave key with a forged signature",
+      "attacker": "anyone",
+      "expected": "bad_signature",
+      "got": "bad_signature",
+      "verdict": "refused",
+      "tx_hash": "GSbATtdV8eMEMEcUoth2kUmMkWRj6ansoo9vXRTQ25wd"
+    },
+    {
+      "attack": "Sell more than the public per-sale cap in one go",
+      "attacker": "compromised enclave",
+      "expected": "tx_cap_exceeded",
+      "got": "tx_cap_exceeded",
+      "verdict": "refused",
+      "tx_hash": "H5sueV3MYQytWdpRbgVwhekC1Jp5HcBmUx9QCMCiVX2v"
+    },
+    {
+      "attack": "Sell on a genuine quote whose guaranteed price is under the public floor",
+      "attacker": "compromised enclave",
+      "expected": "below_floor",
+      "got": "below_floor",
+      "verdict": "refused",
+      "tx_hash": "GiypRwKuVYLyYRz35MgLsZom5SqXJ5yvvNSkA1xZ39Ex"
+    },
+    {
+      "attack": "Send the proceeds to the attacker (genuine quote, attacker as recipient)",
+      "attacker": "compromised enclave",
+      "expected": "quote_mismatch",
+      "got": "quote_mismatch",
+      "verdict": "refused",
+      "tx_hash": "AYsPeVwC9rb5qKxp8yWZzMt5XduQ4UH5cYzXmRYxxPKY"
+    },
+    {
+      "attack": "Have a failed swap refund to the attacker (genuine quote, attacker as refund address)",
+      "attacker": "compromised enclave",
+      "expected": "quote_mismatch",
+      "got": "quote_mismatch",
+      "verdict": "refused",
+      "tx_hash": "G9TwT57Z4uSWkGd3coYV5tmvfPLQhGqeh5qAyvQpRedv"
+    },
+    {
+      "attack": "Invent a quote with a high guaranteed price (edit minAmountOut in a real 1Click-format quote)",
+      "attacker": "compromised enclave",
+      "expected": "bad_quote_signature",
+      "got": "bad_quote_signature",
+      "verdict": "refused",
+      "tx_hash": "7H2ohmn8mumc1guZuTzrgBba9tSuVhuSiq3p6sGf13Ki"
+    },
+    {
+      "attack": "Tamper with a genuine 1Click-format quote: swap in the attacker as recipient",
+      "attacker": "compromised enclave",
+      "expected": "bad_quote_signature",
+      "got": "bad_quote_signature",
+      "verdict": "refused",
+      "tx_hash": "EN17t18oHufnUbSvziMw4vHgsnBuQiJSziT2gxJNgcfs"
+    },
+    {
+      "attack": "Skim the sale through an app fee to the attacker (1Click signs it; 3% fee)",
+      "attacker": "compromised enclave",
+      "expected": "quote_fee_too_high",
+      "got": "quote_fee_too_high",
+      "verdict": "refused",
+      "tx_hash": "7VWWVwmSXsYEFo4R1PSb5w67G9V2EskBx845UaJavNgj"
+    },
+    {
+      "attack": "Pay the sale to an address other than the 1Click deposit",
+      "attacker": "compromised enclave",
+      "expected": "receiver_mismatch",
+      "got": "receiver_mismatch",
+      "verdict": "refused",
+      "tx_hash": "8SJSWURjymdQ5tsJAkU3jFaAqUMGm37xEDpAYff9LnrR"
+    },
+    {
+      "attack": "Submit a sale whose own compliance answers say no",
+      "attacker": "compromised enclave",
+      "expected": "not_compliant",
+      "got": "not_compliant",
+      "verdict": "refused",
+      "tx_hash": "J9AbARu5mZLMYU9PL7EjUQAb5KLZYUQVzVd1QiAiDvn2"
+    },
+    {
+      "attack": "Reuse the 1Click quote of an earlier sale for a new one",
+      "attacker": "compromised enclave",
+      "expected": "quote_used",
+      "got": "quote_used",
+      "verdict": "refused",
+      "tx_hash": "6zifmysDrXKgJoZDD5a5Lt1tcHogUkvaWpMyJ38yLGb5"
+    },
+    {
+      "attack": "Use a newly registered enclave key on a plan with a longer cooling-off",
+      "attacker": "governance (colluding) + new key",
+      "expected": "key_too_new_for_plan",
+      "got": "key_too_new_for_plan",
+      "verdict": "refused",
+      "tx_hash": "4KryDkS1j8hhtpAXiZK755ZniYp1SmmVtZMRvuk2kvF9"
+    },
+    {
+      "attack": "Request a plan change (allowed: it starts a public cooling-off)",
+      "attacker": "founder key",
+      "expected": "accepted",
+      "got": "accepted",
+      "verdict": "accepted",
+      "tx_hash": "8bmvbJ8C2H3af1sAX5YoPPZzDTgcx6qZoEWdHgNcUEp7"
+    },
+    {
+      "attack": "Apply the change before the cooling-off ends",
+      "attacker": "compromised enclave",
+      "expected": "cooling_off",
+      "got": "cooling_off",
+      "verdict": "refused",
+      "tx_hash": "HZttSHbsDtqf5AcMsxV7s9T94C5B5HosvhPfVkESMarn"
+    },
+    {
+      "attack": "Sell under the new plan before it takes effect",
+      "attacker": "compromised enclave",
+      "expected": "commitment_mismatch",
+      "got": "commitment_mismatch",
+      "verdict": "refused",
+      "tx_hash": "2VJAHk3yBbjgm26bgZJQ95YuExsGLE4r7bRebDRABynT"
+    },
+    {
+      "attack": "Cancel and take the tokens back at once",
+      "attacker": "founder key",
+      "expected": "cooling_off",
+      "got": "cooling_off",
+      "verdict": "refused",
+      "tx_hash": "Ba9qPRi5y1kyP9unLZwSbFPdQfxRoaJizrG2e6drrE7M"
+    },
+    {
+      "attack": "Withdraw a cancel after it took effect, to resume selling at once",
+      "attacker": "founder key",
+      "expected": "cancel_effective",
+      "got": "cancel_effective",
+      "verdict": "refused",
+      "tx_hash": "81tG7QtbMkTvzV3PrECaNGiSp5GBry6okHHgCFQbyQWi"
+    },
+    {
+      "attack": "Re-sign someone else's EVM transfer with different fees",
+      "attacker": "relayer (an outsider)",
+      "expected": "only_owner_or_beneficiary",
+      "got": "only_owner_or_beneficiary",
+      "verdict": "refused",
+      "tx_hash": "2KTvdcWmHWcicnsMMQQ2G1nTv59NC6QTuh61My1EuMoB"
+    }
+  ]
+}

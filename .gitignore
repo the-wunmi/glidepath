@@ -1,0 +1,21 @@
+# Dependencies and build output
+node_modules
+.next
+.turbo
+contracts/target
+enclave-wasi/target
+*.tsbuildinfo
+
+# Secrets: only .env.example is committed
+.env
+.env.*
+!.env.example
+
+# Local state: sandbox keys, the simulated enclave's hardware secret, logs
+.data
+*.log
+deployments/local-*.json
+
+# Tooling
+.DS_Store
+test-results

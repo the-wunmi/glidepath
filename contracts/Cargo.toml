@@ -1,0 +1,32 @@
+[workspace]
+resolver = "2"
+members = [
+  "plan-registry",
+  "plan-account",
+  "mpc-signer-sim",
+  "demo-token",
+  "integration-tests",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+
+[workspace.dependencies]
+near-sdk = "5.30.1"
+near-contract-standards = "5.30.1"
+k256 = { version = "0.13", default-features = false, features = ["ecdsa", "arithmetic"] }
+sha3 = { version = "0.10", default-features = false }
+uint = { version = "0.10", default-features = false }
+hex = { version = "0.4", default-features = false, features = ["alloc"] }
+
+# Shared by every contract: smallest wasm, and arithmetic overflow aborts instead of wrapping.
+[profile.release]
+codegen-units = 1
+opt-level = "z"
+lto = true
+debug = false
+panic = "abort"
+overflow-checks = true

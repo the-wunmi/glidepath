@@ -1,0 +1,120 @@
+# Postgres, plus the API and web app under the `app` profile.
+#   Development: pnpm db:up                                       (Postgres only; run the apps with pnpm dev)
+#   Server:      docker compose --profile app up -d --build --wait  (everything)
+# Settings and secrets come from .env (Compose reads it from this directory); nothing secret lives in
+# this file. POSTGRES_PASSWORD is applied only when the volume is first created: to change it later,
+# run ALTER ROLE inside the database as well.
+name: glidepath
+
+x-hardening: &hardening
+  restart: unless-stopped
+  init: true
+  read_only: true
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  logging:
+    driver: json-file
+    options:
+      max-size: 10m
+      max-file: "5"
+
+services:
+  postgres:
+    # Pinned to a digest so a rebuilt tag cannot change what runs. Bump deliberately.
+    image: postgres:17.11-alpine@sha256:e5d2edd28b1f8d40a0a6c0c9cdc545b19b56a0d5d88f94bc11a97d970d4700d0
+    restart: unless-stopped
+    # The product was called Verified Sales Plans; the database keeps its names so existing data
+    # keeps working.
+    environment:
+      POSTGRES_USER: salesplans
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: salesplans
+    ports:
+      # Loopback only, for pnpm dev on the host; the app containers use the Compose network.
+      - "127.0.0.1:5437:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    security_opt:
+      - no-new-privileges:true
+    shm_size: 128mb
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "5"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U salesplans -d salesplans"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  # One instance only: the enclave tick loop and the 1Click simulator live in this process.
+  api:
+    <<: *hardening
+    profiles: [app]
+    build:
+      context: .
+      target: api
+    image: glidepath-api
+    # The relayer's testnet key and the Sepolia funder key reach only this container.
+    env_file: .env
+    environment:
+      # Inside the Compose network the database is postgres:5432, whatever .env says for pnpm dev.
+      DATABASE_URL: postgres://salesplans:${POSTGRES_PASSWORD}@postgres:5432/salesplans
+      DBOS_SYSTEM_DATABASE_URL: postgres://salesplans:${POSTGRES_PASSWORD}@postgres:5432/salesplans_dbos
+      NODE_ENV: production
+      # No local nodes on a server, whatever .env says for pnpm dev: NEAR is testnet and EVM is
+      # Sepolia. Set EVM_NETWORK to "off" here to serve NEAR plans only.
+      NEAR_NETWORK: testnet
+      EVM_NETWORK: sepolia
+      EVM_RPC_URL: ${EVM_RPC_URL:-https://ethereum-sepolia-rpc.publicnode.com}
+      # The public URL: writes from other origins are refused and writes are rate-limited per client.
+      PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:?Set PUBLIC_ORIGIN in .env}
+      API_HOST: 0.0.0.0
+      API_PORT: "4400"
+      API_ORIGIN: http://127.0.0.1:4400
+      DATA_DIR: /data
+      DEPLOYMENTS_DIR: /app/deployments
+    volumes:
+      # The simulated enclave's hardware secret and the 1Click simulator's quote key. The testnet
+      # registry pins the identities derived from them, so they must survive a rebuild.
+      - apidata:/data
+    tmpfs:
+      - /tmp
+    ports:
+      # For the reverse proxy's /api and /rpc routes. Loopback only.
+      - "127.0.0.1:4400:4400"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # Time to stop taking requests, let DBOS checkpoint running workflows and close the pools.
+    stop_grace_period: 45s
+
+  web:
+    <<: *hardening
+    profiles: [app]
+    build:
+      context: .
+      target: web
+    image: glidepath-web
+    # Nothing secret: the web server only proxies /api and /rpc to the API.
+    environment:
+      VSP_API_ORIGIN: http://api:4400
+    tmpfs:
+      - /app/apps/web/.next/cache
+      - /tmp
+    ports:
+      # For the reverse proxy. Loopback only.
+      - "127.0.0.1:3400:3400"
+    depends_on:
+      api:
+        condition: service_healthy
+    stop_grace_period: 15s
+
+volumes:
+  # The volume the `salesplans` project created, kept by name so local data survives the rename.
+  pgdata:
+    name: salesplans_pgdata
+  apidata:

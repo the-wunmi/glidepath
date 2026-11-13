@@ -1,0 +1,17 @@
+{
+  "name": "@vsp/replay",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run --passWithNoTests",
+    "build:results": "tsx scripts/build.ts"
+  },
+  "dependencies": {
+    "zod": "^4.6.7"
+  }
+}

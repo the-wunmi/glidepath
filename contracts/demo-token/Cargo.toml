@@ -1,0 +1,17 @@
+[package]
+name = "demo-token"
+description = "NEP-141 token used for the project token and a 6-decimal USDC stand-in in tests and demos."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+near-sdk.workspace = true
+near-contract-standards.workspace = true
+
+[dev-dependencies]
+near-sdk = { workspace = true, features = ["unit-testing"] }

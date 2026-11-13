@@ -1,0 +1,20 @@
+{
+  "name": "@vsp/verify",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@noble/curves": "^2.4.0",
+    "@vsp/core": "workspace:*",
+    "@vsp/chainsig": "workspace:*",
+    "@vsp/near": "workspace:*",
+    "viem": "^2.57.17"
+  }
+}

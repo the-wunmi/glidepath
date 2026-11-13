@@ -1,0 +1,1830 @@
+{
+  "study": "unlock-replay",
+  "version": 1,
+  "data_fetched_from": "2026-11-11T02:55:10.590Z",
+  "data_fetched_to": "2026-11-11T02:55:31.922Z",
+  "units": {
+    "returns": "fraction (-0.12 = -12%)",
+    "bps": "basis points of benchmark proceeds unless stated",
+    "usd": "USDT on Binance, treated as USD",
+    "quantities": "whole tokens, decimal strings",
+    "spread": "{ p10, median, p90 } across seeded sealed plans"
+  },
+  "labels": {
+    "observed": "Measured from historical Binance prices; no model.",
+    "price_path_difference": "Observed prices, hypothetical sale times; reflects one market path.",
+    "impact": "Model estimate (square-root impact); depends on the stated coefficient."
+  },
+  "params": {
+    "sell_fraction_bps": 1000,
+    "plan_days": 90,
+    "benchmark_days": 3,
+    "sealed_sales": 90,
+    "seeds": 1000,
+    "impact_coefficient": 1,
+    "max_impact_fraction": 0.5,
+    "sensitivity_coefficients": [
+      0.5,
+      1,
+      2
+    ],
+    "sensitivity_sell_fractions_bps": [
+      500,
+      1000,
+      2500
+    ]
+  },
+  "method": {
+    "summary": "We replay four publicly scheduled team/investor unlocks with real hourly Binance prices. Part A reports what prices did around each public unlock date (observed). Part B compares two hypothetical ways of selling the same quantity: all of it in the first 3 days after the unlock (the benchmark), or a sealed plan that sells at random hours over 90 days. Proceeds at observed prices are measured; the cost of the seller's own price impact is estimated with a square-root impact model.",
+    "steps": [
+      "T is 00:00 UTC on the unlock date. Prices are the close of the hourly Binance spot candle ending at the stated time.",
+      "Observed: returns T-30d to T-1d (the window in which a public schedule can be front-run), T-1d to T+7d and T-1d to T+30d; the same returns for BTC; their difference (\"excess return\"); the largest peak-to-trough fall of hourly closes from T-30d to T+30d; and Binance volume in the week after T versus the month before.",
+      "Sell quantity: 10% of the team/investor tranche (5% and 25% in the sensitivity table), in whole tokens.",
+      "Benchmark: the quantity split evenly across every hour of [T, T+3d).",
+      "Sealed plan: 90 sales at hours drawn uniformly from [T, T+90d), each sized by a random weight in [0.5, 1.5) of the average; sizes are floored to whole tokens and the remainder added to the last sale. 1,000 seeded plans per event; we report the 10th percentile, median and 90th percentile.",
+      "Public TWAP: the quantity split evenly across every hour of [T, T+90d). It isolates what spreading out buys from what randomising buys.",
+      "Each sale is priced at Binance's VWAP for its hour (quote volume / base volume). Gross proceeds use these observed prices with no impact.",
+      "Impact: sales on the same UTC day are one metaorder of notional Q against that day's Binance quote volume V. Cost = Q x Y x sigma x sqrt(Q / V), capped at 50% of Q. sigma is the daily volatility from hourly log returns in [T-30d, T) (known before the unlock). Base Y = 1; sensitivity Y = 0.5 and 2.",
+      "Impact avoided (modelled) = benchmark impact cost - sealed impact cost. Price-path difference (observed) = sealed gross - benchmark gross. Net difference = the sum."
+    ]
+  },
+  "assumptions": [
+    "The unlock happens at 00:00 UTC on the published date; sources give dates, not times.",
+    "The hypothetical seller sells 10% of the team/investor tranche. No source tells us what insiders actually sold.",
+    "Binance spot (TOKEN/USDT) stands in for the whole market. Real volume across all venues is larger, so the modelled impact is likely an overestimate for both strategies.",
+    "The square-root impact law with Y between 0.5 and 2 describes the cost of selling. Impact is charged per day and does not carry over between days (no permanent impact, no decay model).",
+    "The historical price path is taken as given: we do not model how the hypothetical sales would have changed later prices, or how other traders would have reacted.",
+    "Daily volatility is measured over the 30 days before the unlock and held fixed afterwards.",
+    "Floats are used for prices and proceeds because this is statistical price analysis; token quantities are integers (bigint) so the plan never sells more than its quantity."
+  ],
+  "limitations": [
+    "Four events, chosen because they are large, well known and well sourced, not at random. This is a case study, not a statistically representative sample, and it cannot establish that unlocks cause price falls.",
+    "The observed returns mix the unlock with everything else that happened to each token and to the market. Subtracting BTC is a crude control.",
+    "The price-path difference between strategies is driven by where the market went after each unlock (for example, prices that kept falling for months make any later sale look worse). It is one historical path, not a property of sealed plans.",
+    "The impact numbers are model outputs. They scale with Y and with the square root of the sale size, and they would change under another impact model.",
+    "The model only captures the benefit of spreading sales out. A public 90-day TWAP gets roughly the same modelled impact saving. What the sealed plan adds, that nobody can see when the sales will come and front-run them, is not captured by this model; part A shows the window in which a public schedule is exposed.",
+    "Recorded amounts are as reported by the cited articles and docs, some rounded (for example OP \"more than 386 million\"). The APT insider amount is our sum of two reported cohorts."
+  ],
+  "data_sources": [
+    {
+      "file": "data/replay/ARBUSDT-2024-03-16.json",
+      "symbol": "ARBUSDT",
+      "event_id": "arb-2024-03-16",
+      "source_url": "https://api.binance.com/api/v3/klines?symbol=ARBUSDT&interval=1h&startTime=1707523200000&endTime=1718755199999&limit=1000",
+      "fallback_source_url": "https://data-api.binance.vision/api/v3/klines?symbol=ARBUSDT&interval=1h",
+      "fetched_at": "2026-11-11T02:55:10.590Z",
+      "interval": "1h",
+      "candles": 3120
+    },
+    {
+      "file": "data/replay/BTCUSDT-2024-03-16.json",
+      "symbol": "BTCUSDT",
+      "event_id": "arb-2024-03-16",
+      "source_url": "https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1h&startTime=1707523200000&endTime=1718755199999&limit=1000",
+      "fallback_source_url": "https://data-api.binance.vision/api/v3/klines?symbol=BTCUSDT&interval=1h",
+      "fetched_at": "2026-11-11T02:55:13.856Z",
+      "interval": "1h",
+      "candles": 3120
+    },
+    {
+      "file": "data/replay/OPUSDT-2023-05-31.json",
+      "symbol": "OPUSDT",
+      "event_id": "op-2023-05-31",
+      "source_url": "https://api.binance.com/api/v3/klines?symbol=OPUSDT&interval=1h&startTime=1682467200000&endTime=1693699199999&limit=1000",
+      "fallback_source_url": "https://data-api.binance.vision/api/v3/klines?symbol=OPUSDT&interval=1h",
+      "fetched_at": "2026-11-11T02:55:16.651Z",
+      "interval": "1h",
+      "candles": 3120
+    },
+    {
+      "file": "data/replay/BTCUSDT-2023-05-31.json",
+      "symbol": "BTCUSDT",
+      "event_id": "op-2023-05-31",
+      "source_url": "https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1h&startTime=1682467200000&endTime=1693699199999&limit=1000",
+      "fallback_source_url": "https://data-api.binance.vision/api/v3/klines?symbol=BTCUSDT&interval=1h",
+      "fetched_at": "2026-11-11T02:55:19.714Z",
+      "interval": "1h",
+      "candles": 3120
+    },
+    {
+      "file": "data/replay/APTUSDT-2023-11-12.json",
+      "symbol": "APTUSDT",
+      "event_id": "apt-2023-11-12",
+      "source_url": "https://api.binance.com/api/v3/klines?symbol=APTUSDT&interval=1h&startTime=1696723200000&endTime=1707955199999&limit=1000",
+      "fallback_source_url": "https://data-api.binance.vision/api/v3/klines?symbol=APTUSDT&interval=1h",
+      "fetched_at": "2026-11-11T02:55:22.527Z",
+      "interval": "1h",
+      "candles": 3120
+    },
+    {
+      "file": "data/replay/BTCUSDT-2023-11-12.json",
+      "symbol": "BTCUSDT",
+      "event_id": "apt-2023-11-12",
+      "source_url": "https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1h&startTime=1696723200000&endTime=1707955199999&limit=1000",
+      "fallback_source_url": "https://data-api.binance.vision/api/v3/klines?symbol=BTCUSDT&interval=1h",
+      "fetched_at": "2026-11-11T02:55:25.447Z",
+      "interval": "1h",
+      "candles": 3120
+    },
+    {
+      "file": "data/replay/STRKUSDT-2024-04-15.json",
+      "symbol": "STRKUSDT",
+      "event_id": "strk-2024-04-15",
+      "source_url": "https://api.binance.com/api/v3/klines?symbol=STRKUSDT&interval=1h&startTime=1710115200000&endTime=1721347199999&limit=1000",
+      "fallback_source_url": "https://data-api.binance.vision/api/v3/klines?symbol=STRKUSDT&interval=1h",
+      "fetched_at": "2026-11-11T02:55:28.819Z",
+      "interval": "1h",
+      "candles": 3120
+    },
+    {
+      "file": "data/replay/BTCUSDT-2024-04-15.json",
+      "symbol": "BTCUSDT",
+      "event_id": "strk-2024-04-15",
+      "source_url": "https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1h&startTime=1710115200000&endTime=1721347199999&limit=1000",
+      "fallback_source_url": "https://data-api.binance.vision/api/v3/klines?symbol=BTCUSDT&interval=1h",
+      "fetched_at": "2026-11-11T02:55:31.922Z",
+      "interval": "1h",
+      "candles": 3120
+    }
+  ],
+  "headline": [
+    {
+      "event_id": "arb-2024-03-16",
+      "token": "Arbitrum (ARB)",
+      "unlock_date": "2024-03-16",
+      "unlock_amount": "1110000000",
+      "insider_amount": "1110000000",
+      "share_of_supply": {
+        "pct": 11.1,
+        "basis": "total"
+      },
+      "verification": "confirmed",
+      "observed": {
+        "return_t_minus_30d_to_t_minus_1d": -0.045239223,
+        "excess_return_t_minus_30d_to_t_minus_1d": -0.4235326,
+        "return_t_minus_1d_to_t_plus_7d": -0.20411808,
+        "excess_return_t_minus_1d_to_t_plus_7d": -0.097766877,
+        "max_drawdown_t_minus_30d_to_t_plus_30d": -0.58764451,
+        "volume_ratio_week_after_vs_month_before": 1.6729902
+      },
+      "modelled": {
+        "sell_quantity": "111000000",
+        "notional_at_t_minus_1d_usd": 223720500,
+        "benchmark_impact_bps": 255.53235,
+        "sealed_impact_bps": {
+          "p10": 93.360871,
+          "median": 99.284962,
+          "p90": 106.56487
+        },
+        "impact_avoided_usd": {
+          "p10": 3482346.1,
+          "median": 3588231.7,
+          "p90": 3679393.9
+        },
+        "impact_avoided_bps": {
+          "p10": 179.5315,
+          "median": 184.9904,
+          "p90": 189.69024
+        },
+        "price_path_difference_bps": {
+          "p10": -3104.4855,
+          "median": -2905.8165,
+          "p90": -2690.2768
+        },
+        "net_difference_bps": {
+          "p10": -2993.5492,
+          "median": -2790.6965,
+          "p90": -2575.1612
+        },
+        "sealed_vs_public_twap_net_bps": {
+          "p10": -316.57287,
+          "median": -36.215563,
+          "p90": 261.6699
+        }
+      }
+    },
+    {
+      "event_id": "op-2023-05-31",
+      "token": "Optimism (OP)",
+      "unlock_date": "2023-05-31",
+      "unlock_amount": "386000000",
+      "insider_amount": "386000000",
+      "share_of_supply": {
+        "pct": 9,
+        "basis": "total"
+      },
+      "verification": "confirmed",
+      "observed": {
+        "return_t_minus_30d_to_t_minus_1d": -0.29672358,
+        "excess_return_t_minus_30d_to_t_minus_1d": -0.2455212,
+        "return_t_minus_1d_to_t_plus_7d": -0.019028871,
+        "excess_return_t_minus_1d_to_t_plus_7d": -0.00077415917,
+        "max_drawdown_t_minus_30d_to_t_plus_30d": -0.51469238,
+        "volume_ratio_week_after_vs_month_before": 1.8988504
+      },
+      "modelled": {
+        "sell_quantity": "38600000",
+        "notional_at_t_minus_1d_usd": 58826400,
+        "benchmark_impact_bps": 304.08285,
+        "sealed_impact_bps": {
+          "p10": 82.86318,
+          "median": 88.359422,
+          "p90": 93.863553
+        },
+        "impact_avoided_usd": {
+          "p10": 1145738.6,
+          "median": 1177295.3,
+          "p90": 1208352.8
+        },
+        "impact_avoided_bps": {
+          "p10": 210.00503,
+          "median": 215.78912,
+          "p90": 221.48172
+        },
+        "price_path_difference_bps": {
+          "p10": -169.23924,
+          "median": -2.6305311,
+          "p90": 169.95791
+        },
+        "net_difference_bps": {
+          "p10": 50.185222,
+          "median": 220.96801,
+          "p90": 396.22339
+        },
+        "sealed_vs_public_twap_net_bps": {
+          "p10": -194.22187,
+          "median": -27.592293,
+          "p90": 143.40111
+        }
+      }
+    },
+    {
+      "event_id": "apt-2023-11-12",
+      "token": "Aptos (APT)",
+      "unlock_date": "2023-11-12",
+      "unlock_amount": "24840000",
+      "insider_amount": "20300000",
+      "share_of_supply": {
+        "pct": 10,
+        "basis": "circulating"
+      },
+      "verification": "partly_derived",
+      "observed": {
+        "return_t_minus_30d_to_t_minus_1d": 0.54930538,
+        "excess_return_t_minus_30d_to_t_minus_1d": 0.15535375,
+        "return_t_minus_1d_to_t_plus_7d": -0.056469584,
+        "excess_return_t_minus_1d_to_t_plus_7d": -0.036804759,
+        "max_drawdown_t_minus_30d_to_t_plus_30d": -0.17457231,
+        "volume_ratio_week_after_vs_month_before": 1.3319083
+      },
+      "modelled": {
+        "sell_quantity": "2030000",
+        "notional_at_t_minus_1d_usd": 15213429,
+        "benchmark_impact_bps": 166.22102,
+        "sealed_impact_bps": {
+          "p10": 54.015882,
+          "median": 57.357114,
+          "p90": 61.267994
+        },
+        "impact_avoided_usd": {
+          "p10": 149279.22,
+          "median": 156192.8,
+          "p90": 161831.63
+        },
+        "impact_avoided_bps": {
+          "p10": 97.326377,
+          "median": 101.83386,
+          "p90": 105.51024
+        },
+        "price_path_difference_bps": {
+          "p10": 1047.0663,
+          "median": 1232.4217,
+          "p90": 1407.8248
+        },
+        "net_difference_bps": {
+          "p10": 1168.8558,
+          "median": 1357.7019,
+          "p90": 1533.4614
+        },
+        "sealed_vs_public_twap_net_bps": {
+          "p10": -178.84829,
+          "median": -12.789594,
+          "p90": 141.76171
+        }
+      }
+    },
+    {
+      "event_id": "strk-2024-04-15",
+      "token": "Starknet (STRK)",
+      "unlock_date": "2024-04-15",
+      "unlock_amount": "64000000",
+      "insider_amount": "64000000",
+      "share_of_supply": {
+        "pct": 0.64,
+        "basis": "total"
+      },
+      "verification": "confirmed",
+      "observed": {
+        "return_t_minus_30d_to_t_minus_1d": -0.35275376,
+        "excess_return_t_minus_30d_to_t_minus_1d": -0.27253286,
+        "return_t_minus_1d_to_t_plus_7d": -0.077355837,
+        "excess_return_t_minus_1d_to_t_plus_7d": -0.093259596,
+        "max_drawdown_t_minus_30d_to_t_plus_30d": -0.5304929,
+        "volume_ratio_week_after_vs_month_before": 0.56822548
+      },
+      "modelled": {
+        "sell_quantity": "6400000",
+        "notional_at_t_minus_1d_usd": 9100800,
+        "benchmark_impact_bps": 156.3184,
+        "sealed_impact_bps": {
+          "p10": 49.685898,
+          "median": 52.559826,
+          "p90": 56.438691
+        },
+        "impact_avoided_usd": {
+          "p10": 93627.106,
+          "median": 96735.311,
+          "p90": 99247.266
+        },
+        "impact_avoided_bps": {
+          "p10": 110.87903,
+          "median": 114.55996,
+          "p90": 117.53477
+        },
+        "price_path_difference_bps": {
+          "p10": -2365.8619,
+          "median": -2062.558,
+          "p90": -1776.0194
+        },
+        "net_difference_bps": {
+          "p10": -2286.146,
+          "median": -1979.001,
+          "p90": -1690.0139
+        },
+        "sealed_vs_public_twap_net_bps": {
+          "p10": -384.57453,
+          "median": -1.7141072,
+          "p90": 358.51228
+        }
+      }
+    }
+  ],
+  "events": [
+    {
+      "event": {
+        "id": "arb-2024-03-16",
+        "token": "Arbitrum (ARB)",
+        "symbol": "ARBUSDT",
+        "unlock_date": "2024-03-16",
+        "unlock_amount": "1110000000",
+        "insider_amount": "1110000000",
+        "recipients": "Team, contributors and advisors, and investors (first cliff of the 4-year lockup)",
+        "share_of_supply": {
+          "pct": 11.1,
+          "basis": "total"
+        },
+        "share_of_supply_notes": "1.11B of the 10B initial supply cap. CoinDesk (Aug 2023) put it at 87% of the then circulating supply; FXStreet (Mar 2024) at 76.62% of circulating supply.",
+        "verification": "confirmed",
+        "verification_notes": "Total 1.11B and the team-and-investor cliff confirmed by CoinDesk; investor part 438.25M ARB confirmed by FXStreet; the team part (about 672M) is the remainder and was not read from a source directly.",
+        "sources": [
+          {
+            "url": "https://www.coindesk.com/markets/2023/08/16/arbitrum-will-unlock-12b-arb-in-march-2024-token-unlocks",
+            "fetched_at": "2026-11-11",
+            "supports": "Cliff unlock of 1.11 billion ARB for team and investors on March 16, 2024"
+          },
+          {
+            "url": "https://www.fxstreet.com/cryptocurrencies/news/arbitrum-price-readies-for-one-of-the-biggest-token-unlocks-of-2024-202403130200",
+            "fetched_at": "2026-11-11",
+            "supports": "438.25 million ARB to investors; 76.62% of circulating supply"
+          },
+          {
+            "url": "https://docs.arbitrum.foundation/airdrop-eligibility-distribution",
+            "fetched_at": "2026-11-11",
+            "supports": "10B initial supply cap; team 26.94%, investors 17.53%; 4-year lockups with first unlocks one year after 3/16/2023"
+          }
+        ]
+      },
+      "data": {
+        "token_file": "ARBUSDT-2024-03-16.json",
+        "market_file": "BTCUSDT-2024-03-16.json",
+        "source_url": "https://api.binance.com/api/v3/klines?symbol=ARBUSDT&interval=1h&startTime=1707523200000&endTime=1718755199999&limit=1000",
+        "fetched_at": "2026-11-11T02:55:10.590Z",
+        "interval": "1h",
+        "candles": 3120,
+        "first_open": "2024-02-10T00:00:00.000Z",
+        "last_open": "2024-06-18T23:00:00.000Z"
+      },
+      "observed": {
+        "prices": {
+          "t_minus_30d": 2.111,
+          "t_minus_1d": 2.0155,
+          "t": 1.8879,
+          "t_plus_7d": 1.6041,
+          "t_plus_30d": 1.1795,
+          "t_plus_90d": 0.9366
+        },
+        "return_t_minus_30d_to_t_minus_1d": -0.045239223,
+        "return_t_minus_1d_to_t_plus_7d": -0.20411808,
+        "return_t_minus_1d_to_t_plus_30d": -0.41478541,
+        "market_return_t_minus_30d_to_t_minus_1d": 0.37829338,
+        "market_return_t_minus_1d_to_t_plus_7d": -0.10635121,
+        "market_return_t_minus_1d_to_t_plus_30d": -0.080223911,
+        "excess_return_t_minus_30d_to_t_minus_1d": -0.4235326,
+        "excess_return_t_minus_1d_to_t_plus_7d": -0.097766877,
+        "excess_return_t_minus_1d_to_t_plus_30d": -0.3345615,
+        "max_drawdown_t_minus_30d_to_t_plus_30d": -0.58764451,
+        "low_t_to_t_plus_30d_vs_t_minus_1d": -0.5416522,
+        "avg_daily_quote_volume_usd_t_minus_30d_to_t": 185920830,
+        "avg_daily_quote_volume_usd_t_to_t_plus_7d": 311043720,
+        "volume_ratio_week_after_vs_month_before": 1.6729902,
+        "daily_volatility_t_minus_30d_to_t": 0.053966484
+      },
+      "simulation": {
+        "sell_quantity": "111000000",
+        "sell_fraction_of_insider_bps": 1000,
+        "notional_at_t_minus_1d_usd": 223720500,
+        "impact_model": {
+          "coefficient": 1,
+          "dailyVolatility": 0.053966484,
+          "maxFraction": 0.5
+        },
+        "benchmark": {
+          "gross_usd": 193968540,
+          "impact_cost_usd": 4956523.5,
+          "net_usd": 189012010,
+          "impact_bps": 255.53235,
+          "avg_price_usd": 1.7474643,
+          "max_daily_participation": 0.25714999,
+          "sale_count": 72,
+          "active_days": 3
+        },
+        "public_twap": {
+          "gross_usd": 137741760,
+          "impact_cost_usd": 981977.52,
+          "net_usd": 136759780,
+          "impact_bps": 71.291201,
+          "avg_price_usd": 1.2409167,
+          "max_daily_participation": 0.057274686,
+          "sale_count": 2160,
+          "active_days": 90
+        },
+        "sealed": {
+          "gross_usd": {
+            "p10": 133751280,
+            "median": 137604840,
+            "p90": 141785630
+          },
+          "impact_cost_usd": {
+            "p10": 1277129.7,
+            "median": 1368291.9,
+            "p90": 1474177.4
+          },
+          "net_usd": {
+            "p10": 132430340,
+            "median": 136264500,
+            "p90": 140338370
+          },
+          "impact_bps": {
+            "p10": 93.360871,
+            "median": 99.284962,
+            "p90": 106.56487
+          },
+          "avg_price_usd": {
+            "p10": 1.2049665,
+            "median": 1.2396832,
+            "p90": 1.277348
+          },
+          "max_daily_participation": {
+            "p10": 0.084298849,
+            "median": 0.11809726,
+            "p90": 0.17689286
+          }
+        },
+        "comparison": {
+          "impact_avoided_usd": {
+            "p10": 3482346.1,
+            "median": 3588231.7,
+            "p90": 3679393.9
+          },
+          "impact_avoided_bps": {
+            "p10": 179.5315,
+            "median": 184.9904,
+            "p90": 189.69024
+          },
+          "price_path_difference_usd": {
+            "p10": -60217251,
+            "median": -56363698,
+            "p90": -52182905
+          },
+          "price_path_difference_bps": {
+            "p10": -3104.4855,
+            "median": -2905.8165,
+            "p90": -2690.2768
+          },
+          "net_difference_usd": {
+            "p10": -56581676,
+            "median": -52747516,
+            "p90": -48673641
+          },
+          "net_difference_bps": {
+            "p10": -2993.5492,
+            "median": -2790.6965,
+            "p90": -2575.1612
+          },
+          "sealed_vs_public_twap_net_bps": {
+            "p10": -316.57287,
+            "median": -36.215563,
+            "p90": 261.6699
+          }
+        },
+        "sensitivity": [
+          {
+            "impact_coefficient": 0.5,
+            "sell_fraction_bps": 500,
+            "sell_quantity": "55500000",
+            "benchmark_impact_bps": 90.344326,
+            "sealed_impact_bps_median": 35.102529,
+            "impact_avoided_usd": {
+              "p10": 615597.69,
+              "median": 634315.78,
+              "p90": 650431.16
+            },
+            "impact_avoided_bps": {
+              "p10": 63.473973,
+              "median": 65.403987,
+              "p90": 67.065635
+            },
+            "net_difference_bps": {
+              "p10": -3065.1601,
+              "median": -2865.3426,
+              "p90": -2649.76
+            }
+          },
+          {
+            "impact_coefficient": 1,
+            "sell_fraction_bps": 500,
+            "sell_quantity": "55500000",
+            "benchmark_impact_bps": 180.68865,
+            "sealed_impact_bps_median": 70.205058,
+            "impact_avoided_usd": {
+              "p10": 1231195.4,
+              "median": 1268631.6,
+              "p90": 1300862.3
+            },
+            "impact_avoided_bps": {
+              "p10": 126.94795,
+              "median": 130.80797,
+              "p90": 134.13127
+            },
+            "net_difference_bps": {
+              "p10": -3026.735,
+              "median": -2824.9404,
+              "p90": -2609.5957
+            }
+          },
+          {
+            "impact_coefficient": 2,
+            "sell_fraction_bps": 500,
+            "sell_quantity": "55500000",
+            "benchmark_impact_bps": 361.3773,
+            "sealed_impact_bps_median": 140.41012,
+            "impact_avoided_usd": {
+              "p10": 2462390.8,
+              "median": 2537263.1,
+              "p90": 2601724.6
+            },
+            "impact_avoided_bps": {
+              "p10": 253.89589,
+              "median": 261.61595,
+              "p90": 268.26254
+            },
+            "net_difference_bps": {
+              "p10": -2945.8309,
+              "median": -2741.5267,
+              "p90": -2526.0349
+            }
+          },
+          {
+            "impact_coefficient": 0.5,
+            "sell_fraction_bps": 1000,
+            "sell_quantity": "111000000",
+            "benchmark_impact_bps": 127.76617,
+            "sealed_impact_bps_median": 49.642481,
+            "impact_avoided_usd": {
+              "p10": 1741173.1,
+              "median": 1794115.8,
+              "p90": 1839696.9
+            },
+            "impact_avoided_bps": {
+              "p10": 89.765748,
+              "median": 92.495199,
+              "p90": 94.845122
+            },
+            "net_difference_bps": {
+              "p10": -3049.2762,
+              "median": -2848.4177,
+              "p90": -2633.2078
+            }
+          },
+          {
+            "impact_coefficient": 1,
+            "sell_fraction_bps": 1000,
+            "sell_quantity": "111000000",
+            "benchmark_impact_bps": 255.53235,
+            "sealed_impact_bps_median": 99.284962,
+            "impact_avoided_usd": {
+              "p10": 3482346.1,
+              "median": 3588231.7,
+              "p90": 3679393.9
+            },
+            "impact_avoided_bps": {
+              "p10": 179.5315,
+              "median": 184.9904,
+              "p90": 189.69024
+            },
+            "net_difference_bps": {
+              "p10": -2993.5492,
+              "median": -2790.6965,
+              "p90": -2575.1612
+            }
+          },
+          {
+            "impact_coefficient": 2,
+            "sell_fraction_bps": 1000,
+            "sell_quantity": "111000000",
+            "benchmark_impact_bps": 511.0647,
+            "sealed_impact_bps_median": 198.56992,
+            "impact_avoided_usd": {
+              "p10": 6964692.3,
+              "median": 7176463.3,
+              "p90": 7358787.8
+            },
+            "impact_avoided_bps": {
+              "p10": 359.06299,
+              "median": 369.9808,
+              "p90": 379.38049
+            },
+            "net_difference_bps": {
+              "p10": -2876.491,
+              "median": -2670.1553,
+              "p90": -2453.5695
+            }
+          },
+          {
+            "impact_coefficient": 0.5,
+            "sell_fraction_bps": 2500,
+            "sell_quantity": "277500000",
+            "benchmark_impact_bps": 202.01606,
+            "sealed_impact_bps_median": 78.491662,
+            "impact_avoided_usd": {
+              "p10": 6882590.4,
+              "median": 7091864.9,
+              "p90": 7272040.1
+            },
+            "impact_avoided_bps": {
+              "p10": 141.9321,
+              "median": 146.24774,
+              "p90": 149.96329
+            },
+            "net_difference_bps": {
+              "p10": -3017.5509,
+              "median": -2815.407,
+              "p90": -2599.996
+            }
+          },
+          {
+            "impact_coefficient": 1,
+            "sell_fraction_bps": 2500,
+            "sell_quantity": "277500000",
+            "benchmark_impact_bps": 404.03211,
+            "sealed_impact_bps_median": 156.98332,
+            "impact_avoided_usd": {
+              "p10": 13765181,
+              "median": 14183730,
+              "p90": 14544080
+            },
+            "impact_avoided_bps": {
+              "p10": 283.8642,
+              "median": 292.49548,
+              "p90": 299.92659
+            },
+            "net_difference_bps": {
+              "p10": -2926.0902,
+              "median": -2721.3866,
+              "p90": -2505.5112
+            }
+          },
+          {
+            "impact_coefficient": 2,
+            "sell_fraction_bps": 2500,
+            "sell_quantity": "277500000",
+            "benchmark_impact_bps": 808.06423,
+            "sealed_impact_bps_median": 313.96665,
+            "impact_avoided_usd": {
+              "p10": 27530362,
+              "median": 28367460,
+              "p90": 29088160
+            },
+            "impact_avoided_bps": {
+              "p10": 567.7284,
+              "median": 584.99096,
+              "p90": 599.85317
+            },
+            "net_difference_bps": {
+              "p10": -2730.0761,
+              "median": -2521.4549,
+              "p90": -2301.3719
+            }
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "id": "op-2023-05-31",
+        "token": "Optimism (OP)",
+        "symbol": "OPUSDT",
+        "unlock_date": "2023-05-31",
+        "unlock_amount": "386000000",
+        "insider_amount": "386000000",
+        "recipients": "Core contributors and investors (their first unlock)",
+        "share_of_supply": {
+          "pct": 9,
+          "basis": "total"
+        },
+        "share_of_supply_notes": "9% of total supply (Token Terminal, quoted by Cointelegraph). The Block: 387M tokens, a 114% increase to circulating supply.",
+        "verification": "confirmed",
+        "verification_notes": "Sources say \"more than 386 million\"; we use 386,000,000 (a lower bound). No fetched source gave the contributor/investor split, so it is not recorded.",
+        "sources": [
+          {
+            "url": "https://cointelegraph.com/news/optimism-unlock-millions-op-token-may-price-pressure",
+            "fetched_at": "2026-11-11",
+            "supports": "More than 386 million OP unlocked May 31; first unlock for core contributors and investors; 9% of total supply"
+          },
+          {
+            "url": "https://www.theblock.co/post/232511/optimism-sui-set-for-large-token-unlocks-worth-a-combined-650-million",
+            "fetched_at": "2026-11-11",
+            "supports": "387 million OP on May 31, split between core contributors and investors"
+          }
+        ]
+      },
+      "data": {
+        "token_file": "OPUSDT-2023-05-31.json",
+        "market_file": "BTCUSDT-2023-05-31.json",
+        "source_url": "https://api.binance.com/api/v3/klines?symbol=OPUSDT&interval=1h&startTime=1682467200000&endTime=1693699199999&limit=1000",
+        "fetched_at": "2026-11-11T02:55:16.651Z",
+        "interval": "1h",
+        "candles": 3120,
+        "first_open": "2023-04-26T00:00:00.000Z",
+        "last_open": "2023-09-02T23:00:00.000Z"
+      },
+      "observed": {
+        "prices": {
+          "t_minus_30d": 2.167,
+          "t_minus_1d": 1.524,
+          "t": 1.42,
+          "t_plus_7d": 1.495,
+          "t_plus_30d": 1.221,
+          "t_plus_90d": 1.423
+        },
+        "return_t_minus_30d_to_t_minus_1d": -0.29672358,
+        "return_t_minus_1d_to_t_plus_7d": -0.019028871,
+        "return_t_minus_1d_to_t_plus_30d": -0.1988189,
+        "market_return_t_minus_30d_to_t_minus_1d": -0.051202382,
+        "market_return_t_minus_1d_to_t_plus_7d": -0.018254712,
+        "market_return_t_minus_1d_to_t_plus_30d": 0.097738351,
+        "excess_return_t_minus_30d_to_t_minus_1d": -0.2455212,
+        "excess_return_t_minus_1d_to_t_plus_7d": -0.00077415917,
+        "excess_return_t_minus_1d_to_t_plus_30d": -0.29655725,
+        "max_drawdown_t_minus_30d_to_t_plus_30d": -0.51469238,
+        "low_t_to_t_plus_30d_vs_t_minus_1d": -0.30643045,
+        "avg_daily_quote_volume_usd_t_minus_30d_to_t": 22114776,
+        "avg_daily_quote_volume_usd_t_to_t_plus_7d": 41992651,
+        "volume_ratio_week_after_vs_month_before": 1.8988504,
+        "daily_volatility_t_minus_30d_to_t": 0.043323603
+      },
+      "simulation": {
+        "sell_quantity": "38600000",
+        "sell_fraction_of_insider_bps": 1000,
+        "notional_at_t_minus_1d_usd": 58826400,
+        "impact_model": {
+          "coefficient": 1,
+          "dailyVolatility": 0.043323603,
+          "maxFraction": 0.5
+        },
+        "benchmark": {
+          "gross_usd": 54557675,
+          "impact_cost_usd": 1659005.3,
+          "net_usd": 52898670,
+          "impact_bps": 304.08285,
+          "avg_price_usd": 1.4134113,
+          "max_daily_participation": 0.62267824,
+          "sale_count": 72,
+          "active_days": 3
+        },
+        "public_twap": {
+          "gross_usd": 54563070,
+          "impact_cost_usd": 345911.04,
+          "net_usd": 54217159,
+          "impact_bps": 63.396551,
+          "avg_price_usd": 1.413551,
+          "max_daily_participation": 0.062158863,
+          "sale_count": 2160,
+          "active_days": 90
+        },
+        "sealed": {
+          "gross_usd": {
+            "p10": 53634345,
+            "median": 54543324,
+            "p90": 55484926
+          },
+          "impact_cost_usd": {
+            "p10": 450652.51,
+            "median": 481710.05,
+            "p90": 513266.71
+          },
+          "net_usd": {
+            "p10": 53164143,
+            "median": 54067561,
+            "p90": 54994639
+          },
+          "impact_bps": {
+            "p10": 82.86318,
+            "median": 88.359422,
+            "p90": 93.863553
+          },
+          "avg_price_usd": {
+            "p10": 1.3894908,
+            "median": 1.4130395,
+            "p90": 1.4374333
+          },
+          "max_daily_participation": {
+            "p10": 0.10366413,
+            "median": 0.14330966,
+            "p90": 0.20414063
+          }
+        },
+        "comparison": {
+          "impact_avoided_usd": {
+            "p10": 1145738.6,
+            "median": 1177295.3,
+            "p90": 1208352.8
+          },
+          "impact_avoided_bps": {
+            "p10": 210.00503,
+            "median": 215.78912,
+            "p90": 221.48172
+          },
+          "price_path_difference_usd": {
+            "p10": -923329.96,
+            "median": -14351.566,
+            "p90": 927250.84
+          },
+          "price_path_difference_bps": {
+            "p10": -169.23924,
+            "median": -2.6305311,
+            "p90": 169.95791
+          },
+          "net_difference_usd": {
+            "p10": 265473.15,
+            "median": 1168891.4,
+            "p90": 2095969
+          },
+          "net_difference_bps": {
+            "p10": 50.185222,
+            "median": 220.96801,
+            "p90": 396.22339
+          },
+          "sealed_vs_public_twap_net_bps": {
+            "p10": -194.22187,
+            "median": -27.592293,
+            "p90": 143.40111
+          }
+        },
+        "sensitivity": [
+          {
+            "impact_coefficient": 0.5,
+            "sell_fraction_bps": 500,
+            "sell_quantity": "19300000",
+            "benchmark_impact_bps": 107.5095,
+            "sealed_impact_bps_median": 31.239783,
+            "impact_avoided_usd": {
+              "p10": 202539.75,
+              "median": 208118.3,
+              "p90": 213608.5
+            },
+            "impact_avoided_bps": {
+              "p10": 74.247942,
+              "median": 76.292952,
+              "p90": 78.305576
+            },
+            "net_difference_bps": {
+              "p10": -93.26954,
+              "median": 74.459825,
+              "p90": 248.3292
+            }
+          },
+          {
+            "impact_coefficient": 1,
+            "sell_fraction_bps": 500,
+            "sell_quantity": "19300000",
+            "benchmark_impact_bps": 215.01899,
+            "sealed_impact_bps_median": 62.479567,
+            "impact_avoided_usd": {
+              "p10": 405079.51,
+              "median": 416236.6,
+              "p90": 427217.01
+            },
+            "impact_avoided_bps": {
+              "p10": 148.49588,
+              "median": 152.5859,
+              "p90": 156.61115
+            },
+            "net_difference_bps": {
+              "p10": -15.147171,
+              "median": 153.68268,
+              "p90": 328.09794
+            }
+          },
+          {
+            "impact_coefficient": 2,
+            "sell_fraction_bps": 500,
+            "sell_quantity": "19300000",
+            "benchmark_impact_bps": 430.03799,
+            "sealed_impact_bps_median": 124.95913,
+            "impact_avoided_usd": {
+              "p10": 810159.01,
+              "median": 832473.21,
+              "p90": 854434.02
+            },
+            "impact_avoided_bps": {
+              "p10": 296.99177,
+              "median": 305.17181,
+              "p90": 313.2223
+            },
+            "net_difference_bps": {
+              "p10": 143.36601,
+              "median": 317.6904,
+              "p90": 493.46612
+            }
+          },
+          {
+            "impact_coefficient": 0.5,
+            "sell_fraction_bps": 1000,
+            "sell_quantity": "38600000",
+            "benchmark_impact_bps": 152.04142,
+            "sealed_impact_bps_median": 44.179711,
+            "impact_avoided_usd": {
+              "p10": 572869.3,
+              "median": 588647.63,
+              "p90": 604176.4
+            },
+            "impact_avoided_bps": {
+              "p10": 105.00251,
+              "median": 107.89456,
+              "p90": 110.74086
+            },
+            "net_difference_bps": {
+              "p10": -61.169627,
+              "median": 106.53795,
+              "p90": 281.14515
+            }
+          },
+          {
+            "impact_coefficient": 1,
+            "sell_fraction_bps": 1000,
+            "sell_quantity": "38600000",
+            "benchmark_impact_bps": 304.08285,
+            "sealed_impact_bps_median": 88.359422,
+            "impact_avoided_usd": {
+              "p10": 1145738.6,
+              "median": 1177295.3,
+              "p90": 1208352.8
+            },
+            "impact_avoided_bps": {
+              "p10": 210.00503,
+              "median": 215.78912,
+              "p90": 221.48172
+            },
+            "net_difference_bps": {
+              "p10": 50.185222,
+              "median": 220.96801,
+              "p90": 396.22339
+            }
+          },
+          {
+            "impact_coefficient": 2,
+            "sell_fraction_bps": 1000,
+            "sell_quantity": "38600000",
+            "benchmark_impact_bps": 608.16569,
+            "sealed_impact_bps_median": 176.71884,
+            "impact_avoided_usd": {
+              "p10": 2291477.2,
+              "median": 2354590.5,
+              "p90": 2416705.6
+            },
+            "impact_avoided_bps": {
+              "p10": 420.01005,
+              "median": 431.57824,
+              "p90": 442.96345
+            },
+            "net_difference_bps": {
+              "p10": 280.53746,
+              "median": 457.15422,
+              "p90": 638.8101
+            }
+          },
+          {
+            "impact_coefficient": 0.5,
+            "sell_fraction_bps": 2500,
+            "sell_quantity": "96500000",
+            "benchmark_impact_bps": 240.3986,
+            "sealed_impact_bps_median": 69.854238,
+            "impact_avoided_usd": {
+              "p10": 2264465.1,
+              "median": 2326834.1,
+              "p90": 2388217.3
+            },
+            "impact_avoided_bps": {
+              "p10": 166.02358,
+              "median": 170.59628,
+              "p90": 175.09671
+            },
+            "net_difference_bps": {
+              "p10": 3.5669498,
+              "median": 172.9875,
+              "p90": 347.57466
+            }
+          },
+          {
+            "impact_coefficient": 1,
+            "sell_fraction_bps": 2500,
+            "sell_quantity": "96500000",
+            "benchmark_impact_bps": 480.79721,
+            "sealed_impact_bps_median": 139.70848,
+            "impact_avoided_usd": {
+              "p10": 4528930.1,
+              "median": 4653668.2,
+              "p90": 4776434.6
+            },
+            "impact_avoided_bps": {
+              "p10": 332.04715,
+              "median": 341.19256,
+              "p90": 350.19341
+            },
+            "net_difference_bps": {
+              "p10": 182.41988,
+              "median": 356.14968,
+              "p90": 534.35376
+            }
+          },
+          {
+            "impact_coefficient": 2,
+            "sell_fraction_bps": 2500,
+            "sell_quantity": "96500000",
+            "benchmark_impact_bps": 961.59441,
+            "sealed_impact_bps_median": 279.41695,
+            "impact_avoided_usd": {
+              "p10": 9057860.3,
+              "median": 9307336.3,
+              "p90": 9552869.2
+            },
+            "impact_avoided_bps": {
+              "p10": 664.09431,
+              "median": 682.38512,
+              "p90": 700.38683
+            },
+            "net_difference_bps": {
+              "p10": 569.15603,
+              "median": 751.41853,
+              "p90": 938.24115
+            }
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "id": "apt-2023-11-12",
+        "token": "Aptos (APT)",
+        "symbol": "APTUSDT",
+        "unlock_date": "2023-11-12",
+        "unlock_amount": "24840000",
+        "insider_amount": "20300000",
+        "recipients": "Core contributors 11.88M and investors 8.42M; the remaining 4.54M went to the community and the Aptos Foundation",
+        "share_of_supply": {
+          "pct": 10,
+          "basis": "circulating"
+        },
+        "share_of_supply_notes": "About 10% of circulating supply (The Block).",
+        "verification": "partly_derived",
+        "verification_notes": "Total 24.84M and cohort amounts read from The Daily Hodl (citing Lookonchain); The Block gives 24.8M on Nov. 12. The insider amount 20.30M is our sum of the core contributor and investor cohorts.",
+        "sources": [
+          {
+            "url": "https://www.theblock.co/news/ecosystems/2023-11-01-aptos-avalanche-dominate-450-million-november-token-unlocks-260336",
+            "fetched_at": "2026-11-11",
+            "supports": "24.8 million APT released on Nov. 12; 10% of circulating supply"
+          },
+          {
+            "url": "https://dailyhodl.com/2023/11/13/over-181000000-worth-of-aptos-apt-tokens-unlocked-distributed-to-four-major-cohorts/",
+            "fetched_at": "2026-11-11",
+            "supports": "24.84M APT: core contributors 11.88M, investors 8.42M, community 3.21M, foundation 1.33M"
+          }
+        ]
+      },
+      "data": {
+        "token_file": "APTUSDT-2023-11-12.json",
+        "market_file": "BTCUSDT-2023-11-12.json",
+        "source_url": "https://api.binance.com/api/v3/klines?symbol=APTUSDT&interval=1h&startTime=1696723200000&endTime=1707955199999&limit=1000",
+        "fetched_at": "2026-11-11T02:55:22.527Z",
+        "interval": "1h",
+        "candles": 3120,
+        "first_open": "2023-10-08T00:00:00.000Z",
+        "last_open": "2024-02-14T23:00:00.000Z"
+      },
+      "observed": {
+        "prices": {
+          "t_minus_30d": 4.8372,
+          "t_minus_1d": 7.4943,
+          "t": 7.6714,
+          "t_plus_7d": 7.0711,
+          "t_plus_30d": 7.7908,
+          "t_plus_90d": 9.0891
+        },
+        "return_t_minus_30d_to_t_minus_1d": 0.54930538,
+        "return_t_minus_1d_to_t_plus_7d": -0.056469584,
+        "return_t_minus_1d_to_t_plus_30d": 0.039563402,
+        "market_return_t_minus_30d_to_t_minus_1d": 0.39395164,
+        "market_return_t_minus_1d_to_t_plus_7d": -0.019664824,
+        "market_return_t_minus_1d_to_t_plus_30d": 0.10594095,
+        "excess_return_t_minus_30d_to_t_minus_1d": 0.15535375,
+        "excess_return_t_minus_1d_to_t_plus_7d": -0.036804759,
+        "excess_return_t_minus_1d_to_t_plus_30d": -0.066377545,
+        "max_drawdown_t_minus_30d_to_t_plus_30d": -0.17457231,
+        "low_t_to_t_plus_30d_vs_t_minus_1d": -0.099302136,
+        "avg_daily_quote_volume_usd_t_minus_30d_to_t": 28525349,
+        "avg_daily_quote_volume_usd_t_to_t_plus_7d": 37993149,
+        "volume_ratio_week_after_vs_month_before": 1.3319083,
+        "daily_volatility_t_minus_30d_to_t": 0.051293123
+      },
+      "simulation": {
+        "sell_quantity": "2030000",
+        "sell_fraction_of_insider_bps": 1000,
+        "notional_at_t_minus_1d_usd": 15213429,
+        "impact_model": {
+          "coefficient": 1,
+          "dailyVolatility": 0.051293123,
+          "maxFraction": 0.5
+        },
+        "benchmark": {
+          "gross_usd": 15338002,
+          "impact_cost_usd": 254949.83,
+          "net_usd": 15083052,
+          "impact_bps": 166.22102,
+          "avg_price_usd": 7.5556661,
+          "max_daily_participation": 0.1263675,
+          "sale_count": 72,
+          "active_days": 3
+        },
+        "public_twap": {
+          "gross_usd": 17223856,
+          "impact_cost_usd": 71036.981,
+          "net_usd": 17152819,
+          "impact_bps": 41.243367,
+          "avg_price_usd": 8.4846581,
+          "max_daily_participation": 0.019526851,
+          "sale_count": 2160,
+          "active_days": 90
+        },
+        "sealed": {
+          "gross_usd": {
+            "p10": 16943993,
+            "median": 17228291,
+            "p90": 17497324
+          },
+          "impact_cost_usd": {
+            "p10": 93118.2,
+            "median": 98757.038,
+            "p90": 105670.62
+          },
+          "net_usd": {
+            "p10": 16846044,
+            "median": 17130881,
+            "p90": 17395980
+          },
+          "impact_bps": {
+            "p10": 54.015882,
+            "median": 57.357114,
+            "p90": 61.267994
+          },
+          "avg_price_usd": {
+            "p10": 8.3467944,
+            "median": 8.4868427,
+            "p90": 8.6193715
+          },
+          "max_daily_participation": {
+            "p10": 0.033435008,
+            "median": 0.04550389,
+            "p90": 0.066795701
+          }
+        },
+        "comparison": {
+          "impact_avoided_usd": {
+            "p10": 149279.22,
+            "median": 156192.8,
+            "p90": 161831.63
+          },
+          "impact_avoided_bps": {
+            "p10": 97.326377,
+            "median": 101.83386,
+            "p90": 105.51024
+          },
+          "price_path_difference_usd": {
+            "p10": 1605990.5,
+            "median": 1890288.6,
+            "p90": 2159322
+          },
+          "price_path_difference_bps": {
+            "p10": 1047.0663,
+            "median": 1232.4217,
+            "p90": 1407.8248
+          },
+          "net_difference_usd": {
+            "p10": 1762991.4,
+            "median": 2047828.8,
+            "p90": 2312927.9
+          },
+          "net_difference_bps": {
+            "p10": 1168.8558,
+            "median": 1357.7019,
+            "p90": 1533.4614
+          },
+          "sealed_vs_public_twap_net_bps": {
+            "p10": -178.84829,
+            "median": -12.789594,
+            "p90": 141.76171
+          }
+        },
+        "sensitivity": [
+          {
+            "impact_coefficient": 0.5,
+            "sell_fraction_bps": 500,
+            "sell_quantity": "1015000",
+            "benchmark_impact_bps": 58.767952,
+            "sealed_impact_bps_median": 20.27893,
+            "impact_avoided_usd": {
+              "p10": 26389.192,
+              "median": 27611.1,
+              "p90": 28608.107
+            },
+            "impact_avoided_bps": {
+              "p10": 34.410207,
+              "median": 36.003515,
+              "p90": 37.303563
+            },
+            "net_difference_bps": {
+              "p10": 1089.0223,
+              "median": 1275.9188,
+              "p90": 1451.737
+            }
+          },
+          {
+            "impact_coefficient": 1,
+            "sell_fraction_bps": 500,
+            "sell_quantity": "1015000",
+            "benchmark_impact_bps": 117.5359,
+            "sealed_impact_bps_median": 40.55786,
+            "impact_avoided_usd": {
+              "p10": 52778.383,
+              "median": 55222.199,
+              "p90": 57216.213
+            },
+            "impact_avoided_bps": {
+              "p10": 68.820414,
+              "median": 72.00703,
+              "p90": 74.607126
+            },
+            "net_difference_bps": {
+              "p10": 1133.0952,
+              "median": 1320.657,
+              "p90": 1496.1553
+            }
+          },
+          {
+            "impact_coefficient": 2,
+            "sell_fraction_bps": 500,
+            "sell_quantity": "1015000",
+            "benchmark_impact_bps": 235.07181,
+            "sealed_impact_bps_median": 81.11572,
+            "impact_avoided_usd": {
+              "p10": 105556.77,
+              "median": 110444.4,
+              "p90": 114432.43
+            },
+            "impact_avoided_bps": {
+              "p10": 137.64083,
+              "median": 144.01406,
+              "p90": 149.21425
+            },
+            "net_difference_bps": {
+              "p10": 1220.1443,
+              "median": 1410.6067,
+              "p90": 1587.5868
+            }
+          },
+          {
+            "impact_coefficient": 0.5,
+            "sell_fraction_bps": 1000,
+            "sell_quantity": "2030000",
+            "benchmark_impact_bps": 83.110509,
+            "sealed_impact_bps_median": 28.678557,
+            "impact_avoided_usd": {
+              "p10": 74639.609,
+              "median": 78096.398,
+              "p90": 80915.817
+            },
+            "impact_avoided_bps": {
+              "p10": 48.663188,
+              "median": 50.91693,
+              "p90": 52.755122
+            },
+            "net_difference_bps": {
+              "p10": 1107.2136,
+              "median": 1294.3074,
+              "p90": 1470.0681
+            }
+          },
+          {
+            "impact_coefficient": 1,
+            "sell_fraction_bps": 1000,
+            "sell_quantity": "2030000",
+            "benchmark_impact_bps": 166.22102,
+            "sealed_impact_bps_median": 57.357114,
+            "impact_avoided_usd": {
+              "p10": 149279.22,
+              "median": 156192.8,
+              "p90": 161831.63
+            },
+            "impact_avoided_bps": {
+              "p10": 97.326377,
+              "median": 101.83386,
+              "p90": 105.51024
+            },
+            "net_difference_bps": {
+              "p10": 1168.8558,
+              "median": 1357.7019,
+              "p90": 1533.4614
+            }
+          },
+          {
+            "impact_coefficient": 2,
+            "sell_fraction_bps": 1000,
+            "sell_quantity": "2030000",
+            "benchmark_impact_bps": 332.44204,
+            "sealed_impact_bps_median": 114.71423,
+            "impact_avoided_usd": {
+              "p10": 298558.44,
+              "median": 312385.59,
+              "p90": 323663.27
+            },
+            "impact_avoided_bps": {
+              "p10": 194.65275,
+              "median": 203.66772,
+              "p90": 211.02049
+            },
+            "net_difference_bps": {
+              "p10": 1293.8576,
+              "median": 1485.8894,
+              "p90": 1664.5987
+            }
+          },
+          {
+            "impact_coefficient": 0.5,
+            "sell_fraction_bps": 2500,
+            "sell_quantity": "5075000",
+            "benchmark_impact_bps": 131.40944,
+            "sealed_impact_bps_median": 45.344602,
+            "impact_avoided_usd": {
+              "p10": 295038.4,
+              "median": 308703.38,
+              "p90": 319847.84
+            },
+            "impact_avoided_bps": {
+              "p10": 76.943155,
+              "median": 80.506849,
+              "p90": 83.413217
+            },
+            "net_difference_bps": {
+              "p10": 1143.2939,
+              "median": 1331.1623,
+              "p90": 1506.8924
+            }
+          },
+          {
+            "impact_coefficient": 1,
+            "sell_fraction_bps": 2500,
+            "sell_quantity": "5075000",
+            "benchmark_impact_bps": 262.81888,
+            "sealed_impact_bps_median": 90.689205,
+            "impact_avoided_usd": {
+              "p10": 590076.8,
+              "median": 617406.76,
+              "p90": 639695.69
+            },
+            "impact_avoided_bps": {
+              "p10": 153.88631,
+              "median": 161.0137,
+              "p90": 166.82643
+            },
+            "net_difference_bps": {
+              "p10": 1240.9732,
+              "median": 1431.7358,
+              "p90": 1609.7235
+            }
+          },
+          {
+            "impact_coefficient": 2,
+            "sell_fraction_bps": 2500,
+            "sell_quantity": "5075000",
+            "benchmark_impact_bps": 525.63777,
+            "sealed_impact_bps_median": 181.37841,
+            "impact_avoided_usd": {
+              "p10": 1180153.6,
+              "median": 1234813.5,
+              "p90": 1279391.4
+            },
+            "impact_avoided_bps": {
+              "p10": 307.77262,
+              "median": 322.0274,
+              "p90": 333.65287
+            },
+            "net_difference_bps": {
+              "p10": 1445.0575,
+              "median": 1641.8048,
+              "p90": 1823.0623
+            }
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "id": "strk-2024-04-15",
+        "token": "Starknet (STRK)",
+        "symbol": "STRKUSDT",
+        "unlock_date": "2024-04-15",
+        "unlock_amount": "64000000",
+        "insider_amount": "64000000",
+        "recipients": "Early contributors and investors (first monthly unlock after the revised schedule)",
+        "share_of_supply": {
+          "pct": 0.64,
+          "basis": "total"
+        },
+        "share_of_supply_notes": "0.64% of the 10B total supply. The original plan would have released about 1.3B on this date; StarkWare cut it on Feb 22, 2024.",
+        "verification": "confirmed",
+        "verification_notes": "Amount, recipients and share read from Cointelegraph.",
+        "sources": [
+          {
+            "url": "https://cointelegraph.com/news/starkware-changes-controversial-investor-starknet-token-unlock-schedule",
+            "fetched_at": "2026-11-11",
+            "supports": "64 million STRK to early contributors and investors on April 15; 0.64% of 10B supply"
+          }
+        ]
+      },
+      "data": {
+        "token_file": "STRKUSDT-2024-04-15.json",
+        "market_file": "BTCUSDT-2024-04-15.json",
+        "source_url": "https://api.binance.com/api/v3/klines?symbol=STRKUSDT&interval=1h&startTime=1710115200000&endTime=1721347199999&limit=1000",
+        "fetched_at": "2026-11-11T02:55:28.819Z",
+        "interval": "1h",
+        "candles": 3120,
+        "first_open": "2024-03-11T00:00:00.000Z",
+        "last_open": "2024-07-18T23:00:00.000Z"
+      },
+      "observed": {
+        "prices": {
+          "t_minus_30d": 2.197,
+          "t_minus_1d": 1.422,
+          "t": 1.485,
+          "t_plus_7d": 1.312,
+          "t_plus_30d": 1.152,
+          "t_plus_90d": 0.562
+        },
+        "return_t_minus_30d_to_t_minus_1d": -0.35275376,
+        "return_t_minus_1d_to_t_plus_7d": -0.077355837,
+        "return_t_minus_1d_to_t_plus_30d": -0.18987342,
+        "market_return_t_minus_30d_to_t_minus_1d": -0.080220893,
+        "market_return_t_minus_1d_to_t_plus_7d": 0.015903759,
+        "market_return_t_minus_1d_to_t_plus_30d": -0.036715495,
+        "excess_return_t_minus_30d_to_t_minus_1d": -0.27253286,
+        "excess_return_t_minus_1d_to_t_plus_7d": -0.093259596,
+        "excess_return_t_minus_1d_to_t_plus_30d": -0.15315792,
+        "max_drawdown_t_minus_30d_to_t_plus_30d": -0.5304929,
+        "low_t_to_t_plus_30d_vs_t_minus_1d": -0.20956399,
+        "avg_daily_quote_volume_usd_t_minus_30d_to_t": 58523101,
+        "avg_daily_quote_volume_usd_t_to_t_plus_7d": 33254317,
+        "volume_ratio_week_after_vs_month_before": 0.56822548,
+        "daily_volatility_t_minus_30d_to_t": 0.063479772
+      },
+      "simulation": {
+        "sell_quantity": "6400000",
+        "sell_fraction_of_insider_bps": 1000,
+        "notional_at_t_minus_1d_usd": 9100800,
+        "impact_model": {
+          "coefficient": 1,
+          "dailyVolatility": 0.063479772,
+          "maxFraction": 0.5
+        },
+        "benchmark": {
+          "gross_usd": 8444077.1,
+          "impact_cost_usd": 131996.47,
+          "net_usd": 8312080.7,
+          "impact_bps": 156.3184,
+          "avg_price_usd": 1.3193871,
+          "max_daily_participation": 0.082377832,
+          "sale_count": 72,
+          "active_days": 3
+        },
+        "public_twap": {
+          "gross_usd": 6693638.9,
+          "impact_cost_usd": 25376.829,
+          "net_usd": 6668262.1,
+          "impact_bps": 37.911858,
+          "avg_price_usd": 1.0458811,
+          "max_daily_participation": 0.013123761,
+          "sale_count": 2160,
+          "active_days": 90
+        },
+        "sealed": {
+          "gross_usd": {
+            "p10": 6446325.1,
+            "median": 6702437.2,
+            "p90": 6944392.6
+          },
+          "impact_cost_usd": {
+            "p10": 32749.199,
+            "median": 35261.155,
+            "p90": 38369.36
+          },
+          "net_usd": {
+            "p10": 6411817.7,
+            "median": 6667119.1,
+            "p90": 6907327.5
+          },
+          "impact_bps": {
+            "p10": 49.685898,
+            "median": 52.559826,
+            "p90": 56.438691
+          },
+          "avg_price_usd": {
+            "p10": 1.0072383,
+            "median": 1.0472558,
+            "p90": 1.0850613
+          },
+          "max_daily_participation": {
+            "p10": 0.017273658,
+            "median": 0.024060343,
+            "p90": 0.036952429
+          }
+        },
+        "comparison": {
+          "impact_avoided_usd": {
+            "p10": 93627.106,
+            "median": 96735.311,
+            "p90": 99247.266
+          },
+          "impact_avoided_bps": {
+            "p10": 110.87903,
+            "median": 114.55996,
+            "p90": 117.53477
+          },
+          "price_path_difference_usd": {
+            "p10": -1997752,
+            "median": -1741639.9,
+            "p90": -1499684.5
+          },
+          "price_path_difference_bps": {
+            "p10": -2365.8619,
+            "median": -2062.558,
+            "p90": -1776.0194
+          },
+          "net_difference_usd": {
+            "p10": -1900263,
+            "median": -1644961.6,
+            "p90": -1404753.2
+          },
+          "net_difference_bps": {
+            "p10": -2286.146,
+            "median": -1979.001,
+            "p90": -1690.0139
+          },
+          "sealed_vs_public_twap_net_bps": {
+            "p10": -384.57453,
+            "median": -1.7141072,
+            "p90": 358.51228
+          }
+        },
+        "sensitivity": [
+          {
+            "impact_coefficient": 0.5,
+            "sell_fraction_bps": 500,
+            "sell_quantity": "3200000",
+            "benchmark_impact_bps": 55.266823,
+            "sealed_impact_bps_median": 18.582654,
+            "impact_avoided_usd": {
+              "p10": 16551.095,
+              "median": 17100.547,
+              "p90": 17544.605
+            },
+            "impact_avoided_bps": {
+              "p10": 39.201651,
+              "median": 40.50304,
+              "p90": 41.554801
+            },
+            "net_difference_bps": {
+              "p10": -2337.4738,
+              "median": -2033.3432,
+              "p90": -1746.1181
+            }
+          },
+          {
+            "impact_coefficient": 1,
+            "sell_fraction_bps": 500,
+            "sell_quantity": "3200000",
+            "benchmark_impact_bps": 110.53365,
+            "sealed_impact_bps_median": 37.165307,
+            "impact_avoided_usd": {
+              "p10": 33102.191,
+              "median": 34201.095,
+              "p90": 35089.21
+            },
+            "impact_avoided_bps": {
+              "p10": 78.403301,
+              "median": 81.00608,
+              "p90": 83.109602
+            },
+            "net_difference_bps": {
+              "p10": -2309.2762,
+              "median": -2003.7748,
+              "p90": -1714.9314
+            }
+          },
+          {
+            "impact_coefficient": 2,
+            "sell_fraction_bps": 500,
+            "sell_quantity": "3200000",
+            "benchmark_impact_bps": 221.06729,
+            "sealed_impact_bps_median": 74.330614,
+            "impact_avoided_usd": {
+              "p10": 66204.381,
+              "median": 68402.189,
+              "p90": 70178.419
+            },
+            "impact_avoided_bps": {
+              "p10": 156.8066,
+              "median": 162.01216,
+              "p90": 166.2192
+            },
+            "net_difference_bps": {
+              "p10": -2252.5491,
+              "median": -1943.2012,
+              "p90": -1655.1877
+            }
+          },
+          {
+            "impact_coefficient": 0.5,
+            "sell_fraction_bps": 1000,
+            "sell_quantity": "6400000",
+            "benchmark_impact_bps": 78.159202,
+            "sealed_impact_bps_median": 26.279913,
+            "impact_avoided_usd": {
+              "p10": 46813.553,
+              "median": 48367.656,
+              "p90": 49623.633
+            },
+            "impact_avoided_bps": {
+              "p10": 55.439514,
+              "median": 57.279978,
+              "p90": 58.767385
+            },
+            "net_difference_bps": {
+              "p10": -2325.5523,
+              "median": -2021.054,
+              "p90": -1733.1742
+            }
+          },
+          {
+            "impact_coefficient": 1,
+            "sell_fraction_bps": 1000,
+            "sell_quantity": "6400000",
+            "benchmark_impact_bps": 156.3184,
+            "sealed_impact_bps_median": 52.559826,
+            "impact_avoided_usd": {
+              "p10": 93627.106,
+              "median": 96735.311,
+              "p90": 99247.266
+            },
+            "impact_avoided_bps": {
+              "p10": 110.87903,
+              "median": 114.55996,
+              "p90": 117.53477
+            },
+            "net_difference_bps": {
+              "p10": -2286.146,
+              "median": -1979.001,
+              "p90": -1690.0139
+            }
+          },
+          {
+            "impact_coefficient": 2,
+            "sell_fraction_bps": 1000,
+            "sell_quantity": "6400000",
+            "benchmark_impact_bps": 312.63681,
+            "sealed_impact_bps_median": 105.11965,
+            "impact_avoided_usd": {
+              "p10": 187254.21,
+              "median": 193470.62,
+              "p90": 198494.53
+            },
+            "impact_avoided_bps": {
+              "p10": 221.75806,
+              "median": 229.11991,
+              "p90": 235.06954
+            },
+            "net_difference_bps": {
+              "p10": -2203.9469,
+              "median": -1893.417,
+              "p90": -1604.2973
+            }
+          },
+          {
+            "impact_coefficient": 0.5,
+            "sell_fraction_bps": 2500,
+            "sell_quantity": "16000000",
+            "benchmark_impact_bps": 123.58055,
+            "sealed_impact_bps_median": 41.552244,
+            "impact_avoided_usd": {
+              "p10": 185046.6,
+              "median": 191189.75,
+              "p90": 196154.48
+            },
+            "impact_avoided_bps": {
+              "p10": 87.657465,
+              "median": 90.567504,
+              "p90": 92.919318
+            },
+            "net_difference_bps": {
+              "p10": -2302.8121,
+              "median": -1996.7029,
+              "p90": -1707.5868
+            }
+          },
+          {
+            "impact_coefficient": 1,
+            "sell_fraction_bps": 2500,
+            "sell_quantity": "16000000",
+            "benchmark_impact_bps": 247.1611,
+            "sealed_impact_bps_median": 83.104489,
+            "impact_avoided_usd": {
+              "p10": 370093.2,
+              "median": 382379.5,
+              "p90": 392308.95
+            },
+            "impact_avoided_bps": {
+              "p10": 175.31493,
+              "median": 181.13501,
+              "p90": 185.83864
+            },
+            "net_difference_bps": {
+              "p10": -2238.8205,
+              "median": -1928.8203,
+              "p90": -1640.3164
+            }
+          },
+          {
+            "impact_coefficient": 2,
+            "sell_fraction_bps": 2500,
+            "sell_quantity": "16000000",
+            "benchmark_impact_bps": 494.32221,
+            "sealed_impact_bps_median": 166.20898,
+            "impact_avoided_usd": {
+              "p10": 740186.41,
+              "median": 764759,
+              "p90": 784617.9
+            },
+            "impact_avoided_bps": {
+              "p10": 350.62986,
+              "median": 362.27001,
+              "p90": 371.67727
+            },
+            "net_difference_bps": {
+              "p10": -2104.6298,
+              "median": -1789.1462,
+              "p90": -1496.6915
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
