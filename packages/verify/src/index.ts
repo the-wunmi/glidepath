@@ -64,7 +64,8 @@ export {
 
 import { type Hex, keccak256, parseTransaction, type TransactionSerializableEIP1559 } from 'viem';
 
-export type CheckStatus = 'pass' | 'fail' | 'skip';
+/** `warn`: checked and not failed, but not a pass (an Intel TCB status other than UpToDate). */
+export type CheckStatus = 'pass' | 'fail' | 'warn' | 'skip';
 
 export interface Check {
   id: string;

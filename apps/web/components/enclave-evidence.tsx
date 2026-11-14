@@ -8,8 +8,8 @@ import { Hash } from './ui';
 export const OUTLAYER_LABEL = 'OutLayer testnet (TDX)';
 
 /**
- * Where a live OutLayer enclave's evidence lives, and what this browser does not check of its TDX
- * quote: Intel's revocation lists and TCB status, which Intel serves only to servers (no CORS).
+ * Where a live OutLayer enclave's evidence lives, and how this browser checks its TDX quote,
+ * including Intel's collateral, which reaches the browser through the API's pass-through.
  */
 export function OutlayerEvidence({ quote, meta }: { quote: OutlayerQuote; meta: Meta | null }) {
   const ex = explorer(meta);
@@ -17,9 +17,10 @@ export function OutlayerEvidence({ quote, meta }: { quote: OutlayerQuote; meta: 
     <div className="space-y-3 text-sm">
       <p className="text-ink-2">
         The registry pinned this key after one attested key-proof run. This browser reads that run’s
-        TDX quote from OutLayer and checks it up to Intel’s root certificate. It does not check
-        whether Intel has revoked the machine’s certificate or rates its firmware out of date (TCB
-        status): Intel serves that data only to servers.
+        TDX quote from OutLayer and checks it up to Intel’s root certificate. It also checks Intel’s
+        revocation lists and the machine’s patch level (TCB status). Intel serves those only to
+        servers, so our API passes them through untouched; Intel signs them, and this browser checks
+        those signatures up to the same root, so a server that altered them would fail the check.
       </p>
       <dl className="grid gap-x-4 gap-y-1.5 sm:grid-cols-[auto_1fr]">
         <dt className="text-ink-3">Attestation</dt>

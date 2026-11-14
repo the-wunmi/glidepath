@@ -11,6 +11,7 @@ import { secureHeaders } from 'hono/secure-headers';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { z } from 'zod';
 import { clientKeyOf, RateLimit, TtlCache } from './limits.ts';
+import { pcsRoutes } from './pcs.ts';
 import { ChainAnswers, evmAnswerIsFinal, nearAnswerIsFinal } from './rpc-cache.ts';
 import { trustRoutes } from './trust.ts';
 import { vaultRoutes } from './vault.ts';
@@ -291,6 +292,8 @@ export function createApp(e: Engine) {
   });
 
   app.route('/api/vault', vaultRoutes(e));
+  // Intel's TDX collateral for the browser's quote checks; counted as API reads like the rest.
+  app.route('/api/pcs', pcsRoutes());
   // A trust is created like a plan, so it shares each client's hourly creation allowance.
   app.route(
     '/api/trusts',

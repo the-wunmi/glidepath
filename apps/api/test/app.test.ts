@@ -273,6 +273,19 @@ describe('behind the public proxy', () => {
     expect(statuses.slice(0, 20)).not.toContain(429);
   });
 
+  it('counts Intel collateral reads against the per-client read limit', async () => {
+    const a = server();
+    const statuses: number[] = [];
+    // An invalid CA is refused before Intel is asked, so this never leaves the process.
+    for (let i = 0; i < 122; i++)
+      statuses.push(
+        (await a.request('/api/pcs/pckcrl?ca=x', { headers: { 'x-forwarded-for': '8.8.4.4' } }))
+          .status,
+      );
+    expect(statuses.slice(0, 120)).not.toContain(429);
+    expect(statuses.slice(120)).toEqual([429, 429]);
+  });
+
   it('refuses an API write with no Origin unless it carries the operator token', async () => {
     const a = server();
     const bare = await a.request('/api/plans/1/cancel', {

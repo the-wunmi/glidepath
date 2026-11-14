@@ -16,7 +16,9 @@ import { type ReactNode, useEffect, useId, useMemo, useRef, useState } from 'rea
 import { api, errorMessage } from '@/lib/api';
 import {
   attestationFailure,
+  checkState,
   isOutlayerQuote,
+  passedSummary,
   useAttestation,
   useBackupAttestations,
 } from '@/lib/attestation';
@@ -1372,14 +1374,17 @@ export function PlanBuilder({
                     ) : !attestation ? (
                       <p className="text-sm text-ink-3">Checking…</p>
                     ) : attestation.ok ? (
-                      <details>
-                        <summary className="cursor-pointer text-sm text-pass">
-                          All {attestation.checks.length} checks passed
+                      <details open={attestation.checks.some((c) => c.warn)}>
+                        <summary
+                          className={`cursor-pointer text-sm ${attestation.checks.some((c) => c.warn) ? 'text-wait' : 'text-pass'}`}
+                        >
+                          {passedSummary(attestation.checks)}
                         </summary>
                         <CheckList
                           checks={attestation.checks.map((c) => ({
                             label: c.label,
-                            state: 'pass',
+                            state: checkState(c),
+                            detail: c.detail,
                           }))}
                         />
                         {liveQuote && (
@@ -1396,7 +1401,8 @@ export function PlanBuilder({
                         <CheckList
                           checks={attestation.checks.map((c) => ({
                             label: c.label,
-                            state: c.ok ? 'pass' : 'fail',
+                            state: checkState(c),
+                            detail: c.detail,
                           }))}
                         />
                       </div>

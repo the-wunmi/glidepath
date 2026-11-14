@@ -14,7 +14,13 @@ import {
   Panel,
   SimBadge,
 } from '@/components/ui';
-import { attestationFailure, isOutlayerQuote, useAttestation } from '@/lib/attestation';
+import {
+  attestationFailure,
+  checkState,
+  isOutlayerQuote,
+  passedSummary,
+  useAttestation,
+} from '@/lib/attestation';
 import { accessKeys } from '@/lib/chain';
 import { simReason } from '@/lib/env';
 import { duration, fmtDateTime } from '@/lib/format';
@@ -93,7 +99,7 @@ const SIMULATED: {
     part: 'TDX quote vendor key',
     mode: 'enclave',
     here: 'A vendor key whose seed is public. Every check the browser runs is real computation, but anyone could sign such a quote, so it proves the wiring only.',
-    live: 'Intel’s. The browser checks the quote’s signatures up to Intel’s root certificate; Intel’s revocation lists and TCB status are not checked.',
+    live: 'Intel’s. The browser checks the quote’s signatures up to Intel’s root certificate, Intel’s revocation lists, and the machine’s patch level (TCB status) from Intel’s signed data.',
     real: 'Intel’s attestation collateral.',
   },
   {
@@ -290,8 +296,8 @@ function SystemStatus() {
               ) : !result ? (
                 <Badge>Checking…</Badge>
               ) : result.ok ? (
-                <Badge tone="pass" dot>
-                  All {result.checks.length} checks passed
+                <Badge tone={result.checks.some((c) => c.warn) ? 'wait' : 'pass'} dot>
+                  {passedSummary(result.checks)}
                 </Badge>
               ) : (
                 <Badge tone="fail" dot>
@@ -305,12 +311,16 @@ function SystemStatus() {
           <p className="mb-3 text-sm text-fail">{attestationFailure(result.checks)}</p>
         )}
         {result && (
-          <details className="well px-3 py-1" open={!result.ok}>
+          <details
+            className="well px-3 py-1"
+            open={!result.ok || result.checks.some((c) => c.warn)}
+          >
             <summary className="cursor-pointer py-1.5 text-sm font-medium">Show each check</summary>
             <CheckList
               checks={result.checks.map((c) => ({
                 label: c.label,
-                state: c.ok ? 'pass' : 'fail',
+                state: checkState(c),
+                detail: c.detail,
               }))}
             />
           </details>

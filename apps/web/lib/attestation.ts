@@ -1,6 +1,14 @@
 'use client';
 
 import { type AttestationCheck, fromBase64, SimulatedQuote, verifySimulatedQuote } from '@vsp/core';
+import {
+  collateralRequest,
+  collateralUnavailable,
+  type PcsCollateral,
+  REVOCATION_LABEL,
+  TCB_LABEL_PREFIX,
+  verifyCollateral,
+} from '@vsp/verify/collateral';
 import { type OutlayerAttestationRecord, verifyKeyProof } from '@vsp/verify/keyproof';
 import { parseTdxQuote, TDX_CHECK_LABELS, verifyTdxQuote } from '@vsp/verify/tdx';
 import { useEffect, useState } from 'react';
@@ -10,15 +18,74 @@ import type { ChainEnclave, Meta, OutlayerQuote } from './types';
 export const isOutlayerQuote = (q: unknown): q is OutlayerQuote =>
   !!q && typeof q === 'object' && (q as { format?: unknown }).format === 'outlayer-tdx-v1';
 
+/**
+ * One row of an enclave's checks. `warn` marks a row that did not fail but is not a pass either
+ * (Intel rates the machine's patch level below UpToDate, or its collateral could not be read).
+ */
+export interface EnclaveCheck extends AttestationCheck {
+  warn?: boolean;
+  detail?: string;
+}
+
+/** Intel's collateral for a quote, or why it could not be read. */
+export type CollateralResult = PcsCollateral | { error: string };
+
 /** A key-proof run's evidence: OutLayer's record of it, its quote, and what the chain returned. */
 export interface OutlayerEvidenceData {
   quote: Uint8Array;
   record: OutlayerAttestationRecord & { transaction_hash?: string | null };
   /** The run's NEAR transaction return value (base64); null if the chain could not be read. */
   keyProofOutput: string | null;
+  collateral: CollateralResult;
 }
 
-const evidence = new Map<string, Promise<OutlayerEvidenceData>>();
+const evidence = new Map<string, Promise<Omit<OutlayerEvidenceData, 'collateral'>>>();
+const collaterals = new Map<string, Promise<PcsCollateral>>();
+
+async function pcs(path: string): Promise<Response> {
+  const res = await fetch(`/api/pcs/${path}`);
+  if (!res.ok) throw new Error(`Intel’s collateral could not be read (HTTP ${res.status})`);
+  return res;
+}
+
+/**
+ * Intel's PCS collateral for the machine that made a quote, through the API's pass-through (Intel
+ * sends no CORS headers). The API only relays bytes: Intel signed them, and `verifyCollateral`
+ * checks those signatures up to the pinned Intel root. Kept per machine; a failure is retried.
+ */
+async function fetchCollateral(quoteBytes: Uint8Array): Promise<CollateralResult> {
+  try {
+    const { fmspc, ca } = collateralRequest(parseTdxQuote(quoteBytes));
+    const key = `${fmspc}:${ca}`;
+    let p = collaterals.get(key);
+    if (!p) {
+      p = Promise.all([
+        pcs(`tdx/tcb?fmspc=${fmspc}`),
+        pcs('tdx/qe-identity'),
+        pcs(`pckcrl?ca=${ca}`),
+        pcs('rootcacrl'),
+      ]).then(async ([tcb, qe, pck, root]) => ({
+        tcbInfo: {
+          body: await tcb.text(),
+          issuerChain: decodeURIComponent(tcb.headers.get('tcb-info-issuer-chain') ?? ''),
+        },
+        qeIdentity: {
+          body: await qe.text(),
+          issuerChain: decodeURIComponent(
+            qe.headers.get('sgx-enclave-identity-issuer-chain') ?? '',
+          ),
+        },
+        pckCrl: new Uint8Array(await pck.arrayBuffer()),
+        rootCaCrl: new Uint8Array(await root.arrayBuffer()),
+      }));
+      p.catch(() => collaterals.delete(key));
+      collaterals.set(key, p);
+    }
+    return await p;
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : String(e) };
+  }
+}
 
 /**
  * OutLayer's attestation record (CORS-open) and the quoted run's transaction output, read from the
@@ -28,6 +95,13 @@ const evidence = new Map<string, Promise<OutlayerEvidenceData>>();
  * fetches again.
  */
 export function fetchOutlayerEvidence(url: string): Promise<OutlayerEvidenceData> {
+  return baseEvidence(url).then(async (ev) => ({
+    ...ev,
+    collateral: await fetchCollateral(ev.quote),
+  }));
+}
+
+function baseEvidence(url: string): Promise<Omit<OutlayerEvidenceData, 'collateral'>> {
   let p = evidence.get(url);
   if (!p) {
     p = fetch(url).then(async (res) => {
@@ -47,10 +121,6 @@ export function fetchOutlayerEvidence(url: string): Promise<OutlayerEvidenceData
   }
   return p;
 }
-
-/** The raw TDX quote alone, for checking receipts' signing keys. */
-export const fetchTdxQuote = (url: string): Promise<Uint8Array> =>
-  fetchOutlayerEvidence(url).then((e) => e.quote);
 
 /**
  * Whether the encryption key a plan would be sealed to is the one the attested module proved it
@@ -82,14 +152,47 @@ function keyProofChecks(
 /**
  * What this browser checks of a live OutLayer enclave, all over the raw quote bytes: they hash to
  * the quote hash the registry pinned for the key, carry the pinned measurements, and are signed by
- * an attestation key that Intel's certificate chain vouches for, up to Intel's pinned root. TCB
- * status and revocation (Intel's PCS collateral) are not checked.
+ * an attestation key that Intel's certificate chain vouches for, up to Intel's pinned root. Then
+ * Intel's collateral: no certificate in that chain is revoked, and the machine's TCB status. A
+ * status below UpToDate is a warning, Revoked a failure; unreadable collateral is a warning that
+ * says it was not checked.
  */
-export function outlayerChecks(enclave: ChainEnclave, quoteBytes: Uint8Array): AttestationCheck[] {
-  return verifyTdxQuote(
+export function outlayerChecks(
+  enclave: ChainEnclave,
+  quoteBytes: Uint8Array,
+  collateral: CollateralResult,
+): EnclaveCheck[] {
+  const v = verifyTdxQuote(
     { measurements: enclave.measurements, quoteHash: enclave.quote_hash },
     quoteBytes,
-  ).checks.map(({ label, ok }) => ({ label, ok }));
+  );
+  const rows: EnclaveCheck[] = v.checks.map(({ label, ok }) => ({ label, ok }));
+  if (!v.quote) return rows;
+  const extra =
+    'error' in collateral
+      ? collateralUnavailable(collateral.error)
+      : verifyCollateral(v.quote, collateral).checks;
+  return [
+    ...rows,
+    ...extra.map(({ label, ok, warn, detail }) => ({
+      label,
+      ok,
+      ...(warn ? { warn } : {}),
+      ...(detail ? { detail } : {}),
+    })),
+  ];
+}
+
+/** How a row shows in a checks list. */
+export const checkState = (c: EnclaveCheck): 'pass' | 'fail' | 'warn' =>
+  !c.ok ? 'fail' : c.warn ? 'warn' : 'pass';
+
+/** The one-line summary of a passing list: warnings are counted apart, never as passes. */
+export function passedSummary(checks: EnclaveCheck[]): string {
+  const warnings = checks.filter((c) => c.ok && c.warn).length;
+  const passed = checks.filter((c) => c.ok && !c.warn).length;
+  if (warnings === 0) return `All ${passed} checks passed`;
+  return `${passed} checks passed, ${warnings} ${warnings === 1 ? 'warning' : 'warnings'}`;
 }
 
 /** Whether the plan runs on an earlier build of this server's enclave than the current one. */
@@ -117,7 +220,7 @@ export interface AttestationResult {
   /** 'simulated': the browser checked a simulated TDX quote; 'outlayer': a live OutLayer worker. */
   kind: 'simulated' | 'outlayer';
   simulated: boolean;
-  checks: AttestationCheck[];
+  checks: EnclaveCheck[];
   enclave: ChainEnclave | null;
 }
 
@@ -148,7 +251,10 @@ export function checkAttestation(
     const checks = [
       ...keyChecks,
       ...(enclave && ev
-        ? [...outlayerChecks(enclave, ev.quote), ...keyProofChecks(enclave, identity, quote, ev)]
+        ? [
+            ...outlayerChecks(enclave, ev.quote, ev.collateral),
+            ...keyProofChecks(enclave, identity, quote, ev),
+          ]
         : [{ label: 'OutLayer’s attestation evidence could be read', ok: false }]),
     ];
     return {
@@ -271,5 +377,9 @@ export function attestationFailure(checks: { label: string; ok: boolean }[]): st
     return 'OutLayer’s quote for this enclave is not the one the registry pinned.';
   if (failed.some((c) => INTEL_LABELS.has(c.label)))
     return 'This enclave’s quote does not carry a valid Intel signature.';
+  if (failed.some((c) => c.label === REVOCATION_LABEL))
+    return 'Intel’s revocation lists could not vouch for this machine’s certificates: a certificate is revoked, or the lists do not verify.';
+  if (failed.some((c) => c.label.startsWith(TCB_LABEL_PREFIX)))
+    return 'Intel rates this machine’s patch level as revoked, or Intel’s data on it does not verify.';
   return 'This enclave’s attestation does not match its on-chain registration.';
 }

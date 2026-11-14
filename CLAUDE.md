@@ -99,7 +99,9 @@ and that DATABASE_URL serves it; set `OUTLAYER_TICK_SECONDS` high to keep it fro
   needs Schnorr, which this path does not use. `packages/btc` mirrors it in TS (address, BIP143,
   witness assembly with low-s, mempool.space client); `contracts/res/btc-vault-vectors.json` is
   shared (BIP143's own P2WPKH example, BIP173/350 addresses, a vault spend). `pnpm vault:deploy`
-  (dry run unless `--confirm`; `deployments/vault-testnet.json`), `pnpm vault:demo` (testnet, or
+  (dry run unless `--confirm`; `deployments/vault-testnet.json`: `btc-vault.zyx-dev.testnet`,
+  deployed 2026-11-14, vault #1, guardian `vault-guardian.zyx-dev.testnet`), `pnpm vault:demo`
+  (`VAULT_MEMPOOL_API` names another testnet4 Esplora server; testnet, or
   `--local` rehearsal with the signer simulator and made-up UTXOs; `--rpc` onto the dev:local
   sandbox writes the git-ignored `deployments/local-vault.json`). `GET /api/vault` serves the
   record for the server's network; `/labs/vault` reads the chain through `/rpc/near` and
@@ -131,11 +133,14 @@ and that DATABASE_URL serves it; set `OUTLAYER_TICK_SECONDS` high to keep it fro
   bootstrap `bootstrapTrustWorld` with five demo tokens owned by the solver, priced on the simulated
   market; `trust_created`/`trust_trade`/`trust_release` workflows; `startTrustWorker` every 15 s;
   tables `trusts`, `trust_trades`); the simulated trust enclave shares the plan enclave's keys;
-  `ModuleTrustEnclave` runs the enclave-wasi ops (tests: `vsp-enclave-local`). API `/api/trusts`
+  `ModuleTrustEnclave` runs the enclave-wasi ops (tests: `vsp-enclave-local`; with
+  `ENCLAVE_BACKEND=outlayer`, `trustEnclaveOf` runs them on the current OutLayer build, the key
+  the page seals to; no backup fallback for trusts, and each 15 s wake-up is a paid run). API `/api/trusts`
   (`apps/api/src/trust.ts`), page `/labs/trust` (seal + create) and `/labs/trust/<id>` (total value,
   attested statements, rules, receipts with Verify all, proof). `pnpm trust:deploy` (dry run unless
-  `--confirm`; `--tokens`, `--outlayer`, `--local`) writes `deployments/trust-testnet.json`, which
-  the server loads on testnet.
+  `--confirm`; `--tokens`, `--outlayer` registers the current build and its backups, `--local`)
+  writes `deployments/trust-testnet.json`, which the server loads on testnet: `vsp-trust.zyx-dev.testnet`
+  (deployed 2026-11-14 with the five `labs-*` tokens, keys `J3prhAPX…` and backup `8pfjqtyg…`).
 
 ## Decisions
 
@@ -193,6 +198,11 @@ and that DATABASE_URL serves it; set `OUTLAYER_TICK_SECONDS` high to keep it fro
   transfers to the relayer (`/fund`, tx counted once), debits a fixed fee per relayed action (runs,
   executes, launch, finalize, reveal); ticks skip a plan under `SALE_RESERVE` (`budget_low`).
   Personas (operator, tests, demo) are never charged. API tests: `apps/api/test/wallet.test.ts`.
+- Intel collateral: `/api/pcs/*` passes Intel's PCS collateral through unchanged (TDX TCB Info, QE
+  Identity, PCK CRL, Root CA CRL; kept ≤1 h, never past nextUpdate); `@vsp/verify/collateral`
+  checks signatures to the pinned root, revocation, and the TCB status (non-UpToDate or a newer
+  format Intel publishes is a warning, Revoked or a bad signature a failure). Fixtures in
+  `data/intel-pcs/` (excluded from Biome: reformatting breaks the signatures).
 - Withheld sales: `GET /api/plans/:id/unsent` lists enclave-signed sales still `signed` 3 minutes
   after signing and not on chain, with the exact `execute` call; the plan page's `UnsentSales`
   lets any signed-in visitor send it with their wallet (the verifier links there). The registry's
@@ -297,13 +307,16 @@ and that DATABASE_URL serves it; set `OUTLAYER_TICK_SECONDS` high to keep it fro
 - Confidential Intents token list and fees.
 - The vault's `STALE_SIGN_BLOCKS` (300) assumes the signer's yield times out after ~200 blocks
   (sandbox only).
-- The vault on live testnet: gas for up to four 40 Tgas `sign` calls in one execute against
-  `v1.signer-prod.testnet`, a testnet4 broadcast of an assembled vault spend, and mempool.space's
-  CORS for browser reads (mempool.space was unreachable from the build machine on 2026-11-14).
+- The vault on live testnet4: a broadcast of an assembled vault spend (vault #1 is unfunded:
+  testnet4 faucets need a captcha or a login) and mempool.space's CORS for browser reads
+  (mempool.space is unreachable from the build machine; blockstream.info's testnet4 Esplora, which
+  `VAULT_MEMPOOL_API` can name, sends `Access-Control-Allow-Origin: *`). Measured on testnet
+  2026-11-14 (probe vault #2, made-up outpoints): one execute with four 40 Tgas `sign` calls to
+  `v1.signer-prod.testnet` burns 45.7 Tgas (~0.0043 NEAR) of its 300, returns in ~9 s, and all four
+  signatures verify against the vault key.
 
 ## Not built
 
 Confidential Intents path, an atomic relayer contract for OutLayer (runs are relayed by an
-account today), TCB status and revocation checks of OutLayer quotes (Intel's PCS collateral has no
-CORS; the browser checks the quote's signatures up to Intel's root in `@vsp/verify/tdx`), multi-enclave sealed backups (the registry already accepts any allowlisted key), the
+account today), the
 blind trust on OutLayer (no published build has the `trust_*` ops yet) or on testnet (`pnpm trust:deploy --confirm`). The vault contract is not deployed to testnet yet (`pnpm vault:deploy --confirm`). The testnet registry is deployed (`deployments/testnet.json`).

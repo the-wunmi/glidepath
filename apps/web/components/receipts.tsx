@@ -4,7 +4,8 @@ import { type ReceiptVerification, verifyReceipt } from '@vsp/verify';
 import { useState } from 'react';
 import {
   attestationFailure,
-  fetchTdxQuote,
+  checkState,
+  fetchOutlayerEvidence,
   isOutlayerQuote,
   outlayerChecks,
 } from '@/lib/attestation';
@@ -63,13 +64,14 @@ export function useReceiptVerifier(
       );
       const enclave = enclaves.find((x) => x.public_key === r.enclave_key);
       if (live && enclave) {
-        const quoteBytes = await fetchTdxQuote(live.attestation_url);
+        const ev = await fetchOutlayerEvidence(live.attestation_url);
         const checks = out.checks.flatMap((c) =>
           c.id === 'attestation'
-            ? outlayerChecks(enclave, quoteBytes).map((x, i) => ({
+            ? outlayerChecks(enclave, ev.quote, ev.collateral).map((x, i) => ({
                 id: `attestation-outlayer-${i}`,
                 label: x.label,
-                status: x.ok ? ('pass' as const) : ('fail' as const),
+                status: checkState(x),
+                ...(x.detail ? { detail: x.detail } : {}),
               }))
             : [c],
         );
@@ -265,14 +267,21 @@ export function ReceiptCard({
           {done && (
             <details
               className="mt-3 rounded-md border border-rule-2 bg-surface px-3"
-              // A reverted transfer is explained above; open only for other failures.
-              open={done.checks.some((c) => c.status === 'fail' && c.id !== 'broadcast')}
+              // A reverted transfer is explained above; open for other failures and for warnings.
+              open={done.checks.some(
+                (c) => (c.status === 'fail' && c.id !== 'broadcast') || c.status === 'warn',
+              )}
             >
               <summary className="cursor-pointer py-2 text-sm">
                 {done.ok && !done.complete ? (
                   <span className="text-wait">
                     {done.checks.filter((c) => c.status === 'pass').length} checks passed so far;
                     some cannot be checked yet
+                  </span>
+                ) : done.ok && done.checks.some((c) => c.status === 'warn') ? (
+                  <span className="text-wait">
+                    {done.checks.filter((c) => c.status === 'pass').length} checks passed,{' '}
+                    {done.checks.filter((c) => c.status === 'warn').length} with a warning
                   </span>
                 ) : done.ok ? (
                   <span className="text-pass">

@@ -153,8 +153,9 @@ case. The contract and enclave checks need Rust with `cargo-near`, the `wasm32-w
   pinned, carries the registered measurements (OutLayer's worker), and is signed through Intel's
   certificate chain up to Intel's root. The quote commits to the run that proved the enclave's
   keys, so the browser also checks that run executed our module and that the key it seals plans to
-  is the one that run proved. It does not check Intel's revocation lists or the machine's TCB status
-  (patch level): Intel serves that data without CORS, so a browser cannot fetch it.
+  is the one that run proved. It also checks Intel's revocation lists and the machine's TCB status
+  (patch level): Intel serves that data without CORS, so the API passes Intel's signed bytes
+  through and the browser verifies them up to the same root.
 - On testnet, 1Click quotes are signed by the simulator's key. The registry still binds every quote
   to the sale, the beneficiary and the floor.
 

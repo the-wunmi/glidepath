@@ -213,16 +213,24 @@ export function Facts({ items }: { items: [ReactNode, ReactNode][] }) {
   );
 }
 
-export type CheckState = 'pass' | 'fail' | 'skip' | 'pending';
+/** `warn`: checked, and not a failure, but not a pass either (an out-of-date machine). */
+export type CheckState = 'pass' | 'fail' | 'warn' | 'skip' | 'pending';
 
 export function CheckMark({ state }: { state: CheckState }) {
   const cls = {
     pass: 'bg-pass-soft text-pass',
     fail: 'bg-fail-soft text-fail',
+    warn: 'bg-wait-soft text-wait',
     skip: 'bg-surface-2 text-ink-3',
     pending: 'bg-surface-2 text-ink-3',
   }[state];
-  const label = { pass: 'Passed', fail: 'Failed', skip: 'Not checked', pending: 'Checking' }[state];
+  const label = {
+    pass: 'Passed',
+    fail: 'Failed',
+    warn: 'Warning',
+    skip: 'Not checked',
+    pending: 'Checking',
+  }[state];
   return (
     <span
       className={`inline-flex size-5 shrink-0 items-center justify-center rounded-full ${cls}`}
@@ -233,6 +241,10 @@ export function CheckMark({ state }: { state: CheckState }) {
         <CheckIcon width={12} height={12} />
       ) : state === 'fail' ? (
         <CrossIcon width={12} height={12} />
+      ) : state === 'warn' ? (
+        <span className="text-xs leading-none font-bold" aria-hidden="true">
+          !
+        </span>
       ) : (
         <DashIcon width={12} height={12} />
       )}

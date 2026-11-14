@@ -1,9 +1,8 @@
 /**
  * Intel TDX quote (version 4, ECDSA P-256) verification that runs in the browser: the PCK
  * certificate chain up to a pinned Intel SGX Root CA key, the quoting enclave's report, the
- * attestation key it vouches for, and the quote signature over the TD report. Not checked: TCB
- * status and revocation, which need Intel PCS collateral (TCB info, QE identity, CRLs) that Intel
- * serves without CORS headers, so a browser cannot fetch it.
+ * attestation key it vouches for, and the quote signature over the TD report. TCB status and
+ * revocation need Intel's PCS collateral; `collateral.ts` checks those.
  *
  * Layout: Intel TDX DCAP Quoting Library API, "TD Quote Format" (A.3, quote v4).
  */
@@ -164,14 +163,14 @@ export function parseTdxQuote(q: Uint8Array): TdxQuote {
 
 // ── DER and X.509, only what a P-256 certificate chain needs ──────────────────────────────────────
 
-interface Tlv {
+export interface Tlv {
   tag: number;
   /** The whole element, header included. */
   raw: Uint8Array;
   value: Uint8Array;
 }
 
-function readTlv(b: Uint8Array, at: number): Tlv {
+export function readTlv(b: Uint8Array, at: number): Tlv {
   const tag = b[at];
   let len = b[at + 1];
   if (tag === undefined || len === undefined || (tag & 0x1f) === 0x1f) throw new Error('Bad DER');
@@ -192,7 +191,7 @@ function readTlv(b: Uint8Array, at: number): Tlv {
   };
 }
 
-function children(parent: Uint8Array): Tlv[] {
+export function children(parent: Uint8Array): Tlv[] {
   const out: Tlv[] = [];
   for (let at = 0; at < parent.length; ) {
     const t = readTlv(parent, at);
@@ -202,7 +201,7 @@ function children(parent: Uint8Array): Tlv[] {
   return out;
 }
 
-const SEQUENCE = 0x30;
+export const SEQUENCE = 0x30;
 const OID = {
   ecdsaWithSha256: '2a8648ce3d040302',
   ecPublicKey: '2a8648ce3d0201',
@@ -211,12 +210,12 @@ const OID = {
   basicConstraints: '551d13',
 };
 
-function need(t: Tlv | undefined, tag: number, what: string): Tlv {
+export function need(t: Tlv | undefined, tag: number, what: string): Tlv {
   if (!t || t.tag !== tag) throw new Error(`Certificate ${what} missing`);
   return t;
 }
 
-function derTime(t: Tlv): Date {
+export function derTime(t: Tlv): Date {
   const s = new TextDecoder().decode(t.value);
   const m =
     t.tag === 0x17
@@ -265,6 +264,24 @@ export interface Certificate {
   /** DER ECDSA signature by the issuer over `tbs`. */
   signature: Uint8Array;
   isCa: boolean;
+  /** Serial number, hex, without leading zero bytes. */
+  serial: string;
+  /** Each extension's OID (DER content, hex) and its OCTET STRING content. */
+  extensions: { oid: string; value: Uint8Array }[];
+}
+
+/** An INTEGER's content as hex without leading zero bytes, so serials compare as numbers. */
+export const integerHex = (t: Tlv) => bytesToHex(t.value).replace(/^(00)+(?=.)/, '');
+
+function extensionList(extensions: Tlv | undefined): Certificate['extensions'] {
+  if (!extensions) return [];
+  return children(need(children(extensions.value)[0], SEQUENCE, 'extensions').value).map((ext) => {
+    const parts = children(ext.value);
+    const oid = parts[0];
+    const octets = parts[parts.length - 1];
+    if (!oid || !octets || octets.tag !== 0x04) throw new Error('Certificate extension malformed');
+    return { oid: bytesToHex(oid.value), value: octets.value };
+  });
 }
 
 /** Reads an X.509 certificate with a P-256 key signed with ECDSA-SHA256; anything else throws. */
@@ -292,6 +309,7 @@ export function parseCertificate(der: Uint8Array): Certificate {
     throw new Error('Certificate key is not P-256');
   const key = need(spkiKey, 0x03, 'public key').value;
   if (!from || !to) throw new Error('Certificate validity missing');
+  const extensions = f.find((x) => x.tag === 0xa3);
   return {
     tbs: tbsT.raw,
     issuer: issuer.raw,
@@ -302,7 +320,9 @@ export function parseCertificate(der: Uint8Array): Certificate {
     // BIT STRING: one byte of unused-bit count, then the point.
     publicKey: key.subarray(1),
     signature: sigBits.value.subarray(1),
-    isCa: isCa(f.find((x) => x.tag === 0xa3)),
+    isCa: isCa(extensions),
+    serial: integerHex(need(f[o], 0x02, 'serial number')),
+    extensions: extensionList(extensions),
   };
 }
 
@@ -315,7 +335,7 @@ export function pemCertificates(pem: string): Uint8Array[] {
 }
 
 // Intel signs with high S values too, so the low-S rule (a Bitcoin/Ethereum convention) is off.
-const ecdsaDer = (sig: Uint8Array, msg: Uint8Array, key: Uint8Array) => {
+export const ecdsaDer = (sig: Uint8Array, msg: Uint8Array, key: Uint8Array) => {
   try {
     return p256.verify(sig, msg, key, { format: 'der', lowS: false });
   } catch {
@@ -323,7 +343,7 @@ const ecdsaDer = (sig: Uint8Array, msg: Uint8Array, key: Uint8Array) => {
   }
 };
 /** `sig` is r ‖ s; `key` an uncompressed point. */
-const ecdsaRaw = (sig: Uint8Array, msg: Uint8Array, key: Uint8Array) => {
+export const ecdsaRaw = (sig: Uint8Array, msg: Uint8Array, key: Uint8Array) => {
   try {
     return p256.verify(sig, msg, key, { lowS: false });
   } catch {
@@ -331,7 +351,7 @@ const ecdsaRaw = (sig: Uint8Array, msg: Uint8Array, key: Uint8Array) => {
   }
 };
 
-const sameBytes = (a: Uint8Array, b: Uint8Array) =>
+export const sameBytes = (a: Uint8Array, b: Uint8Array) =>
   a.length === b.length && a.every((x, i) => x === b[i]);
 
 const PCK_CA_NAMES = ['Intel SGX PCK Platform CA', 'Intel SGX PCK Processor CA'];

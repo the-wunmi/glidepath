@@ -20,6 +20,7 @@
       "!**/.data",
       "!data/replay",
       "!data/oneclick",
+      "!data/intel-pcs",
       "!**/.turbo",
       "!**/test-results",
       "!**/*.md"
