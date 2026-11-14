@@ -2,8 +2,9 @@
  * Receipt verification that runs in the browser. Every check is a computation over bytes read from
  * the chain, so the server cannot fake a check by asserting it. Limits, stated plainly: the bytes
  * arrive through an RPC endpoint (the app proxies one; point it at any NEAR node you trust), NEAR
- * view results are not light-client proofs, and the TDX vendor key is simulated in this build. The
- * 1Click quote is checked in 1Click's own signature format against whichever key the registry holds.
+ * view results are not light-client proofs, and the simulated enclave's TDX vendor key is simulated.
+ * A live OutLayer enclave's TDX quote is checked against Intel's root in `tdx.ts`. The 1Click quote
+ * is checked in 1Click's own signature format against whichever key the registry holds.
  */
 
 import { ed25519 } from '@noble/curves/ed25519.js';
@@ -39,6 +40,28 @@ import {
   verifySimulatedQuote,
 } from '@vsp/core';
 import type { ChainEnclave, ChainPlan, ChainReceipt } from '@vsp/near';
+
+export {
+  KEY_PROOF_DOMAIN,
+  type KeyProofCheck,
+  type KeyProofInput,
+  type OutlayerAttestationRecord,
+  taskReportData,
+  verifyKeyProof,
+} from './keyproof.ts';
+export {
+  INTEL_SGX_ROOT_CA_PUBLIC_KEY,
+  parseTdxQuote,
+  TDX_CHECK_LABELS,
+  type TdxCheck,
+  type TdxCheckId,
+  type TdxMeasurements,
+  type TdxPinned,
+  type TdxQuote,
+  type TdxVerification,
+  verifyTdxQuote,
+} from './tdx.ts';
+
 import { type Hex, keccak256, parseTransaction, type TransactionSerializableEIP1559 } from 'viem';
 
 export type CheckStatus = 'pass' | 'fail' | 'skip';
@@ -78,6 +101,7 @@ export interface ReceiptVerification {
 
 /** Reads the verifier needs from chains, made by the caller (browser fetch to the RPC proxy). */
 export interface ChainReads {
+  /** Null only when the chain has no such transaction; a read that fails throws. */
   evmTransaction?: (hash: Hex) => Promise<{ status: 'success' | 'reverted' } | null>;
 }
 
@@ -109,7 +133,7 @@ export async function verifyReceipt(
   quoteSigner: string | QuoteSignerEntry[] | null = null,
 ): Promise<ReceiptVerification> {
   const checks: Check[] = [];
-  if (receipt.kind === 'release') return verifyRelease(receipt, plan);
+  if (receipt.kind === 'release') return verifyRelease(receipt, plan, reads);
   if (!receipt.request_json || !receipt.signature || !receipt.enclave_key) {
     checks.push(
       fail(
@@ -276,48 +300,7 @@ export async function verifyReceipt(
         sameButFees && hash.slice(2) === receipt.action_hash.replace(/^0x/, ''),
       ),
     );
-    if (receipt.evm_signature && plan.evm_address) {
-      const response: SignatureResponse = {
-        scheme: 'Secp256k1',
-        big_r: { affine_point: receipt.evm_signature.big_r },
-        s: { scalar: receipt.evm_signature.s },
-        recovery_id: receipt.evm_signature.recovery_id,
-      };
-      const signer = await recoverSigner(hash, response).catch(() => null);
-      checks.push(
-        check(
-          'mpc',
-          'Chain Signatures signature recovers to the plan’s own address',
-          signer === plan.evm_address.toLowerCase(),
-          signer ?? undefined,
-        ),
-      );
-      if (reads.evmTransaction) {
-        const txHash = keccak256(signedTx(tx, response));
-        const onChain = await reads.evmTransaction(txHash).catch(() => null);
-        checks.push(
-          onChain
-            ? check(
-                'broadcast',
-                'Signed transaction is on the EVM chain and succeeded',
-                onChain.status === 'success',
-                txHash,
-              )
-            : {
-                id: 'broadcast',
-                label: 'Signed transaction is on the EVM chain',
-                status: 'skip',
-                detail: 'Not broadcast yet',
-              },
-        );
-      }
-    } else {
-      checks.push({
-        id: 'mpc',
-        label: 'Chain Signatures signature present',
-        status: receipt.status === 'pending' ? 'skip' : 'fail',
-      });
-    }
+    checks.push(...(await evmSignatureChecks(tx, hash, receipt, plan, reads)));
   }
 
   // A sale still waiting on its transfer or MPC signature is not finished, not failed.
@@ -397,8 +380,74 @@ function quoteCheck(
   return check('quote', label, signed && bound && costOk, detail);
 }
 
-/** An end-of-plan release: no enclave involved; the registry may pay only the beneficiary. */
-function verifyRelease(receipt: ChainReceipt, plan: ChainPlan): ReceiptVerification {
+/**
+ * For a transaction the registry had signed: the MPC signature recovers to the plan's own address,
+ * and (when the caller can read the EVM chain) the signed transaction is on it and succeeded.
+ */
+async function evmSignatureChecks(
+  tx: TransactionSerializableEIP1559,
+  hash: Hex,
+  receipt: ChainReceipt,
+  plan: ChainPlan,
+  reads: ChainReads,
+): Promise<Check[]> {
+  if (!receipt.evm_signature || !plan.evm_address)
+    return [
+      {
+        id: 'mpc',
+        label: 'Chain Signatures signature present',
+        status: receipt.status === 'pending' ? 'skip' : 'fail',
+      },
+    ];
+  const checks: Check[] = [];
+  const response: SignatureResponse = {
+    scheme: 'Secp256k1',
+    big_r: { affine_point: receipt.evm_signature.big_r },
+    s: { scalar: receipt.evm_signature.s },
+    recovery_id: receipt.evm_signature.recovery_id,
+  };
+  const signer = await recoverSigner(hash, response).catch(() => null);
+  checks.push(
+    check(
+      'mpc',
+      'Chain Signatures signature recovers to the plan’s own address',
+      signer === plan.evm_address.toLowerCase(),
+      signer ?? undefined,
+    ),
+  );
+  if (reads.evmTransaction) {
+    const txHash = keccak256(signedTx(tx, response));
+    // A read that fails propagates: "not broadcast yet" must come from the chain, not an outage.
+    const onChain = await reads.evmTransaction(txHash);
+    checks.push(
+      onChain
+        ? check(
+            'broadcast',
+            'Signed transaction is on the EVM chain and succeeded',
+            onChain.status === 'success',
+            txHash,
+          )
+        : {
+            id: 'broadcast',
+            label: 'Signed transaction is on the EVM chain',
+            status: 'skip',
+            detail: 'Not broadcast yet',
+          },
+    );
+  }
+  return checks;
+}
+
+/**
+ * An end-of-plan release: no enclave involved; the registry may pay only the beneficiary. On an
+ * EVM chain the registry had the MPC network sign one ERC-20 transfer, so that transfer is rebuilt
+ * from the receipt and checked like a sale's: the beneficiary, this amount, the plan's token.
+ */
+async function verifyRelease(
+  receipt: ChainReceipt,
+  plan: ChainPlan,
+  reads: ChainReads,
+): Promise<ReceiptVerification> {
   const to = receipt.receiver.toLowerCase();
   const beneficiary = [plan.beneficiary.near_account, plan.beneficiary.evm_address ?? '']
     .filter(Boolean)
@@ -410,12 +459,57 @@ function verifyRelease(receipt: ChainReceipt, plan: ChainPlan): ReceiptVerificat
       beneficiary.includes(to),
       receipt.receiver,
     ),
-    check('settled', 'Registry finished the release', receipt.status === 'done', receipt.status),
   ];
+  if (plan.asset.type === 'evm_erc20' && receipt.evm_unsigned_tx) {
+    let tx: TransactionSerializableEIP1559 | null = null;
+    let matches = false;
+    try {
+      tx = parseTransaction(
+        `0x${receipt.evm_unsigned_tx.replace(/^0x/, '')}` as Hex,
+      ) as TransactionSerializableEIP1559;
+      const expected = erc20TransferTx({
+        chainId: plan.asset.chain_id,
+        token: plan.asset.token_address as Hex,
+        to: (plan.beneficiary.evm_address ?? '') as Hex,
+        amount: BigInt(receipt.amount),
+        nonce: tx.nonce ?? -1,
+        gasLimit: tx.gas ?? 0n,
+        maxFeePerGas: tx.maxFeePerGas ?? 0n,
+        maxPriorityFeePerGas: tx.maxPriorityFeePerGas ?? 0n,
+      });
+      matches = unsignedTxHex(tx) === unsignedTxHex(expected);
+    } catch {
+      matches = false;
+    }
+    const hash = tx ? unsignedTxHash(tx) : null;
+    checks.push(
+      check(
+        'action',
+        'Signed ERC-20 transfer pays this amount of the plan’s token to the beneficiary, and is what the MPC network was asked to sign',
+        matches && hash?.slice(2) === receipt.action_hash.replace(/^0x/, ''),
+      ),
+    );
+    if (tx && hash) checks.push(...(await evmSignatureChecks(tx, hash, receipt, plan, reads)));
+  }
+  checks.push(
+    receipt.status === 'pending'
+      ? {
+          id: 'settled',
+          label: 'Registry finished the release',
+          status: 'skip',
+          detail: 'Waiting for the MPC signature',
+        }
+      : check(
+          'settled',
+          'Registry finished the release',
+          receipt.status === 'done',
+          receipt.status,
+        ),
+  );
   return {
     seq: receipt.seq,
-    ok: checks.every((c) => c.status === 'pass'),
-    complete: true,
+    ok: checks.every((c) => c.status !== 'fail'),
+    complete: checks.every((c) => c.status !== 'skip'),
     simulatedAttestation: false,
     checks,
   };

@@ -3,7 +3,13 @@ import type { SealedBox } from '@vsp/core';
 import { ONECLICK_LIVE_QUOTE_KEY } from '@vsp/core';
 import { type Db, enclaveStore, plans } from '@vsp/db';
 import { type Enclave, type EnclaveHost, type SealedStore, SimulatedEnclave } from '@vsp/enclave';
-import { EvmClient, LOCAL_FUNDER_KEY, launchpadKeyFor, SEPOLIA_CHAIN_ID } from '@vsp/evm';
+import {
+  EvmClient,
+  LOCAL_FUNDER_KEY,
+  launchpadKeyFor,
+  publicRpcClient,
+  SEPOLIA_CHAIN_ID,
+} from '@vsp/evm';
 import { type ChainPlan, type ChainReceipt, type KeyPairString, NearClient } from '@vsp/near';
 import {
   createOneClickSimulator,
@@ -21,7 +27,7 @@ import {
   SimulatedPriceSource,
 } from '@vsp/prices';
 import { asc, eq } from 'drizzle-orm';
-import { createPublicClient, type Hex, http, type PublicClient } from 'viem';
+import type { Hex, PublicClient } from 'viem';
 import { type Config, livePricePairs } from './config.ts';
 import { createMpcNode } from './mpc-node.ts';
 import { buildOutLayerEnclave } from './outlayer.ts';
@@ -36,6 +42,8 @@ export interface Engine {
   near: NearClient;
   evm: EvmClient;
   enclave: Enclave;
+  /** What the enclave asks of the outside world (chain time, balances, prices, quotes). */
+  host: EnclaveHost;
   oneclick: OneClickClient;
   oneclickSim: ReturnType<typeof createOneClickSimulator> | null;
   mpcNode: ReturnType<typeof createMpcNode> | null;
@@ -43,14 +51,13 @@ export interface Engine {
   log: (message: string, data?: Record<string, unknown>) => void;
   registry: Registry;
   /**
-   * The public read paths (/api/meta, plan pages, the /rpc/near proxy) on their own paced client,
+   * The public read paths (/api/meta, plan pages, the /rpc proxies) on their own paced clients,
    * so visitors' reads cannot use up the RPC budget the engine's sales and relays need.
    */
   reads: {
     near: NearClient;
     registry: Registry;
-    /** Sepolia: EVM_PROXY_RPC_URL when set, so visitors' EVM reads can use their own endpoint. */
-    evmRpcUrl: string;
+    /** On Sepolia EVM_PROXY_RPC_URL (when set) first, then the engine's endpoints. */
     evm: PublicClient;
   };
 }
@@ -59,6 +66,14 @@ export interface Engine {
 const READ_RPC_PER_SECOND = 4;
 /** Reads queued past this answer 503 at once instead of waiting minutes for their turn. */
 const READ_RPC_MAX_WAITING = 100;
+/** A visitor's read gives up after this long, inside the browser's 10 s timeout, and is retried there. */
+const READ_RPC_DEADLINE_MS = 8_000;
+/**
+ * Pacing per public Sepolia endpoint. publicnode answered a burst of about 20 receipt reads with
+ * 429s, so a few at a time; the engine's own calls get a separate, larger share.
+ */
+const EVM_PACING = { maxPerSecond: 8, maxInFlight: 4 };
+const EVM_READ_PACING = { maxPerSecond: 4, maxInFlight: 3, maxWaiting: READ_RPC_MAX_WAITING };
 
 /** The registry's views, in one place so every reader decodes them the same way. */
 export interface Registry {
@@ -132,22 +147,28 @@ export function createEngine(config: Config, db: Db, w: WorldConfig, log: Engine
         fallbackUrls,
         maxPerSecond: READ_RPC_PER_SECOND,
         maxWaiting: READ_RPC_MAX_WAITING,
+        deadlineMs: READ_RPC_DEADLINE_MS,
       })
     : near;
   const funder = config.EVM_FUNDER_PRIVATE_KEY as Hex | undefined;
+  const sepolia = w.evmChainId === SEPOLIA_CHAIN_ID;
+  const evmUrls = [
+    w.evmRpcUrl,
+    ...config.EVM_RPC_FALLBACK_URLS.split(',')
+      .map((u) => u.trim())
+      .filter(Boolean),
+  ];
   const evm =
-    w.evmChainId === SEPOLIA_CHAIN_ID && funder
+    sepolia && funder
       ? new EvmClient(w.evmRpcUrl, w.evmChainId, funder, {
-          fallbackUrls: config.EVM_RPC_FALLBACK_URLS.split(',')
-            .map((u) => u.trim())
-            .filter(Boolean),
+          fallbackUrls: evmUrls.slice(1),
           launchpadKey: launchpadKeyFor(funder),
+          pacing: EVM_PACING,
         })
       : new EvmClient(w.evmRpcUrl, w.evmChainId, LOCAL_FUNDER_KEY);
-  const readEvmUrl =
-    w.evmChainId === SEPOLIA_CHAIN_ID && config.EVM_PROXY_RPC_URL
-      ? config.EVM_PROXY_RPC_URL
-      : w.evmRpcUrl;
+  const readEvmUrls = sepolia
+    ? [...new Set([config.EVM_PROXY_RPC_URL, ...evmUrls].filter((u): u is string => !!u))]
+    : null;
   const registry = registryReader(near, w.registry);
   const settings = () => readSimSettings(db);
 
@@ -250,6 +271,7 @@ export function createEngine(config: Config, db: Db, w: WorldConfig, log: Engine
     near,
     evm,
     enclave,
+    host,
     oneclick,
     oneclickSim,
     mpcNode,
@@ -259,11 +281,7 @@ export function createEngine(config: Config, db: Db, w: WorldConfig, log: Engine
     reads: {
       near: readNear,
       registry: readNear === near ? registry : registryReader(readNear, w.registry),
-      evmRpcUrl: readEvmUrl,
-      evm:
-        readEvmUrl === w.evmRpcUrl
-          ? evm.public
-          : createPublicClient({ chain: evm.chain, transport: http(readEvmUrl) }),
+      evm: readEvmUrls ? publicRpcClient(readEvmUrls, EVM_READ_PACING, evm.chain) : evm.public,
     },
   };
 }
@@ -342,7 +360,7 @@ export function oneclickQuoteKey(config: Config, w: WorldConfig): string {
   return simulatorPublicKey(Buffer.from(w.oneclickSecretHex, 'hex'));
 }
 
-/** Assets the 1Click simulator quotes: local USDC plus every launched plan token. */
+/** Assets the 1Click simulator quotes: local USDC, every launched plan token, the trust tokens. */
 async function simAssets(db: Db, w: WorldConfig): Promise<SimAsset[]> {
   const rows = await db.select().from(plans);
   const tokens = new Map<string, SimAsset>();
@@ -353,6 +371,15 @@ async function simAssets(db: Db, w: WorldConfig): Promise<SimAsset[]> {
     blockchain: 'near',
     contractAddress: w.usdc,
   });
+  // The blind trust prototype's demo tokens (Labs), when the world has them.
+  for (const t of w.trust?.tokens ?? [])
+    tokens.set(`nep141:${t.account}`, {
+      assetId: `nep141:${t.account}`,
+      symbol: t.symbol,
+      decimals: t.decimals,
+      blockchain: 'near',
+      contractAddress: t.account,
+    });
   for (const r of rows) {
     const assetId = assetIdFor(r.tokenChain, r.tokenAddress);
     tokens.set(assetId, {

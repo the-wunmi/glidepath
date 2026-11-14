@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-13T04:18:23.780Z",
+  "generated_at": "2026-11-14T13:04:03.659Z",
   "network": "local",
   "plan_id": 1,
   "registry": "registry.sandbox",
@@ -10,7 +10,7 @@
       "expected": "only_registry",
       "got": "only_registry",
       "verdict": "refused",
-      "tx_hash": "37BWN8EnxjmqD6giZQfVHFZcatU7PMi3GpJUQ1GjGT9Y"
+      "tx_hash": "9kfno4JWW9jKiLNKNMPhc4en7AzSuQzgyBdV22sgNnFG"
     },
     {
       "attack": "Release the plan account balance to themselves",
@@ -18,7 +18,7 @@
       "expected": "only_registry",
       "got": "only_registry",
       "verdict": "refused",
-      "tx_hash": "9mhE44z3m3GhA3QVJZeggoMxtpBFJV6F23u8FpLPgEnS"
+      "tx_hash": "ExjkcJBUdJWobUnwxgHXEPTQsbLoJRYF5yf2P5HgvZys"
     },
     {
       "attack": "Add their own key to the plan account",
@@ -42,7 +42,7 @@
       "expected": "only_governance",
       "got": "only_governance",
       "verdict": "refused",
-      "tx_hash": "2389osSdwcSjEUNNu8g8snU8YmM1hZ5yXxWZ3gp6kdTr"
+      "tx_hash": "mNAXuaDL6p29iYJcbQZqM9BnoCFFDoRwJywhm73uxJN"
     },
     {
       "attack": "Sign a sale with a key that is not on the allowlist",
@@ -50,7 +50,7 @@
       "expected": "unknown_enclave",
       "got": "unknown_enclave",
       "verdict": "refused",
-      "tx_hash": "dnK1px8s67sbCPcSbSErniKk6dLBVzfmisqvaQgeiRF"
+      "tx_hash": "GCHoxfdB2gHXgnU8u9imwuVBju1xAFVUSRT841qyR64S"
     },
     {
       "attack": "Replay an earlier enclave-signed sale",
@@ -58,7 +58,7 @@
       "expected": "bad_seq",
       "got": "bad_seq",
       "verdict": "refused",
-      "tx_hash": "Aa6uTW9aH2QU4TnhNgcc1CyfhAeZj9MZqLY5egEbicV"
+      "tx_hash": "CmxdBREgkEoZCfaW4WPTUsVQkaqMrawEKuyKq3u23Jhi"
     },
     {
       "attack": "Change the amount in a genuine signed sale",
@@ -66,7 +66,7 @@
       "expected": "bad_signature",
       "got": "bad_signature",
       "verdict": "refused",
-      "tx_hash": "GjcLSEYj8aUQWj9LmFwJK5BYZKc1UdL1Y7hzENhR9RDz"
+      "tx_hash": "6ggvpf55xvryxi4jmFKTEkUgd548mnwA6i7uLjJgmDhi"
     },
     {
       "attack": "Claim the enclave key with a forged signature",
@@ -74,7 +74,7 @@
       "expected": "bad_signature",
       "got": "bad_signature",
       "verdict": "refused",
-      "tx_hash": "GSbATtdV8eMEMEcUoth2kUmMkWRj6ansoo9vXRTQ25wd"
+      "tx_hash": "8ot43pc5nKDrd62d9JwLFZyYLRCrNcSo2StU8HLyNaJF"
     },
     {
       "attack": "Sell more than the public per-sale cap in one go",
@@ -82,7 +82,7 @@
       "expected": "tx_cap_exceeded",
       "got": "tx_cap_exceeded",
       "verdict": "refused",
-      "tx_hash": "H5sueV3MYQytWdpRbgVwhekC1Jp5HcBmUx9QCMCiVX2v"
+      "tx_hash": "qGvsnhym3J1zY95JjGxsAFKjJSUrcLEDztps5ufqocD"
     },
     {
       "attack": "Sell on a genuine quote whose guaranteed price is under the public floor",
@@ -90,7 +90,7 @@
       "expected": "below_floor",
       "got": "below_floor",
       "verdict": "refused",
-      "tx_hash": "GiypRwKuVYLyYRz35MgLsZom5SqXJ5yvvNSkA1xZ39Ex"
+      "tx_hash": "FyCuHf9vJq6AS8azoqJwdK751EHCYgRKbBkhzs6DnHFM"
     },
     {
       "attack": "Send the proceeds to the attacker (genuine quote, attacker as recipient)",
@@ -98,7 +98,7 @@
       "expected": "quote_mismatch",
       "got": "quote_mismatch",
       "verdict": "refused",
-      "tx_hash": "AYsPeVwC9rb5qKxp8yWZzMt5XduQ4UH5cYzXmRYxxPKY"
+      "tx_hash": "2ZGV4oLmvaZfSWDAowizByBSxY5BnBvM7ciAwLj6BGt4"
     },
     {
       "attack": "Have a failed swap refund to the attacker (genuine quote, attacker as refund address)",
@@ -106,7 +106,7 @@
       "expected": "quote_mismatch",
       "got": "quote_mismatch",
       "verdict": "refused",
-      "tx_hash": "G9TwT57Z4uSWkGd3coYV5tmvfPLQhGqeh5qAyvQpRedv"
+      "tx_hash": "7kWLLRJbsqB7r35GVsmTFp4YVEB3gWb2gQ5yRNXGCHUc"
     },
     {
       "attack": "Invent a quote with a high guaranteed price (edit minAmountOut in a real 1Click-format quote)",
@@ -114,7 +114,7 @@
       "expected": "bad_quote_signature",
       "got": "bad_quote_signature",
       "verdict": "refused",
-      "tx_hash": "7H2ohmn8mumc1guZuTzrgBba9tSuVhuSiq3p6sGf13Ki"
+      "tx_hash": "GbNf1QPU3ZmKd5QdymAa4EVv6abZ6AoxGctNm7S1gLPx"
     },
     {
       "attack": "Tamper with a genuine 1Click-format quote: swap in the attacker as recipient",
@@ -122,7 +122,7 @@
       "expected": "bad_quote_signature",
       "got": "bad_quote_signature",
       "verdict": "refused",
-      "tx_hash": "EN17t18oHufnUbSvziMw4vHgsnBuQiJSziT2gxJNgcfs"
+      "tx_hash": "G9D38prsc1X4XzCVBvq3Wd58LK5VzbE7Wu7KJDZt4dQH"
     },
     {
       "attack": "Skim the sale through an app fee to the attacker (1Click signs it; 3% fee)",
@@ -130,7 +130,7 @@
       "expected": "quote_fee_too_high",
       "got": "quote_fee_too_high",
       "verdict": "refused",
-      "tx_hash": "7VWWVwmSXsYEFo4R1PSb5w67G9V2EskBx845UaJavNgj"
+      "tx_hash": "8DAjuZcutzc3XgPSx1NLd6K8oNvYfanPheJipmTqE3Pg"
     },
     {
       "attack": "Pay the sale to an address other than the 1Click deposit",
@@ -138,7 +138,7 @@
       "expected": "receiver_mismatch",
       "got": "receiver_mismatch",
       "verdict": "refused",
-      "tx_hash": "8SJSWURjymdQ5tsJAkU3jFaAqUMGm37xEDpAYff9LnrR"
+      "tx_hash": "AsGqVNc9NH9Pm7v6d6HX6ELPayRMEiaXkrxBc2iTcSAu"
     },
     {
       "attack": "Submit a sale whose own compliance answers say no",
@@ -146,7 +146,7 @@
       "expected": "not_compliant",
       "got": "not_compliant",
       "verdict": "refused",
-      "tx_hash": "J9AbARu5mZLMYU9PL7EjUQAb5KLZYUQVzVd1QiAiDvn2"
+      "tx_hash": "B5P5SmgtEAPPpANqMe4CNA5AgytGL7bE1cPZy6LnZu1d"
     },
     {
       "attack": "Reuse the 1Click quote of an earlier sale for a new one",
@@ -154,7 +154,7 @@
       "expected": "quote_used",
       "got": "quote_used",
       "verdict": "refused",
-      "tx_hash": "6zifmysDrXKgJoZDD5a5Lt1tcHogUkvaWpMyJ38yLGb5"
+      "tx_hash": "BgtTKS9FmPMcsPwhNvj9qBDbdEea8BBg5srjPHVLxSh3"
     },
     {
       "attack": "Use a newly registered enclave key on a plan with a longer cooling-off",
@@ -162,7 +162,7 @@
       "expected": "key_too_new_for_plan",
       "got": "key_too_new_for_plan",
       "verdict": "refused",
-      "tx_hash": "4KryDkS1j8hhtpAXiZK755ZniYp1SmmVtZMRvuk2kvF9"
+      "tx_hash": "5gSRfwQAVKSCf5BKbyoGoTohrwaebzj6wcrozZ5vhi7N"
     },
     {
       "attack": "Request a plan change (allowed: it starts a public cooling-off)",
@@ -170,7 +170,7 @@
       "expected": "accepted",
       "got": "accepted",
       "verdict": "accepted",
-      "tx_hash": "8bmvbJ8C2H3af1sAX5YoPPZzDTgcx6qZoEWdHgNcUEp7"
+      "tx_hash": "2qarqg5Wu37x8ULswyNjAghQ6gqkkYVakH9pJB9Xdvuq"
     },
     {
       "attack": "Apply the change before the cooling-off ends",
@@ -178,7 +178,7 @@
       "expected": "cooling_off",
       "got": "cooling_off",
       "verdict": "refused",
-      "tx_hash": "HZttSHbsDtqf5AcMsxV7s9T94C5B5HosvhPfVkESMarn"
+      "tx_hash": "AoGyBgdZv5C4EPuLXDps6TxABEDnu18tViv1x1r8tSAq"
     },
     {
       "attack": "Sell under the new plan before it takes effect",
@@ -186,7 +186,7 @@
       "expected": "commitment_mismatch",
       "got": "commitment_mismatch",
       "verdict": "refused",
-      "tx_hash": "2VJAHk3yBbjgm26bgZJQ95YuExsGLE4r7bRebDRABynT"
+      "tx_hash": "7RJPJ39UvQMVfwzbD4ABM1QZ7YN86mMzoP9hh3kn3TJJ"
     },
     {
       "attack": "Cancel and take the tokens back at once",
@@ -194,7 +194,7 @@
       "expected": "cooling_off",
       "got": "cooling_off",
       "verdict": "refused",
-      "tx_hash": "Ba9qPRi5y1kyP9unLZwSbFPdQfxRoaJizrG2e6drrE7M"
+      "tx_hash": "BWicNsU3tjmVfHe3uGpoLuvadyJZrHd7qtc5pZynnCtb"
     },
     {
       "attack": "Withdraw a cancel after it took effect, to resume selling at once",
@@ -202,7 +202,7 @@
       "expected": "cancel_effective",
       "got": "cancel_effective",
       "verdict": "refused",
-      "tx_hash": "81tG7QtbMkTvzV3PrECaNGiSp5GBry6okHHgCFQbyQWi"
+      "tx_hash": "79impKm3rownkaZCtjRMFLjm2xmcbpdXgLiuqtQDTFRc"
     },
     {
       "attack": "Re-sign someone else's EVM transfer with different fees",
@@ -210,7 +210,7 @@
       "expected": "only_owner_or_beneficiary",
       "got": "only_owner_or_beneficiary",
       "verdict": "refused",
-      "tx_hash": "2KTvdcWmHWcicnsMMQQ2G1nTv59NC6QTuh61My1EuMoB"
+      "tx_hash": "5gp5p29KeM2e3dXveVBYNsngr6AAdLk1JPterN1C1rnb"
     }
   ]
 }

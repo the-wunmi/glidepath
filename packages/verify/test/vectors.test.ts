@@ -312,21 +312,40 @@ describe('the verifier and later events', () => {
     expect((await actionCheck(lower))?.status).toBe('fail');
   });
 
-  it('checks a release only pays the beneficiary', async () => {
-    const release = { ...evmReceipt(v.unsigned_tx), kind: 'release' as const, request_json: null };
-    const good = await verifyReceipt(
-      { ...release, receiver: '0x000000000000000000000000000000000000beef' },
-      evmPlan,
-      [],
-      null,
-    );
-    const bad = await verifyReceipt(
-      { ...release, receiver: '0x000000000000000000000000000000000000dead' },
-      evmPlan,
-      [],
-      null,
-    );
+  it('checks a release only pays the beneficiary, through the transfer the MPC network signs', async () => {
+    const releaseTo = (to: Hex) =>
+      erc20TransferTx({
+        chainId: v.chain_id,
+        token: v.token_address as Hex,
+        to,
+        amount: BigInt(v.action.amount),
+        nonce: 7,
+        gasLimit: 150_000n,
+        maxFeePerGas: 2_000_000_000n,
+        maxPriorityFeePerGas: 1_000_000_000n,
+      });
+    const release = (to: Hex, receiver: string) => {
+      const tx = releaseTo(to);
+      return {
+        ...evmReceipt(unsignedTxHex(tx)),
+        kind: 'release' as const,
+        request_json: null,
+        receiver,
+        action_hash: unsignedTxHash(tx).slice(2),
+        // Still waiting for its signature: the signature checks skip, the transfer is checked.
+        status: 'pending' as const,
+      };
+    };
+    const beneficiary = '0x000000000000000000000000000000000000beef';
+    const stranger = '0x000000000000000000000000000000000000dead';
+    const good = await verifyReceipt(release(beneficiary, beneficiary), evmPlan, [], null);
+    const wrongReceiver = await verifyReceipt(release(beneficiary, stranger), evmPlan, [], null);
+    const wrongTransfer = await verifyReceipt(release(stranger, beneficiary), evmPlan, [], null);
     expect(good.ok).toBe(true);
-    expect(bad.ok).toBe(false);
+    expect(good.complete).toBe(false);
+    expect(good.checks.find((c) => c.id === 'action')?.status).toBe('pass');
+    expect(wrongReceiver.ok).toBe(false);
+    expect(wrongTransfer.ok).toBe(false);
+    expect(wrongTransfer.checks.find((c) => c.id === 'action')?.status).toBe('fail');
   });
 });

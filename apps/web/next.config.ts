@@ -12,8 +12,8 @@ const config: NextConfig = {
   outputFileTracingRoot: fileURLToPath(new URL('../../', import.meta.url)),
   agentRules: false,
   devIndicators: false,
-  // The workspace packages ship TypeScript source; the browser needs @vsp/core and @vsp/verify.
-  transpilePackages: ['@vsp/core', '@vsp/verify', '@vsp/chainsig'],
+  // The workspace packages ship TypeScript source; the browser needs @vsp/core, @vsp/verify and @vsp/btc.
+  transpilePackages: ['@vsp/core', '@vsp/verify', '@vsp/chainsig', '@vsp/trust', '@vsp/btc'],
   typescript: {
     // Type checking runs through `pnpm typecheck` (tsc --noEmit), which uses the workspace compiler.
     ignoreBuildErrors: true,

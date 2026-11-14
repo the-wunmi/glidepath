@@ -22,7 +22,13 @@ import {
 } from '@vsp/core';
 import { createDb, createPool } from '@vsp/db';
 import { deriveEnclaveKeys } from '@vsp/enclave';
-import { enclaveHardwareSecret, loadWorld, REPO_DATA_DIR, SANDBOX_MS_PER_BLOCK } from '@vsp/engine';
+import {
+  enclaveHardwareSecret,
+  loadWorld,
+  REPO_DATA_DIR,
+  resolveDataDir,
+  SANDBOX_MS_PER_BLOCK,
+} from '@vsp/engine';
 import {
   actions,
   type ChainPlan,
@@ -212,7 +218,7 @@ async function main() {
 
   // ── A fully compromised enclave: the attacker holds its signing key ──────────
   const enclaveKey = deriveEnclaveKeys(
-    enclaveHardwareSecret(process.env.DATA_DIR ?? REPO_DATA_DIR),
+    enclaveHardwareSecret(resolveDataDir(process.env.DATA_DIR ?? REPO_DATA_DIR)),
   ).signing;
   const enclaveKeyId = formatNearKey('ed25519', ed25519.getPublicKey(enclaveKey));
   /**

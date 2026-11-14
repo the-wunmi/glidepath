@@ -1,5 +1,5 @@
 import { describeEnvelope, type Envelope, type EnvelopeJson } from '@vsp/core';
-import { fmtDate } from './format';
+import { fmtDate, fmtDateTime } from './format';
 
 /** The registry's and plan account's refusal codes, in one plain sentence each. */
 const REFUSALS: Record<string, string> = {
@@ -64,6 +64,9 @@ export function plainLines(lines: string[], proceedsAsset?: string): string[] {
   return lines.map((l) => {
     let out = l.replace(/\b(1click_quote|binance|coinbase)\b/g, (m) => SOURCE_NAMES[m] ?? m);
     if (proceedsAsset) out = out.replaceAll(proceedsAsset, 'USDC');
+    out = out.replace(/\b(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}) UTC\b/g, (_m, d: string, t: string) =>
+      fmtDateTime(Date.parse(`${d}T${t}:00Z`)),
+    );
     out = out.replace(/\b(\d{4}-\d{2}-\d{2})\b/g, (m) => fmtDate(m));
     out = out.replace(
       /\$(\d[\d,]*)(\.\d+)?(?= )/g,

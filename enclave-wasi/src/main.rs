@@ -39,6 +39,11 @@ enum Request {
         now_ms: i64,
         random_seed_hex: Option<String>,
     },
+    HandoverState {
+        plan: Plan,
+        counters: ChainCounters,
+        random_seed_hex: Option<String>,
+    },
     CheckMarket {
         plan: Plan,
         envelope: Envelope,
@@ -56,6 +61,20 @@ enum Request {
         seed_hex: String,
         domain: String,
         json: String,
+    },
+    /// Blind trust (prototype): the mandate's own rules and whether it sits inside the envelope.
+    TrustCheckMandate {
+        mandate: trust::Mandate,
+        envelope: trust::TrustEnvelope,
+    },
+    /// Blind trust: the rebalance decision.
+    TrustRebalance {
+        mandate: trust::Mandate,
+        envelope: trust::TrustEnvelope,
+        counters: trust::Counters,
+        holdings: Vec<trust::Holding>,
+        prices: Vec<trust::AssetPrice>,
+        now_ms: i64,
     },
 }
 
@@ -131,6 +150,15 @@ fn handle(req: Request) -> Result<Value> {
             let mut r = rng(random_seed_hex)?;
             json!({ "next_sale_at_ms": schedule_after(&plan, now_ms, r.as_mut())? })
         }
+        Request::HandoverState {
+            plan,
+            counters,
+            random_seed_hex,
+        } => {
+            let mut r = rng(random_seed_hex)?;
+            serde_json::to_value(handover_state(&plan, &counters, r.as_mut())?)
+                .map_err(|e| e.to_string())?
+        }
         Request::CheckMarket {
             plan,
             envelope,
@@ -167,6 +195,24 @@ fn handle(req: Request) -> Result<Value> {
             let (public_key, signature) = sign(hex32(&seed_hex, "seed_hex")?, &domain, &body);
             json!({ "public_key": public_key, "signature": signature })
         }
+        Request::TrustCheckMandate { mandate, envelope } => json!({
+            "problems": trust::mandate_problems(&mandate)?,
+            "checks": trust::check_mandate_envelope(&mandate, &envelope)?
+                .iter()
+                .map(|(rule, ok)| json!({ "rule": rule, "ok": ok }))
+                .collect::<Vec<_>>(),
+        }),
+        Request::TrustRebalance {
+            mandate,
+            envelope,
+            counters,
+            holdings,
+            prices,
+            now_ms,
+        } => serde_json::to_value(trust::decide_rebalance(
+            &mandate, &envelope, &counters, &holdings, &prices, now_ms,
+        )?)
+        .map_err(|e| e.to_string())?,
     })
 }
 

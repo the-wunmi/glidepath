@@ -23,6 +23,7 @@
     "@vsp/oneclick": "workspace:*",
     "@vsp/planner": "workspace:*",
     "@vsp/prices": "workspace:*",
+    "@vsp/trust": "workspace:*",
     "drizzle-orm": "^0.45.4",
     "pg": "^8.23.1",
     "viem": "^2.57.17",

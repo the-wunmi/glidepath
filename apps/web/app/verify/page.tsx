@@ -93,57 +93,82 @@ export default function VerifyIndex() {
           Plans appear here as soon as they are committed on-chain.
         </EmptyState>
       ) : (
-        <div className="panel overflow-x-auto">
-          <table className="table min-w-[680px]">
-            <caption className="sr-only">Plans in the registry</caption>
-            <thead>
-              <tr>
-                <th scope="col">Plan</th>
-                <th scope="col">Status</th>
-                <th scope="col">Commitment</th>
-                <th scope="col">Asset</th>
-                <th scope="col" className="r">
-                  Receipts
-                </th>
-                <th scope="col">Created</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[...plans.data].reverse().map((p) => (
-                <tr key={p.id}>
-                  <td>
-                    <Link href={`/verify/${p.id}`} className="link font-semibold">
-                      {p.label}
-                    </Link>
-                    <div className="text-xs text-ink-3">
-                      #{p.id}, owner <span className="mono">{p.owner}</span>
-                    </div>
-                  </td>
-                  <td>
-                    <PlanStatusBadge status={p.status} pending={p.pending_change} />
-                  </td>
-                  <td>
-                    <Hash value={p.commitment} label="commitment" />
-                  </td>
-                  <td className="text-sm">
-                    {p.asset.type === 'nep141' ? (
-                      <span className="mono text-[0.8125rem]">{p.asset.token_id}</span>
-                    ) : (
-                      <span>
-                        ERC-20 on{' '}
-                        {meta.data && p.asset.chain_id === meta.data.evmChainId
-                          ? evmChainName(meta.data)
-                          : `chain ${p.asset.chain_id}`}
-                      </span>
-                    )}
-                  </td>
-                  <td className="num r">{p.receipt_count}</td>
-                  <td className="num text-sm">{fmtDate(p.created_at_ms)}</td>
+        <>
+          {/* Stacked on a phone, so no column is scrolled out of view. */}
+          <ul className="panel divide-y divide-rule-2 md:hidden">
+            {[...plans.data].reverse().map((p) => (
+              <li key={p.id} className="space-y-1.5 px-4 py-3 text-sm">
+                <p className="flex flex-wrap items-center justify-between gap-2">
+                  <Link href={`/verify/${p.id}`} className="link font-semibold">
+                    {p.label}
+                  </Link>
+                  <PlanStatusBadge status={p.status} pending={p.pending_change} />
+                </p>
+                <p className="text-xs text-ink-3">
+                  #{p.id}, owner <span className="mono">{p.owner}</span>, created{' '}
+                  {fmtDate(p.created_at_ms)}
+                </p>
+                <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-ink-2">
+                  <Hash value={p.commitment} label="commitment" />
+                  <span>
+                    {p.receipt_count} receipt{p.receipt_count === 1 ? '' : 's'}
+                  </span>
+                </p>
+              </li>
+            ))}
+          </ul>
+          <div className="panel hidden overflow-x-auto md:block">
+            <table className="table min-w-[680px]">
+              <caption className="sr-only">Plans in the registry</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Plan</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Commitment</th>
+                  <th scope="col">Asset</th>
+                  <th scope="col" className="r">
+                    Receipts
+                  </th>
+                  <th scope="col">Created</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {[...plans.data].reverse().map((p) => (
+                  <tr key={p.id}>
+                    <td>
+                      <Link href={`/verify/${p.id}`} className="link font-semibold">
+                        {p.label}
+                      </Link>
+                      <div className="text-xs text-ink-3">
+                        #{p.id}, owner <span className="mono">{p.owner}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <PlanStatusBadge status={p.status} pending={p.pending_change} />
+                    </td>
+                    <td>
+                      <Hash value={p.commitment} label="commitment" />
+                    </td>
+                    <td className="text-sm">
+                      {p.asset.type === 'nep141' ? (
+                        <span className="mono text-[0.8125rem]">{p.asset.token_id}</span>
+                      ) : (
+                        <span>
+                          ERC-20 on{' '}
+                          {meta.data && p.asset.chain_id === meta.data.evmChainId
+                            ? evmChainName(meta.data)
+                            : `chain ${p.asset.chain_id}`}
+                        </span>
+                      )}
+                    </td>
+                    <td className="num r">{p.receipt_count}</td>
+                    <td className="num text-sm">{fmtDate(p.created_at_ms)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   );

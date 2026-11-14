@@ -65,6 +65,32 @@ export function scheduleAfter(plan: SealedPlan, nowMs: number, random: RandomByt
   return nowMs + Number(randomBetween(BigInt(l.minGapMs), BigInt(l.maxGapMs), random));
 }
 
+/** The registry's public sale counters for a plan, as `get_plan` returns them. */
+export interface ChainCounters {
+  period_index: number;
+  sold_in_period: string;
+  sold_total: string;
+  last_sale_ms: number | null;
+}
+
+/**
+ * The state of a plan this enclave takes over from another build. The counters come from the
+ * registry, which counts every build's sales; the next sale time is drawn afresh.
+ */
+export function handoverState(plan: SealedPlan, c: ChainCounters, random: RandomBytes): PlanState {
+  const l = planLimits(plan);
+  return {
+    periodIndex: c.period_index,
+    soldInPeriod: BigInt(c.sold_in_period),
+    soldTotal: BigInt(c.sold_total),
+    lastSaleMs: c.last_sale_ms,
+    nextSaleAtMs:
+      c.last_sale_ms === null
+        ? l.startMs + Number(randomBetween(0n, BigInt(l.maxGapMs), random))
+        : scheduleAfter(plan, c.last_sale_ms, random),
+  };
+}
+
 export type Proposal =
   | { type: 'wait'; reason: WaitReason; untilMs: number | null }
   | { type: 'sell'; amount: bigint; periodIndex: number };
@@ -79,8 +105,8 @@ export type WaitReason =
 
 /**
  * Decides whether a sale is due now and how large it is. The amount is random between half the
- * per-sale cap and the cap, limited by what is left this period, so sizes leak as little as timing.
- * Both the sealed limits and the public envelope apply; the contract re-checks the envelope.
+ * per-sale cap and the cap, so sizes leak as little as timing. Both the sealed limits and the
+ * public envelope apply; the contract re-checks the envelope.
  */
 export function proposeSale(
   plan: SealedPlan,
@@ -108,9 +134,21 @@ export function proposeSale(
     const nextPeriod = l.startMs + (periodIndex + 1) * l.periodMs;
     return { type: 'wait', reason: 'period_budget_used', untilMs: nextPeriod };
   }
-  const txCap = minBig(minBig(l.perTx, envelope.max_amount_per_tx), left);
-  const amount = randomBetween(maxBig(txCap / 2n, 1n), txCap, random);
-  return { type: 'sell', amount, periodIndex };
+  const saleCap = minBig(l.perTx, envelope.max_amount_per_tx);
+  return { type: 'sell', amount: saleSize(saleCap, left, random), periodIndex };
+}
+
+/**
+ * A random size in [cap/2, cap] that never leaves less than cap/2 behind in `left`. Drawing from
+ * what is left alone would shrink each sale by half or more, a tail of dust sales that each cost a
+ * run, a signature and gas. So a draw that would leave a remainder under the smallest sale takes
+ * the remainder too when that fits one sale, and otherwise leaves exactly the smallest sale.
+ */
+export function saleSize(cap: bigint, left: bigint, random: RandomBytes): bigint {
+  const smallest = maxBig(cap / 2n, 1n);
+  const drawn = randomBetween(smallest, cap, random);
+  if (left - drawn >= smallest) return drawn;
+  return left <= cap ? left : left - smallest;
 }
 
 /** Records a confirmed sale and draws the next time. Only called once the contract accepted it. */

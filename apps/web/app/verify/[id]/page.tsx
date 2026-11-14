@@ -27,7 +27,7 @@ import {
   Tabs,
   useHashTab,
 } from '@/components/ui';
-import { isOutlayerQuote } from '@/lib/attestation';
+import { isOutlayerQuote, onEarlierBuild, planEnclave } from '@/lib/attestation';
 import {
   accessKeys,
   DEFAULT_NEAR_RPC,
@@ -321,7 +321,9 @@ export default function VerifyPlanPage() {
         )
       : sales;
   const allHidden = delayed && disclosed.length < sales.length;
-  const verifiable = sales.filter((r) => r.request_json);
+  // Sales carry the enclave's signed request; releases carry none and are checked against the plan
+  // and the registry receipt.
+  const verifiable = d.receipts.filter((r) => r.kind === 'release' || r.request_json);
   const reverted = sales.filter((r) => revertedTx(verifier.results[r.seq]) !== null);
   const revertedAmount = reverted.reduce((sum, r) => sum + BigInt(r.amount), 0n);
   const finished = verifiable.flatMap((r) => {
@@ -331,9 +333,17 @@ export default function VerifyPlanPage() {
   const verifiedCount = finished.filter((x) => x.ok && x.complete).length;
   const soFarCount = finished.filter((x) => x.ok && !x.complete).length;
   const failedCount = finished.filter((x) => !x.ok).length - reverted.length;
+  const unchecked = verifiable.filter((r) => {
+    const x = verifier.results[r.seq];
+    return x && x !== 'running' && 'error' in x;
+  });
   const anyRunning = Object.values(verifier.results).some((x) => x === 'running');
   const enclaveSim = simReason(m, 'enclave');
-  const liveQuote = m && isOutlayerQuote(m.enclave.quote) ? m.enclave.quote : null;
+  const planBuild = m ? planEnclave(m, plan.acked_by) : null;
+  const planQuote = planBuild?.quote ?? null;
+  // Accepted by an enclave whose attestation this server does not serve.
+  const unservedKey = m && !planBuild ? plan.acked_by : null;
+  const liveQuote = isOutlayerQuote(planQuote) ? planQuote : null;
   const oneclickSim = simReason(m, 'oneclick');
   const mpcSim = simReason(m, 'chainSignatures');
   const custody = [keyless, codeMatches, d.registryKeys.total === 0, !!config.quote_signer];
@@ -571,7 +581,7 @@ export default function VerifyPlanPage() {
         <Panel
           id="receipts"
           title="Receipt trail"
-          description="One receipt per sale. Each proves, with yes/no answers, that the sale followed the sealed plan."
+          description={`One receipt per sale${d.receipts.some((r) => r.kind === 'release') ? ', and one for the end-of-plan release' : ''}. Each sale’s receipt proves, with yes/no answers, that it followed the sealed plan.`}
           actions={
             verifiable.length > 0 ? (
               <button
@@ -599,6 +609,13 @@ export default function VerifyPlanPage() {
                   </button>
                   .
                 </span>
+              </p>
+            ) : unservedKey && d.receipts.length > 0 ? (
+              <p className="text-sm text-ink-2">
+                The enclave key that accepted this plan (
+                <Hash value={unservedKey} label="enclave key" head={14} />) has no attestation this
+                server can show, so its receipts cannot be tied to measured code and fail that
+                check. Every other check still runs.
               </p>
             ) : (
               enclaveSim &&
@@ -629,6 +646,22 @@ export default function VerifyPlanPage() {
                     {failedCount} failed verification
                   </Badge>
                 )}
+              </p>
+            )}
+            {unchecked.length > 0 && !anyRunning && (
+              <p className="flex flex-wrap items-center gap-2 text-sm text-ink-2">
+                <Badge tone="wait" dot>
+                  {unchecked.length} could not be checked
+                </Badge>
+                <button
+                  type="button"
+                  className="link"
+                  onClick={() => {
+                    for (const r of unchecked) void verifier.run(r);
+                  }}
+                >
+                  Try {unchecked.length === 1 ? 'it' : 'them'} again
+                </button>
               </p>
             )}
           </div>
@@ -744,6 +777,21 @@ export default function VerifyPlanPage() {
                     'Enclave accepted',
                     plan.acked_at_ms ? fmtDateTime(plan.acked_at_ms) : 'not yet',
                   ],
+                  ...(plan.acked_by
+                    ? ([
+                        [
+                          'Enclave key',
+                          <span key="k">
+                            <Hash value={plan.acked_by} label="enclave key" head={14} />
+                            {onEarlierBuild(m, plan.acked_by) && (
+                              <span className="block text-xs text-ink-3">
+                                An earlier build of the enclave; the plan runs there
+                              </span>
+                            )}
+                          </span>,
+                        ],
+                      ] as [string, ReactNode][])
+                    : []),
                 ]}
               />
             </Panel>

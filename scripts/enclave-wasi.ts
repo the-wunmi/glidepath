@@ -34,12 +34,14 @@ import {
 } from '@vsp/core';
 import {
   checkMarket,
+  handoverState,
   type PlanState,
   type PriceObservation,
   proposeSale,
   type RandomBytes,
   scheduleAfter,
 } from '@vsp/planner';
+import { trustCases } from './lib/trust-vectors.ts';
 
 const root = new URL('../enclave-wasi/', import.meta.url);
 const path = (p: string) => new URL(p, root).pathname;
@@ -210,6 +212,7 @@ PLANS.forEach((p, i) => {
   const start = Date.parse(p.start);
   const envelope = envelopeFor(p);
   const perPeriod = (p.allocation * BigInt(p.max_sell_per_period_bps)) / 10_000n;
+  const perTx = (p.allocation * BigInt(p.max_sell_per_tx_bps)) / 10_000n;
   const base: PlanState = {
     periodIndex: 0,
     soldInPeriod: 0n,
@@ -240,6 +243,25 @@ PLANS.forEach((p, i) => {
       p.allocation,
     ],
     ['nearly empty', base, start + 3_600_000 * 3, 3n],
+    // The last sales of a period: never a dust remainder left behind.
+    [
+      'period remainder under the smallest sale',
+      { ...base, soldInPeriod: perPeriod - perTx / 4n },
+      start + 3_600_000 * 2,
+      p.allocation,
+    ],
+    [
+      'period remainder within one sale',
+      { ...base, soldInPeriod: perPeriod - (perTx * 3n) / 4n },
+      start + 3_600_000 * 2,
+      p.allocation,
+    ],
+    [
+      'period remainder just over one sale',
+      { ...base, soldInPeriod: perPeriod - (perTx * 5n) / 4n },
+      start + 3_600_000 * 2,
+      p.allocation,
+    ],
     ['empty', base, start + 3_600_000 * 3, 0n],
     ['after the end', base, Date.parse(p.end), p.allocation],
   ];
@@ -274,6 +296,32 @@ PLANS.forEach((p, i) => {
       },
       { next_sale_at_ms: scheduleAfter(p, start + 42, seeded(seed)) },
     );
+  }
+  // A build taking the plan over from another: the registry's counters, a fresh schedule.
+  for (const [label, counters] of [
+    ['no sales yet', { period_index: 0, sold_in_period: '0', sold_total: '0', last_sale_ms: null }],
+    [
+      'after sales',
+      {
+        period_index: 1,
+        sold_in_period: (perPeriod / 3n).toString(),
+        sold_total: perPeriod.toString(),
+        last_sale_ms: start + p.period_days * 86_400_000 + 5_000,
+      },
+    ],
+  ] as const) {
+    for (const seed of ['03', 'feed']) {
+      add(
+        `handover_state plan ${i} ${label} seed ${seed}`,
+        {
+          op: 'handover_state',
+          plan: JSON.parse(canonicalJson(p)),
+          counters,
+          random_seed_hex: seed,
+        },
+        stateJson(handoverState(p, counters, seeded(seed))),
+      );
+    }
   }
 });
 
@@ -410,6 +458,9 @@ quoteCase(
   false,
 );
 
+// Blind trust (prototype): the mandate rules and the rebalance decision.
+for (const c of trustCases()) add(c.name, c.input, c.result);
+
 // What the production module must refuse.
 cases.push({
   name: 'production refuses a host-chosen random seed',
@@ -431,7 +482,14 @@ cases.push({
 for (const c of cases.filter(
   (x) =>
     x.build === 'vectors' &&
-    ['commitment', 'check_market', 'verify_quote', 'open_plan'].includes(String(x.input.op)),
+    [
+      'commitment',
+      'check_market',
+      'verify_quote',
+      'open_plan',
+      'trust_check_mandate',
+      'trust_rebalance',
+    ].includes(String(x.input.op)),
 )) {
   cases.push({ ...c, name: `${c.name} (production build)`, build: 'production' });
 }

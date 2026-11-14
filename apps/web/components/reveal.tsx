@@ -5,6 +5,7 @@ import type { ChainPlan, ChainReceipt } from '@vsp/near';
 import { type ChainReveal, verifyReveal } from '@vsp/verify';
 import { useMemo } from 'react';
 import { CheckMark, Panel } from '@/components/ui';
+import { plainLines } from '@/lib/copy';
 import { fmtDateTime } from '@/lib/format';
 
 /**
@@ -51,7 +52,7 @@ export function RevealPanel({
           <h3 className="mb-2 text-sm font-semibold">What the plan said</h3>
           {result.plan ? (
             <ul className="list-disc space-y-1.5 pl-5 text-sm">
-              {describePlan(result.plan).map((line) => (
+              {plainLines(describePlan(result.plan), result.plan.beneficiary.asset).map((line) => (
                 <li key={line}>{line}</li>
               ))}
             </ul>

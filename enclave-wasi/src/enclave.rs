@@ -93,12 +93,18 @@ pub struct ChainPlan {
     pub plan_account: String,
     pub pending_change: Option<PendingChange>,
     pub disclosure: Disclosure,
+    #[serde(flatten)]
+    pub counters: ChainCounters,
 }
 
 #[derive(Deserialize, Clone, Debug)]
 pub struct ReceiptView {
     pub seq: u64,
     pub status: String,
+    /// The key that signed the receipted request. A host that sends none is taken at its word that
+    /// the receipt is this build's (the behaviour before builds stood in for each other).
+    #[serde(default)]
+    pub enclave_key: Option<String>,
 }
 
 #[derive(Deserialize, Clone, Debug)]
@@ -143,6 +149,14 @@ struct Terms {
     envelope: Envelope,
 }
 
+/// A plan this build takes over from another build (a change sealed to this build, for a plan
+/// another build accepted). Until the change applies, `terms` and `state` are placeholders.
+#[derive(Serialize, Deserialize, Clone, Debug)]
+struct Handover {
+    /// When this build first saw the change applied on-chain.
+    applied_at_ms: Option<i64>,
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct Record {
     #[serde(flatten)]
@@ -151,6 +165,12 @@ struct Record {
     inflight: Option<Inflight>,
     pending: Option<Pending>,
     staged: Option<Terms>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    handover: Option<Handover>,
+    /// The registry's `next_seq` when this record last looked; sales past it this build did not
+    /// sign are recounted from the registry's counters. Unset until the record's first tick.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    seen_seq: Option<u64>,
 }
 
 impl Record {
@@ -190,11 +210,13 @@ pub enum Request {
         sealed: SealedBox,
         now_ms: i64,
     },
-    /// Holds a changed plan until the chain applies it.
+    /// Holds a changed plan until the chain applies it. With no record, this build takes the plan
+    /// over from the build that accepted it.
     Stage {
         plan: ChainPlan,
         sealed: SealedBox,
-        record: String,
+        #[serde(default)]
+        record: Option<String>,
     },
     /// One wake-up: maybe a change ack, maybe a sale to quote, usually nothing.
     Tick {
@@ -216,6 +238,27 @@ pub enum Request {
     },
     /// The sealed terms of an ended `end_reveal` plan.
     Reveal { plan: ChainPlan, record: String },
+    /// Blind trust (prototype): opens an official's sealed mandate and acks the trust.
+    TrustAccept {
+        trust: crate::trust::ChainTrust,
+        sealed: SealedBox,
+        now_ms: i64,
+    },
+    /// Blind trust: one wake-up; maybe a trade to quote.
+    TrustTick {
+        trust: crate::trust::ChainTrust,
+        record: String,
+        now_ms: i64,
+        holdings: Vec<crate::trust::Holding>,
+        prices: Vec<crate::trust::AssetPrice>,
+    },
+    /// Blind trust: checks the quote for the decided trade and signs it.
+    TrustTrade {
+        trust: crate::trust::ChainTrust,
+        record: String,
+        now_ms: i64,
+        quote: crate::trust::TrustQuote,
+    },
 }
 
 pub struct Context<'a> {
@@ -239,7 +282,7 @@ pub fn handle(cx: &mut Context, req: Request) -> Result<Value> {
             plan,
             sealed,
             record,
-        } => stage(cx, &plan, &sealed, &record),
+        } => stage(cx, &plan, &sealed, record.as_deref()),
         Request::Tick {
             plan,
             record,
@@ -264,6 +307,24 @@ pub fn handle(cx: &mut Context, req: Request) -> Result<Value> {
             evm_fees.as_ref(),
         ),
         Request::Reveal { plan, record } => reveal(cx, &plan, &record),
+        Request::TrustAccept {
+            trust,
+            sealed,
+            now_ms,
+        } => crate::trust::accept(cx, &trust, &sealed, now_ms),
+        Request::TrustTick {
+            trust,
+            record,
+            now_ms,
+            holdings,
+            prices,
+        } => crate::trust::tick(cx, &trust, &record, now_ms, &holdings, &prices),
+        Request::TrustTrade {
+            trust,
+            record,
+            now_ms,
+            quote,
+        } => crate::trust::trade(cx, &trust, &record, now_ms, &quote),
     }
 }
 
@@ -457,6 +518,8 @@ fn accept(cx: &mut Context, chain: &ChainPlan, sealed: &SealedBox, now_ms: i64) 
         inflight: None,
         pending: None,
         staged: None,
+        handover: None,
+        seen_seq: Some(chain.next_seq),
     };
     Ok(json!({
         "ok": true,
@@ -469,7 +532,7 @@ fn stage(
     cx: &mut Context,
     chain: &ChainPlan,
     sealed: &SealedBox,
-    sealed_record: &str,
+    sealed_record: Option<&str>,
 ) -> Result<Value> {
     let change = match &chain.pending_change {
         Some(PendingChange {
@@ -480,10 +543,27 @@ fn stage(
         }) if kind == "modify" => (c.clone(), e.clone()),
         _ => return Ok(json!({ "ok": false, "reasons": ["No plan change is pending on-chain"] })),
     };
-    let mut record = open_record(cx.keys, chain.id, sealed_record)?;
     let terms = match open_for_plan(cx.keys, chain, sealed, &change.0, &change.1)? {
         Ok(t) => t,
         Err(reasons) => return Ok(json!({ "ok": false, "reasons": reasons })),
+    };
+    let mut record = match sealed_record {
+        Some(r) => open_record(cx.keys, chain.id, r)?,
+        None => {
+            let plan: Plan =
+                serde_json::from_value(terms.plan.clone()).map_err(|e| e.to_string())?;
+            Record {
+                state: initial_state(&plan, cx.rng)?,
+                terms: terms.clone(),
+                inflight: None,
+                pending: None,
+                staged: None,
+                handover: Some(Handover {
+                    applied_at_ms: None,
+                }),
+                seen_seq: None,
+            }
+        }
     };
     record.staged = Some(terms);
     Ok(json!({ "ok": true, "record": seal_record(cx.keys, chain.id, &record)? }))
@@ -548,12 +628,13 @@ fn tick(
             record.staged = None;
             record.inflight = None;
             record.pending = None;
+            if let Some(h) = record.handover.as_mut() {
+                h.applied_at_ms.get_or_insert(now);
+            }
             changed = true;
         }
     }
-    if chain.commitment != record.terms.commitment {
-        return Ok(idle("commitment_mismatch", None, None));
-    }
+    // Before the commitment check: a build taking a plan over holds only the staged terms.
     if let (Some(staged), Some(change)) = (&record.staged, &chain.pending_change) {
         if change.kind == "modify"
             && change.commitment.as_deref() == Some(staged.commitment.as_str())
@@ -566,13 +647,35 @@ fn tick(
             }));
         }
     }
+    if chain.commitment != record.terms.commitment {
+        return Ok(idle("commitment_mismatch", None, None));
+    }
     let plan = record.plan()?;
+    if let Some(applied_at) = record.handover.as_ref().and_then(|h| h.applied_at_ms) {
+        // The previous build may have signed a sale just before the change applied; it can land
+        // until its request expires. Counting starts from the registry only after that.
+        if now < applied_at + REQUEST_TTL_MS {
+            let r = changed
+                .then(|| seal_record(cx.keys, chain.id, &record))
+                .transpose()?;
+            return Ok(idle("waiting", None, r));
+        }
+        record.state = handover_state(&plan, &chain.counters, cx.rng)?;
+        record.handover = None;
+        changed = true;
+    }
 
     // Settle the last signed request from the chain, not the host's word.
+    let own_key = signing_key_text(cx.keys)?;
+    let mut own_landed = 0;
     if let Some(inflight) = record.inflight.clone() {
         if chain.next_seq > inflight.seq {
-            let landed =
-                last_receipt.is_some_and(|r| r.seq == inflight.seq && r.status != "failed");
+            let landed = last_receipt.is_some_and(|r| {
+                r.seq == inflight.seq
+                    && r.status != "failed"
+                    && r.enclave_key.as_deref().is_none_or(|k| k == own_key)
+            });
+            own_landed = u64::from(landed);
             record.state = if landed {
                 record_sale(&plan, &record.state, &inflight, cx.rng)?
             } else {
@@ -587,6 +690,26 @@ fn tick(
             return Ok(idle("waiting", None, r));
         } else {
             record.inflight = None;
+            changed = true;
+        }
+    }
+    // Receipts this build did not sign (a backup build standing in, or the primary after one did)
+    // are counted from the registry, which counts every key's sales.
+    match record.seen_seq {
+        Some(seen) => {
+            if chain.next_seq > seen + own_landed {
+                record.state = handover_state(&plan, &chain.counters, cx.rng)?;
+                changed = true;
+            }
+            if seen != chain.next_seq {
+                record.seen_seq = Some(chain.next_seq);
+                changed = true;
+            }
+        }
+        // A record that has not tracked the registry yet (a takeover, just counted from the
+        // registry's counters) starts now, so later sales by another build are counted too.
+        None => {
+            record.seen_seq = Some(chain.next_seq);
             changed = true;
         }
     }

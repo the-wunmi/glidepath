@@ -50,6 +50,7 @@ import { planBalance } from './views.ts';
 import {
   deliverChangeWorkflow,
   deliverPlanWorkflow,
+  releaseEvmWorkflow,
   revealPlanWorkflow,
   STORAGE_DEPOSIT,
   waitForChain,
@@ -152,6 +153,11 @@ const PlanTokenRef = z.discriminatedUnion('chain', [
   }),
 ]);
 
+const BackupBoxes = z
+  .array(z.object({ signing_key: z.string().startsWith('ed25519:'), sealed_box: SealedBox }))
+  .max(4)
+  .default([]);
+
 export const CreatePlanInput = z.object({
   actor: AccountId,
   label: z.string().trim().min(1).max(80),
@@ -176,6 +182,8 @@ export const CreatePlanInput = z.object({
   end_ms: z.int().positive(),
   commitment: Hex32,
   sealed_box: SealedBox,
+  /** The same plan sealed to each backup enclave build the server lists in /api/meta. */
+  backup_boxes: BackupBoxes,
 });
 
 /**
@@ -359,6 +367,7 @@ async function recordPlan(
       tokenDecimals: p.token.decimals,
       commitment: p.commitment,
       sealedBox: p.sealed_box,
+      backupBoxes: p.backup_boxes,
       planAccount: chain.plan_account,
       createTx: txHash,
       ownerKeyHash,
@@ -380,6 +389,7 @@ export const ChangeInput = z.object({
   commitment: Hex32,
   envelope: Envelope,
   sealed_box: SealedBox,
+  backup_boxes: BackupBoxes,
 });
 
 /** Starts a public cooling-off: the change is visible now and can act only after it ends. */
@@ -394,7 +404,10 @@ export async function requestChange(
   await spendRelayer(e);
   // The box is kept first, and the delivery workflow started before the chain call: a crash after
   // the call still leaves the enclave its new plan, delivered once the change shows on-chain.
-  await e.db.update(plans).set({ pendingSealedBox: p.sealed_box }).where(eq(plans.id, row.id));
+  await e.db
+    .update(plans)
+    .set({ pendingSealedBox: p.sealed_box, pendingBackupBoxes: p.backup_boxes })
+    .where(eq(plans.id, row.id));
   await startOnce(deliverChangeWorkflow, `change:${planId}:${p.commitment}`, planId, p.commitment);
   const out = await ownerCall(
     e,
@@ -412,7 +425,7 @@ export async function requestChange(
     // Put back whatever was pending before (a refusal may be change_pending for an earlier change).
     await e.db
       .update(plans)
-      .set({ pendingSealedBox: row.pendingSealedBox })
+      .set({ pendingSealedBox: row.pendingSealedBox, pendingBackupBoxes: row.pendingBackupBoxes })
       .where(eq(plans.id, row.id));
     throw refusal('The registry refused the change', out);
   }
@@ -468,7 +481,10 @@ export async function withdrawChange(
   });
   if (!out.ok) throw refusal('The registry refused to withdraw the change', out);
   await recordProposal(e, planId, out, 'withdraw the pending change');
-  await e.db.update(plans).set({ pendingSealedBox: null }).where(eq(plans.id, planId));
+  await e.db
+    .update(plans)
+    .set({ pendingSealedBox: null, pendingBackupBoxes: [] })
+    .where(eq(plans.id, planId));
   await record(
     e.db,
     planId,
@@ -482,13 +498,15 @@ export async function withdrawChange(
 /**
  * Anyone may finalize once the plan has ended or a cancellation's cooling-off is over. The
  * registry's state is read first, so a request it would refuse, or a repeat with nothing left to
- * release, costs the relayer nothing. Once ended, finalize only retries the release of a NEAR
- * token balance still in the plan account.
+ * release, costs the relayer nothing. Once ended, finalize only retries the release of a balance
+ * still held: a NEAR token in the plan account (the registry's finalize pays it out), or an ERC-20
+ * at the plan's Chain Signatures address (the `release_evm` workflow has it signed and sent).
  */
-export async function finalizePlan(e: Engine, planId: number) {
+export async function finalizePlan(e: Engine, planId: number): Promise<{ txHash: string | null }> {
   const chain = await e.registry.plan(planId);
   if (!chain) throw new DomainError('not_found', 'Plan not found');
   const ended = chain.status === 'ended';
+  const evm = chain.asset.type === 'evm_erc20';
   if (!ended) {
     const now = await e.near.chainTimeMs();
     const cancel = chain.pending_change;
@@ -498,8 +516,18 @@ export async function finalizePlan(e: Engine, planId: number) {
         'conflict',
         'A plan can be finalized only after it ends or a cancellation takes effect',
       );
-  } else if (chain.asset.type !== 'nep141' || (await planBalance(e, chain)) === 0n)
+  } else if ((await planBalance(e, chain)) === 0n)
     throw new DomainError('conflict', 'This plan is already finalized and released');
+  if (ended && evm) {
+    await startOnce(releaseEvmWorkflow, `release:${planId}:${chain.next_seq}`, planId);
+    await record(
+      e.db,
+      planId,
+      'release_retried',
+      'Release of the remaining tokens to the beneficiary started again',
+    );
+    return { txHash: null };
+  }
   await spendRelayer(e);
   // Started first, so a crash after finalizing still publishes an end_reveal plan's terms.
   await startOnce(revealPlanWorkflow, `reveal:${planId}`, planId);
@@ -512,13 +540,17 @@ export async function finalizePlan(e: Engine, planId: number) {
     { gasTera: 200 },
   );
   if (!out.ok) throw refusal('The registry refused to finalize', out);
+  // The registry pays out a NEAR token itself; an ERC-20 needs one MPC-signed transfer.
+  if (evm) await startOnce(releaseEvmWorkflow, `release:${planId}:${chain.next_seq}`, planId);
   await record(
     e.db,
     planId,
     ended ? 'release_retried' : 'plan_ended',
     ended
       ? 'Release of the remaining tokens retried'
-      : 'Plan ended; remaining tokens released to the beneficiary',
+      : evm
+        ? 'Plan ended; the remaining tokens are being released to the beneficiary'
+        : 'Plan ended; remaining tokens released to the beneficiary',
     { txHash: out.txHash },
   );
   return { txHash: out.txHash };

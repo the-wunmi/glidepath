@@ -440,3 +440,23 @@ fn a_quote_signature_in_the_old_simulator_base64_form_is_refused() {
 fn the_live_1click_signature_does_not_cover_a_simulator_quote() {
     check_sim_signature(oneclick_vectors()["live"]["signature"].as_str().unwrap());
 }
+
+#[test]
+#[should_panic(expected = "quote_routing")]
+fn a_quote_paying_out_inside_intents_is_refused() {
+    check_sim_quote(|q| q["recipientType"] = serde_json::json!("INTENTS"));
+}
+
+#[test]
+#[should_panic(expected = "quote_routing")]
+fn a_quote_refunding_inside_intents_is_refused() {
+    check_sim_quote(|q| q["refundType"] = serde_json::json!("INTENTS"));
+}
+
+#[test]
+fn the_simulator_and_live_quotes_route_on_chain() {
+    let vectors = oneclick_vectors();
+    for q in [&vectors["live"]["q"], &vectors["sim"]["ordinary"]["q"]] {
+        assert!(crate::oneclick::routes_on_chain(q.as_str().unwrap()));
+    }
+}

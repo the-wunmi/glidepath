@@ -85,7 +85,7 @@ const SIMULATED: {
   {
     part: 'Enclave',
     mode: 'enclave',
-    here: 'An executor process on the server with its own keys, sealed storage and a simulated TDX quote. OutLayer’s TEE workers run only on mainnet (paid in mainnet USDC), so there is no testnet enclave to use.',
+    here: 'An executor process on this server with its own keys, sealed storage and a simulated TDX quote, so local runs and tests spend nothing. The live site runs the same logic on OutLayer’s TDX workers.',
     live: 'An OutLayer worker in Intel TDX on testnet. The registry pinned its key after one attested key-proof run.',
     real: 'An OutLayer worker in Intel TDX.',
   },
@@ -93,7 +93,7 @@ const SIMULATED: {
     part: 'TDX quote vendor key',
     mode: 'enclave',
     here: 'A vendor key whose seed is public. Every check the browser runs is real computation, but anyone could sign such a quote, so it proves the wiring only.',
-    live: 'Intel’s, checked with OutLayer’s verifier. This app’s browser checks only that the served measurements and quote hash match the registry.',
+    live: 'Intel’s. The browser checks the quote’s signatures up to Intel’s root certificate; Intel’s revocation lists and TCB status are not checked.',
     real: 'Intel’s attestation collateral.',
   },
   {
@@ -286,7 +286,7 @@ function SystemStatus() {
             <dt className="text-ink-3">Attestation</dt>
             <dd>
               {attError ? (
-                <Badge tone="fail">Could not read the registry</Badge>
+                <Badge tone="fail">Could not be checked</Badge>
               ) : !result ? (
                 <Badge>Checking…</Badge>
               ) : result.ok ? (
@@ -393,10 +393,28 @@ export default function HowItWorksPage() {
           What is simulated in this build
         </h2>
         <p className="mt-1 mb-4 max-w-[70ch] text-sm text-ink-2">
-          Every outside system has a simulator that mirrors the real API, selected by a mode flag.
-          The contracts, the cryptography and the browser checks are real.
+          Outside systems run for real wherever they can be reached; the rest are simulated on their
+          real APIs and labelled where they are used. The contracts, the cryptography and the
+          browser checks are always real.
         </p>
-        <div className="panel overflow-x-auto">
+        {/* Stacked on a phone, so no column is scrolled out of view. */}
+        <ul className="panel divide-y divide-rule-2 md:hidden">
+          {SIMULATED.map((s) => (
+            <li key={s.part} className="space-y-1.5 px-4 py-3 text-sm">
+              <p className="flex flex-wrap items-center justify-between gap-2">
+                <span className="font-semibold">{s.part}</span>
+                {s.mode && meta.data ? <ModeBadge mode={meta.data.modes[s.mode]} /> : null}
+              </p>
+              <p className="text-ink-2">
+                {s.live && s.mode && meta.data?.modes[s.mode] === 'live' ? s.live : s.here}
+              </p>
+              <p className="text-ink-3">
+                <span className="font-medium">In production:</span> {s.real}
+              </p>
+            </li>
+          ))}
+        </ul>
+        <div className="panel hidden overflow-x-auto md:block">
           <table className="table min-w-[720px]">
             <thead>
               <tr>
@@ -440,7 +458,20 @@ export default function HowItWorksPage() {
         <h2 id="threats" className="mb-4 text-lg font-semibold">
           Threat model
         </h2>
-        <div className="panel overflow-x-auto">
+        <ul className="panel divide-y divide-rule-2 md:hidden">
+          {THREATS.map(([t, m, r]) => (
+            <li key={t} className="space-y-1.5 px-4 py-3 text-sm">
+              <p className="font-medium">{t}</p>
+              <p className="text-ink-2">
+                <span className="font-medium text-ink">Stopped by:</span> {m}
+              </p>
+              <p className="text-ink-2">
+                <span className="font-medium text-ink">Left:</span> {r}
+              </p>
+            </li>
+          ))}
+        </ul>
+        <div className="panel hidden overflow-x-auto md:block">
           <table className="table min-w-[760px]">
             <thead>
               <tr>

@@ -27,6 +27,9 @@
     "verify-receipts": "tsx scripts/verify-receipts.ts",
     "demo:full": "pnpm demo && pnpm redteam && pnpm verify-receipts",
     "deploy:testnet": "tsx --env-file-if-exists=.env scripts/deploy-testnet.ts",
+    "vault:deploy": "tsx --env-file-if-exists=.env scripts/vault-deploy.ts",
+    "vault:demo": "tsx --env-file-if-exists=.env scripts/vault-demo.ts",
+    "trust:deploy": "tsx --env-file-if-exists=.env scripts/trust-deploy.ts",
     "enclave:wasi": "tsx scripts/enclave-wasi.ts",
     "outlayer:enclave": "tsx --env-file-if-exists=.env scripts/outlayer-enclave.ts",
     "outlayer:demo": "tsx scripts/outlayer-demo.ts",
@@ -51,6 +54,8 @@
     "zod": "^4.6.7",
     "viem": "^2.57.17",
     "@vsp/planner": "workspace:*",
-    "@noble/hashes": "^2.4.0"
+    "@noble/hashes": "^2.4.0",
+    "@vsp/btc": "workspace:*",
+    "@vsp/trust": "workspace:*"
   }
 }

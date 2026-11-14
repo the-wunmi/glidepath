@@ -311,9 +311,9 @@
     "op": "open_plan",
     "sealed": {
      "v": 1,
-     "epk": "4b8b4d147605dade644b68cda7605890073ca4c61b41d9d7ab929cf93ff94840",
-     "nonce": "1b5a028564d5e32e03ec64b7",
-     "ct": "bG0dHTiHfuyZOCuDU1xDbKVuBe1r7zRdE58gc6cNaIKeLVuFJERHBjO9BTOaAMBkNFDZbM281cOzwogxQK3SnoHoCxoobeMXaiJXgbEA1NVZSZm64MupeAHcL4DzJ+TTzZa7e0FYWq9KgTDt6JrkfR5FTBf9I5Kbnr91U464OSE9m6S/CPgh8CT+DWky1ewxDVuSUgoocEE29CDMVdJNOoCWIULMZ5QGMkHeOr4FjbMavTbc+sM0yKzYy0+z3Ik0xpiuZKaQUk6WNcug9ghd0yRcnbNr6hIXG8huVN3ryfbywQFYgGqNvG+46iQXAz4Wft0VwuCZ8qA9+LDFr6AtfMGXtc2ev0xa9HnkgKjy/iahMWiD1Mk8SnCw1AB6u1yzuQKFjgn+Y4x4GPH0xH0IUL8W75mG8VgNi1IJmV9aN7jrOYOBsDRZXlFUWH24/W9IJ/FOo3OVxPEMXFaeqo+CC6Yqv4DEmvmbh6ZAIq1U+0nyZPW6u24J/R9asc37cwz+79kur7l/blxzcT+plg0Vh3LCkbSYpAVN3QatLjLriXvniZ1Bq5snLWqrNx7uTkiXgORfSmUefFI1FfVVqGsXc/NHelQ74hcY5m32tFflbIoA4V4IWIOi0jmiZe34Sl07dxclBtjsRzvQLNc0z6g8cy2sx3pdw2/iU7QE/gEg7c1YSDil48oBCrAYod61bOHV11yxuTg2edCCLw7391KKYzD9CzsRecnC02gdWyJBAOPOu8d8YJ1LUPI3GODnUwS0I0LZV51rbS8YdICj4SouWfeabzy07YHuGfgu0szQ/CI74bDdEJHexu8N/3dh5hzESjoqNeDBFlW2uoigQCkuvYrpN730kAeBo63/VY+3jMiXsI1mhhO3DTyEcWTBX3B1GgWf90i+71LtozCIatAb7+eqNpIVZea9xo00qoe/+OCcoEucEw=="
+     "epk": "1a51d36435b04fb8c47ae470c2fc46d28c218303ca56e607cee052dd2b873921",
+     "nonce": "f47e37322e3d1e5046262d24",
+     "ct": "gxMPyDtbvNAy2A9IfvQX30cyvurLhFfr+xIIhGFyS0hz2f2rc45TTD+N4H9maejCqDo5oP6et5Alkc9Y6TXaCibTlrDBYQqIGYZsPfEZTa+m2hqHDmGNN1HQ9+7RRRhZRv82onNEEUYcTF0n1MZDXHx+T7OYYoW5sVMKRDdRmbERso+yxk+ybb8V4XOT1+RgklABFvn1z5OfiUoZW9REEnfoxggKt2Br+6+mJJXKd0z0bB/g9qF7VA4Cznp9LbHGJXJ2Di4S5SUHHYuBTf4tpMVqsNEKCAod012sSy95Aovy53qUvbC3Bg7atE7erZmGgWkYKqyT+VxYzYwZs7PCTc+Ecx0vjwUxQWXuSfRAk+ZLR1kN1mewujmQAnwltJXJqIE392l6CH+4TOL6fwJbUlyIDbNRQzfnXultv/0GWTCj2BB8Yr/+07vYR0YciYnTT6H9n5Zwz2ClHwh0gCtYh8EZzqU5mUHRYx34zR3hBqys5162JYLnh1YHEy9GAWcLGAtUTIodOm1CQGDhHv08hDAL8fUNzSRJQMG2XyD/YcbB2Crxgwohmsz9DdZAYun9CcKMEk1KAKZOyrkuEcbiknaTYsj2s+Np1a0DsrSj9CnRiTmVTGccr1M4YLUHvaJLILmxcgLUbBYrI5wLl7zrYKLS900bnrS/QmRcUQSROOIl24c5HKQ87EeGf3NcxhqU8W30KpOhbrgoIVS67zmI98Zta2G7VQ+dqoVLICXvL1Bl5TMtyLa/NI957vKxb/sHCvhc1dpugt5lfUlLAOgu11U8CBNEcwe8ywGbYL6h8yx4O2I56U0p4Q0LylSUJPddGeGdSg9YXTx8C15tVoKOsi0cLCU6bbhZX+ml8scqsRnNyVIE8e14Q1G2AeXY5XXEWELVX+Y3J++Z/Eczwc6gP9S+PF1WyzzKgaktwjd7zBua9A7JAw=="
     },
     "commitment": "5512b8a0735280d244669850e14cf219b9d0864d662a92058a2b8c5da248a746",
     "envelope": {
@@ -364,9 +364,9 @@
     "op": "open_plan",
     "sealed": {
      "v": 1,
-     "epk": "4b8b4d147605dade644b68cda7605890073ca4c61b41d9d7ab929cf93ff94840",
-     "nonce": "1b5a028564d5e32e03ec64b7",
-     "ct": "bG0dHTiHfuyZOCuDU1xDbKVuBe1r7zRdE58gc6cNaIKeLVuFJERHBjO9BTOaAMBkNFDZbM281cOzwogxQK3SnoHoCxoobeMXaiJXgbEA1NVZSZm64MupeAHcL4DzJ+TTzZa7e0FYWq9KgTDt6JrkfR5FTBf9I5Kbnr91U464OSE9m6S/CPgh8CT+DWky1ewxDVuSUgoocEE29CDMVdJNOoCWIULMZ5QGMkHeOr4FjbMavTbc+sM0yKzYy0+z3Ik0xpiuZKaQUk6WNcug9ghd0yRcnbNr6hIXG8huVN3ryfbywQFYgGqNvG+46iQXAz4Wft0VwuCZ8qA9+LDFr6AtfMGXtc2ev0xa9HnkgKjy/iahMWiD1Mk8SnCw1AB6u1yzuQKFjgn+Y4x4GPH0xH0IUL8W75mG8VgNi1IJmV9aN7jrOYOBsDRZXlFUWH24/W9IJ/FOo3OVxPEMXFaeqo+CC6Yqv4DEmvmbh6ZAIq1U+0nyZPW6u24J/R9asc37cwz+79kur7l/blxzcT+plg0Vh3LCkbSYpAVN3QatLjLriXvniZ1Bq5snLWqrNx7uTkiXgORfSmUefFI1FfVVqGsXc/NHelQ74hcY5m32tFflbIoA4V4IWIOi0jmiZe34Sl07dxclBtjsRzvQLNc0z6g8cy2sx3pdw2/iU7QE/gEg7c1YSDil48oBCrAYod61bOHV11yxuTg2edCCLw7391KKYzD9CzsRecnC02gdWyJBAOPOu8d8YJ1LUPI3GODnUwS0I0LZV51rbS8YdICj4SouWfeabzy07YHuGfgu0szQ/CI74bDdEJHexu8N/3dh5hzESjoqNeDBFlW2uoigQCkuvYrpN730kAeBo63/VY+3jMiXsI1mhhO3DTyEcWTBX3B1GgWf90i+71LtozCIatAb7+eqNpIVZea9xo00qoe/+OCcoEucEw=="
+     "epk": "1a51d36435b04fb8c47ae470c2fc46d28c218303ca56e607cee052dd2b873921",
+     "nonce": "f47e37322e3d1e5046262d24",
+     "ct": "gxMPyDtbvNAy2A9IfvQX30cyvurLhFfr+xIIhGFyS0hz2f2rc45TTD+N4H9maejCqDo5oP6et5Alkc9Y6TXaCibTlrDBYQqIGYZsPfEZTa+m2hqHDmGNN1HQ9+7RRRhZRv82onNEEUYcTF0n1MZDXHx+T7OYYoW5sVMKRDdRmbERso+yxk+ybb8V4XOT1+RgklABFvn1z5OfiUoZW9REEnfoxggKt2Br+6+mJJXKd0z0bB/g9qF7VA4Cznp9LbHGJXJ2Di4S5SUHHYuBTf4tpMVqsNEKCAod012sSy95Aovy53qUvbC3Bg7atE7erZmGgWkYKqyT+VxYzYwZs7PCTc+Ecx0vjwUxQWXuSfRAk+ZLR1kN1mewujmQAnwltJXJqIE392l6CH+4TOL6fwJbUlyIDbNRQzfnXultv/0GWTCj2BB8Yr/+07vYR0YciYnTT6H9n5Zwz2ClHwh0gCtYh8EZzqU5mUHRYx34zR3hBqys5162JYLnh1YHEy9GAWcLGAtUTIodOm1CQGDhHv08hDAL8fUNzSRJQMG2XyD/YcbB2Crxgwohmsz9DdZAYun9CcKMEk1KAKZOyrkuEcbiknaTYsj2s+Np1a0DsrSj9CnRiTmVTGccr1M4YLUHvaJLILmxcgLUbBYrI5wLl7zrYKLS900bnrS/QmRcUQSROOIl24c5HKQ87EeGf3NcxhqU8W30KpOhbrgoIVS67zmI98Zta2G7VQ+dqoVLICXvL1Bl5TMtyLa/NI957vKxb/sHCvhc1dpugt5lfUlLAOgu11U8CBNEcwe8ywGbYL6h8yx4O2I56U0p4Q0LylSUJPddGeGdSg9YXTx8C15tVoKOsi0cLCU6bbhZX+ml8scqsRnNyVIE8e14Q1G2AeXY5XXEWELVX+Y3J++Z/Eczwc6gP9S+PF1WyzzKgaktwjd7zBua9A7JAw=="
     },
     "commitment": "5512b8a0735280d244669850e14cf219b9d0864d662a92058a2b8c5da248a746",
     "envelope": {
@@ -417,9 +417,9 @@
     "op": "open_plan",
     "sealed": {
      "v": 1,
-     "epk": "4b8b4d147605dade644b68cda7605890073ca4c61b41d9d7ab929cf93ff94840",
-     "nonce": "1b5a028564d5e32e03ec64b7",
-     "ct": "bG0dHTiHfuyZOCuDU1xDbKVuBe1r7zRdE58gc6cNaIKeLVuFJERHBjO9BTOaAMBkNFDZbM281cOzwogxQK3SnoHoCxoobeMXaiJXgbEA1NVZSZm64MupeAHcL4DzJ+TTzZa7e0FYWq9KgTDt6JrkfR5FTBf9I5Kbnr91U464OSE9m6S/CPgh8CT+DWky1ewxDVuSUgoocEE29CDMVdJNOoCWIULMZ5QGMkHeOr4FjbMavTbc+sM0yKzYy0+z3Ik0xpiuZKaQUk6WNcug9ghd0yRcnbNr6hIXG8huVN3ryfbywQFYgGqNvG+46iQXAz4Wft0VwuCZ8qA9+LDFr6AtfMGXtc2ev0xa9HnkgKjy/iahMWiD1Mk8SnCw1AB6u1yzuQKFjgn+Y4x4GPH0xH0IUL8W75mG8VgNi1IJmV9aN7jrOYOBsDRZXlFUWH24/W9IJ/FOo3OVxPEMXFaeqo+CC6Yqv4DEmvmbh6ZAIq1U+0nyZPW6u24J/R9asc37cwz+79kur7l/blxzcT+plg0Vh3LCkbSYpAVN3QatLjLriXvniZ1Bq5snLWqrNx7uTkiXgORfSmUefFI1FfVVqGsXc/NHelQ74hcY5m32tFflbIoA4V4IWIOi0jmiZe34Sl07dxclBtjsRzvQLNc0z6g8cy2sx3pdw2/iU7QE/gEg7c1YSDil48oBCrAYod61bOHV11yxuTg2edCCLw7391KKYzD9CzsRecnC02gdWyJBAOPOu8d8YJ1LUPI3GODnUwS0I0LZV51rbS8YdICj4SouWfeabzy07YHuGfgu0szQ/CI74bDdEJHexu8N/3dh5hzESjoqNeDBFlW2uoigQCkuvYrpN730kAeBo63/VY+3jMiXsI1mhhO3DTyEcWTBX3B1GgWf90i+71LtozCIatAb7+eqNpIVZea9xo00qoe/+OCcoEucEw=="
+     "epk": "1a51d36435b04fb8c47ae470c2fc46d28c218303ca56e607cee052dd2b873921",
+     "nonce": "f47e37322e3d1e5046262d24",
+     "ct": "gxMPyDtbvNAy2A9IfvQX30cyvurLhFfr+xIIhGFyS0hz2f2rc45TTD+N4H9maejCqDo5oP6et5Alkc9Y6TXaCibTlrDBYQqIGYZsPfEZTa+m2hqHDmGNN1HQ9+7RRRhZRv82onNEEUYcTF0n1MZDXHx+T7OYYoW5sVMKRDdRmbERso+yxk+ybb8V4XOT1+RgklABFvn1z5OfiUoZW9REEnfoxggKt2Br+6+mJJXKd0z0bB/g9qF7VA4Cznp9LbHGJXJ2Di4S5SUHHYuBTf4tpMVqsNEKCAod012sSy95Aovy53qUvbC3Bg7atE7erZmGgWkYKqyT+VxYzYwZs7PCTc+Ecx0vjwUxQWXuSfRAk+ZLR1kN1mewujmQAnwltJXJqIE392l6CH+4TOL6fwJbUlyIDbNRQzfnXultv/0GWTCj2BB8Yr/+07vYR0YciYnTT6H9n5Zwz2ClHwh0gCtYh8EZzqU5mUHRYx34zR3hBqys5162JYLnh1YHEy9GAWcLGAtUTIodOm1CQGDhHv08hDAL8fUNzSRJQMG2XyD/YcbB2Crxgwohmsz9DdZAYun9CcKMEk1KAKZOyrkuEcbiknaTYsj2s+Np1a0DsrSj9CnRiTmVTGccr1M4YLUHvaJLILmxcgLUbBYrI5wLl7zrYKLS900bnrS/QmRcUQSROOIl24c5HKQ87EeGf3NcxhqU8W30KpOhbrgoIVS67zmI98Zta2G7VQ+dqoVLICXvL1Bl5TMtyLa/NI957vKxb/sHCvhc1dpugt5lfUlLAOgu11U8CBNEcwe8ywGbYL6h8yx4O2I56U0p4Q0LylSUJPddGeGdSg9YXTx8C15tVoKOsi0cLCU6bbhZX+ml8scqsRnNyVIE8e14Q1G2AeXY5XXEWELVX+Y3J++Z/Eczwc6gP9S+PF1WyzzKgaktwjd7zBua9A7JAw=="
     },
     "commitment": "d0a6ef80977ca4eaf5e6ee73f03bce82527c365436a7542cec73b0fc7d16bfbf",
     "envelope": {
@@ -470,9 +470,9 @@
     "op": "open_plan",
     "sealed": {
      "v": 1,
-     "epk": "4b8b4d147605dade644b68cda7605890073ca4c61b41d9d7ab929cf93ff94840",
-     "nonce": "1b5a028564d5e32e03ec64b7",
-     "ct": "bG0dHTiHfuyZOCuDU1xDbKVuBe1r7zRdE58gc6cNaIKeLVuFJERHBjO9BTOaAMBkNFDZbM281cOzwogxQK3SnoHoCxoobeMXaiJXgbEA1NVZSZm64MupeAHcL4DzJ+TTzZa7e0FYWq9KgTDt6JrkfR5FTBf9I5Kbnr91U464OSE9m6S/CPgh8CT+DWky1ewxDVuSUgoocEE29CDMVdJNOoCWIULMZ5QGMkHeOr4FjbMavTbc+sM0yKzYy0+z3Ik0xpiuZKaQUk6WNcug9ghd0yRcnbNr6hIXG8huVN3ryfbywQFYgGqNvG+46iQXAz4Wft0VwuCZ8qA9+LDFr6AtfMGXtc2ev0xa9HnkgKjy/iahMWiD1Mk8SnCw1AB6u1yzuQKFjgn+Y4x4GPH0xH0IUL8W75mG8VgNi1IJmV9aN7jrOYOBsDRZXlFUWH24/W9IJ/FOo3OVxPEMXFaeqo+CC6Yqv4DEmvmbh6ZAIq1U+0nyZPW6u24J/R9asc37cwz+79kur7l/blxzcT+plg0Vh3LCkbSYpAVN3QatLjLriXvniZ1Bq5snLWqrNx7uTkiXgORfSmUefFI1FfVVqGsXc/NHelQ74hcY5m32tFflbIoA4V4IWIOi0jmiZe34Sl07dxclBtjsRzvQLNc0z6g8cy2sx3pdw2/iU7QE/gEg7c1YSDil48oBCrAYod61bOHV11yxuTg2edCCLw7391KKYzD9CzsRecnC02gdWyJBAOPOu8d8YJ1LUPI3GODnUwS0I0LZV51rbS8YdICj4SouWfeabzy07YHuGfgu0szQ/CI74bDdEJHexu8N/3dh5hzESjoqNeDBFlW2uoigQCkuvYrpN730kAeBo63/VY+3jMiXsI1mhhO3DTyEcWTBX3B1GgWf90i+71LtozCIatAb7+eqNpIVZea9xo00qoe/+OCcoEucEw=="
+     "epk": "1a51d36435b04fb8c47ae470c2fc46d28c218303ca56e607cee052dd2b873921",
+     "nonce": "f47e37322e3d1e5046262d24",
+     "ct": "gxMPyDtbvNAy2A9IfvQX30cyvurLhFfr+xIIhGFyS0hz2f2rc45TTD+N4H9maejCqDo5oP6et5Alkc9Y6TXaCibTlrDBYQqIGYZsPfEZTa+m2hqHDmGNN1HQ9+7RRRhZRv82onNEEUYcTF0n1MZDXHx+T7OYYoW5sVMKRDdRmbERso+yxk+ybb8V4XOT1+RgklABFvn1z5OfiUoZW9REEnfoxggKt2Br+6+mJJXKd0z0bB/g9qF7VA4Cznp9LbHGJXJ2Di4S5SUHHYuBTf4tpMVqsNEKCAod012sSy95Aovy53qUvbC3Bg7atE7erZmGgWkYKqyT+VxYzYwZs7PCTc+Ecx0vjwUxQWXuSfRAk+ZLR1kN1mewujmQAnwltJXJqIE392l6CH+4TOL6fwJbUlyIDbNRQzfnXultv/0GWTCj2BB8Yr/+07vYR0YciYnTT6H9n5Zwz2ClHwh0gCtYh8EZzqU5mUHRYx34zR3hBqys5162JYLnh1YHEy9GAWcLGAtUTIodOm1CQGDhHv08hDAL8fUNzSRJQMG2XyD/YcbB2Crxgwohmsz9DdZAYun9CcKMEk1KAKZOyrkuEcbiknaTYsj2s+Np1a0DsrSj9CnRiTmVTGccr1M4YLUHvaJLILmxcgLUbBYrI5wLl7zrYKLS900bnrS/QmRcUQSROOIl24c5HKQ87EeGf3NcxhqU8W30KpOhbrgoIVS67zmI98Zta2G7VQ+dqoVLICXvL1Bl5TMtyLa/NI957vKxb/sHCvhc1dpugt5lfUlLAOgu11U8CBNEcwe8ywGbYL6h8yx4O2I56U0p4Q0LylSUJPddGeGdSg9YXTx8C15tVoKOsi0cLCU6bbhZX+ml8scqsRnNyVIE8e14Q1G2AeXY5XXEWELVX+Y3J++Z/Eczwc6gP9S+PF1WyzzKgaktwjd7zBua9A7JAw=="
     },
     "commitment": "",
     "envelope": {
@@ -498,9 +498,9 @@
     "op": "open_plan",
     "sealed": {
      "v": 1,
-     "epk": "fff1b4f065af2de95a8276431f6ddf329cdb17a3aa2f5df51a6e85bb1c53196b",
-     "nonce": "32383b7d8e2d2e3b8454d013",
-     "ct": "eoWOfwQVRMMxq1r54FtwZkuRMnaKyK4AVxp8SK6ZiZCuEQW/YW51mAXNhWZYrsVD60PVvv6IkA1lVfxZu+nzhsGS7qkmux/J1PJKcl5jioHP1rq2NAzK/jXWl95h3H2CExI43E4b4tnlVAqja4qEZj5GZ/XzCBM5JtZNz6ywClFIpXVu7UlfyvNvvXSqO2bremz6IF7U/xHGjWAZfHYbjb+LJe/HADMmz6frFpSCMMZB+ATfTwke0LMWH9K0Oms3iq/QO+h48SgDECLeyh9wl8GBJCPp29WWo1a7FrwvEyGUdjhZdDNspA6mMxDHWgP9AARQx96aRBtI7VP2ugQmdnn+njRXQZEQoRxowUAL1y6x5/29ynSD2I4d7BXA3yOf+dmMEzWdNF72UDFs3lUlLvkk4fdQazWwn+zEpjmGytLWa5cNI8JxG4gzrkSn/J46uxrd2aqatwbBn/5yUdcCSArLqG4+wVXsSLI8xyLulVfo2NK6a6FtjEZ5uGDfKXPU1oiiFh0nfRkKwtC5JPmtDI7evRuE9ZfLkiTbqrExG/nzwVUYUqcfegGnnyIDbjq24mXfbQJzw5qeeXapbyOsjsnRlHJgVbDcklZAflJusq3I6TP5lFP4Ob5VUcQSxKYw3i38cXuTr7ZVNfsmkluXS8CapC0ch5gO69zvynWgiTXZkaV9nrg/v7tBoqEVUJj5ldp3GT4KNpzD2eRg83yFq+/Pi3GMK3lvd48/UC9Jj3I0FpP12LE8LMRANO6ioKiuFkEuxcmz628+Ub1Bqxc6/1BAgiedMry1chDW6o1dkWcm8eAeLyLkh+vXfDlwK1EDnkpNW3eweFSSDytjfONPQkIIJ+d4Cl8G6AkvVWZgMTLXeJtpm+0tel4nPn9bxlHwRPmwr8cvHqhjkiOtUEUuZ8rMWsdAK8iZF7oKuE7FEPKueQEQ5515Hh0p5eReAqFyDXw53DLg6wapRLy3m8uDsyJdi34KbFZYWeFJ9951mgMkCZXSp12GsVTisSR7xK2igoKgrD2CLt7azw8A+vhXT96ZBOpUm96G+XtRpfSAiFmRWLNXd1CGSA=="
+     "epk": "11d2eb1cfbbc9f1ee080b86172bb2e650c2b8e21d4a2bf73f312ddf897b64f0e",
+     "nonce": "d11dc415074a02f999492655",
+     "ct": "oTcVg8ZD4KwGRwUROifvRWFVrMoVtoaXY9j69/2OauZIF4Bobps4S+FwPCH+B3zRbbqc0hDacCRahf+BZcNsX1IzwH9rTx+YNm44TYF8sTgRnRwfpPehoEjLIAlO138KZVDFqfooX96Tvw6MfqbHqXlyeDMpT0nGA2uqMMQDue9hpBBL0E3/BeJO4Agi6GFSTXkQz2I9L1ea4zPSwtHpvY7k+ij6l/tteXaEFPfzTIwGUdPzR60M4f4L3TairwSol4rsSRaoBqwWrA2g3pm31TwMVFV2Y6BJqEoxY2YseamjK+IRAqeq3x/51uV/zCnBjGxjKQcw4UCRROWaCEBEOyZTdJle7OBDnsrv0+OdIAIjS0LOOhQ9PESSboCezwOgYH9tMrT+80bPfN+aCX1P3vSOQCpEFS1povQ/P7T6M3koRbzxnoYdhArqFI6w/itqV2R547ufpJxRkOs9/2vRXgdrUkt9AcVmbA75SZ+Gtq//awL464j8W0eKP15kEziEXf12Tdk6VI4AfjmpQWRTUh269PTP3WmYWatsKU9rpI8XDi4TXOATmAUkq79wxp7QYGiRS0HuDQhfATykfIj1eu08SNyCBWQxOnwhY6lMbMMPAwpAQFMELdD0vxeMpH/S+fDHyDKlsem+pfdMF+j5K8dknngnnouB4iVXVP4lvTArVCd7li1TdB9ANakMUf7IRcGh9rIlfSOLArZ0V0ncxIEo59Vk7MwaCI1DTSuNXwhGQAJDc9rF/05259RirLtv6N9rWoDox4zyByt2n1z2LthwGLOZrCrv3ENSm+VvWN6gRo6aPnnn0fNJYL0/ud3duPge7DQLu3G7nnH0tq+/wCp7gId8AhyEGsfDbKkk/vr+tVkqIIYoLTMF/H9VdxlNjvwioOV/ImOFwqaOdE/Nf3ereaKFnIzoDMHNenmM/Lw24IcIW6T8H/t0YNYeGwAjk2YSNJT8jihD8V0D38FPBFy6LtkssykuxQKs8FoeEcHEWKq6Oo6mqrzb35ZSeN7cbUtzky6ycbAehJ8/sn6gHr2q/DkfHrmh4EWp9H19b3196/AnFHYrPg=="
     },
     "commitment": "5b4390360edd58739e7dafd2d5a2ca7137b81333d3c4fc79ef48a423fccb3e5b",
     "envelope": {
@@ -551,9 +551,9 @@
     "op": "open_plan",
     "sealed": {
      "v": 1,
-     "epk": "fff1b4f065af2de95a8276431f6ddf329cdb17a3aa2f5df51a6e85bb1c53196b",
-     "nonce": "32383b7d8e2d2e3b8454d013",
-     "ct": "eoWOfwQVRMMxq1r54FtwZkuRMnaKyK4AVxp8SK6ZiZCuEQW/YW51mAXNhWZYrsVD60PVvv6IkA1lVfxZu+nzhsGS7qkmux/J1PJKcl5jioHP1rq2NAzK/jXWl95h3H2CExI43E4b4tnlVAqja4qEZj5GZ/XzCBM5JtZNz6ywClFIpXVu7UlfyvNvvXSqO2bremz6IF7U/xHGjWAZfHYbjb+LJe/HADMmz6frFpSCMMZB+ATfTwke0LMWH9K0Oms3iq/QO+h48SgDECLeyh9wl8GBJCPp29WWo1a7FrwvEyGUdjhZdDNspA6mMxDHWgP9AARQx96aRBtI7VP2ugQmdnn+njRXQZEQoRxowUAL1y6x5/29ynSD2I4d7BXA3yOf+dmMEzWdNF72UDFs3lUlLvkk4fdQazWwn+zEpjmGytLWa5cNI8JxG4gzrkSn/J46uxrd2aqatwbBn/5yUdcCSArLqG4+wVXsSLI8xyLulVfo2NK6a6FtjEZ5uGDfKXPU1oiiFh0nfRkKwtC5JPmtDI7evRuE9ZfLkiTbqrExG/nzwVUYUqcfegGnnyIDbjq24mXfbQJzw5qeeXapbyOsjsnRlHJgVbDcklZAflJusq3I6TP5lFP4Ob5VUcQSxKYw3i38cXuTr7ZVNfsmkluXS8CapC0ch5gO69zvynWgiTXZkaV9nrg/v7tBoqEVUJj5ldp3GT4KNpzD2eRg83yFq+/Pi3GMK3lvd48/UC9Jj3I0FpP12LE8LMRANO6ioKiuFkEuxcmz628+Ub1Bqxc6/1BAgiedMry1chDW6o1dkWcm8eAeLyLkh+vXfDlwK1EDnkpNW3eweFSSDytjfONPQkIIJ+d4Cl8G6AkvVWZgMTLXeJtpm+0tel4nPn9bxlHwRPmwr8cvHqhjkiOtUEUuZ8rMWsdAK8iZF7oKuE7FEPKueQEQ5515Hh0p5eReAqFyDXw53DLg6wapRLy3m8uDsyJdi34KbFZYWeFJ9951mgMkCZXSp12GsVTisSR7xK2igoKgrD2CLt7azw8A+vhXT96ZBOpUm96G+XtRpfSAiFmRWLNXd1CGSA=="
+     "epk": "11d2eb1cfbbc9f1ee080b86172bb2e650c2b8e21d4a2bf73f312ddf897b64f0e",
+     "nonce": "d11dc415074a02f999492655",
+     "ct": "oTcVg8ZD4KwGRwUROifvRWFVrMoVtoaXY9j69/2OauZIF4Bobps4S+FwPCH+B3zRbbqc0hDacCRahf+BZcNsX1IzwH9rTx+YNm44TYF8sTgRnRwfpPehoEjLIAlO138KZVDFqfooX96Tvw6MfqbHqXlyeDMpT0nGA2uqMMQDue9hpBBL0E3/BeJO4Agi6GFSTXkQz2I9L1ea4zPSwtHpvY7k+ij6l/tteXaEFPfzTIwGUdPzR60M4f4L3TairwSol4rsSRaoBqwWrA2g3pm31TwMVFV2Y6BJqEoxY2YseamjK+IRAqeq3x/51uV/zCnBjGxjKQcw4UCRROWaCEBEOyZTdJle7OBDnsrv0+OdIAIjS0LOOhQ9PESSboCezwOgYH9tMrT+80bPfN+aCX1P3vSOQCpEFS1povQ/P7T6M3koRbzxnoYdhArqFI6w/itqV2R547ufpJxRkOs9/2vRXgdrUkt9AcVmbA75SZ+Gtq//awL464j8W0eKP15kEziEXf12Tdk6VI4AfjmpQWRTUh269PTP3WmYWatsKU9rpI8XDi4TXOATmAUkq79wxp7QYGiRS0HuDQhfATykfIj1eu08SNyCBWQxOnwhY6lMbMMPAwpAQFMELdD0vxeMpH/S+fDHyDKlsem+pfdMF+j5K8dknngnnouB4iVXVP4lvTArVCd7li1TdB9ANakMUf7IRcGh9rIlfSOLArZ0V0ncxIEo59Vk7MwaCI1DTSuNXwhGQAJDc9rF/05259RirLtv6N9rWoDox4zyByt2n1z2LthwGLOZrCrv3ENSm+VvWN6gRo6aPnnn0fNJYL0/ud3duPge7DQLu3G7nnH0tq+/wCp7gId8AhyEGsfDbKkk/vr+tVkqIIYoLTMF/H9VdxlNjvwioOV/ImOFwqaOdE/Nf3ereaKFnIzoDMHNenmM/Lw24IcIW6T8H/t0YNYeGwAjk2YSNJT8jihD8V0D38FPBFy6LtkssykuxQKs8FoeEcHEWKq6Oo6mqrzb35ZSeN7cbUtzky6ycbAehJ8/sn6gHr2q/DkfHrmh4EWp9H19b3196/AnFHYrPg=="
     },
     "commitment": "5b4390360edd58739e7dafd2d5a2ca7137b81333d3c4fc79ef48a423fccb3e5b",
     "envelope": {
@@ -604,9 +604,9 @@
     "op": "open_plan",
     "sealed": {
      "v": 1,
-     "epk": "fff1b4f065af2de95a8276431f6ddf329cdb17a3aa2f5df51a6e85bb1c53196b",
-     "nonce": "32383b7d8e2d2e3b8454d013",
-     "ct": "eoWOfwQVRMMxq1r54FtwZkuRMnaKyK4AVxp8SK6ZiZCuEQW/YW51mAXNhWZYrsVD60PVvv6IkA1lVfxZu+nzhsGS7qkmux/J1PJKcl5jioHP1rq2NAzK/jXWl95h3H2CExI43E4b4tnlVAqja4qEZj5GZ/XzCBM5JtZNz6ywClFIpXVu7UlfyvNvvXSqO2bremz6IF7U/xHGjWAZfHYbjb+LJe/HADMmz6frFpSCMMZB+ATfTwke0LMWH9K0Oms3iq/QO+h48SgDECLeyh9wl8GBJCPp29WWo1a7FrwvEyGUdjhZdDNspA6mMxDHWgP9AARQx96aRBtI7VP2ugQmdnn+njRXQZEQoRxowUAL1y6x5/29ynSD2I4d7BXA3yOf+dmMEzWdNF72UDFs3lUlLvkk4fdQazWwn+zEpjmGytLWa5cNI8JxG4gzrkSn/J46uxrd2aqatwbBn/5yUdcCSArLqG4+wVXsSLI8xyLulVfo2NK6a6FtjEZ5uGDfKXPU1oiiFh0nfRkKwtC5JPmtDI7evRuE9ZfLkiTbqrExG/nzwVUYUqcfegGnnyIDbjq24mXfbQJzw5qeeXapbyOsjsnRlHJgVbDcklZAflJusq3I6TP5lFP4Ob5VUcQSxKYw3i38cXuTr7ZVNfsmkluXS8CapC0ch5gO69zvynWgiTXZkaV9nrg/v7tBoqEVUJj5ldp3GT4KNpzD2eRg83yFq+/Pi3GMK3lvd48/UC9Jj3I0FpP12LE8LMRANO6ioKiuFkEuxcmz628+Ub1Bqxc6/1BAgiedMry1chDW6o1dkWcm8eAeLyLkh+vXfDlwK1EDnkpNW3eweFSSDytjfONPQkIIJ+d4Cl8G6AkvVWZgMTLXeJtpm+0tel4nPn9bxlHwRPmwr8cvHqhjkiOtUEUuZ8rMWsdAK8iZF7oKuE7FEPKueQEQ5515Hh0p5eReAqFyDXw53DLg6wapRLy3m8uDsyJdi34KbFZYWeFJ9951mgMkCZXSp12GsVTisSR7xK2igoKgrD2CLt7azw8A+vhXT96ZBOpUm96G+XtRpfSAiFmRWLNXd1CGSA=="
+     "epk": "11d2eb1cfbbc9f1ee080b86172bb2e650c2b8e21d4a2bf73f312ddf897b64f0e",
+     "nonce": "d11dc415074a02f999492655",
+     "ct": "oTcVg8ZD4KwGRwUROifvRWFVrMoVtoaXY9j69/2OauZIF4Bobps4S+FwPCH+B3zRbbqc0hDacCRahf+BZcNsX1IzwH9rTx+YNm44TYF8sTgRnRwfpPehoEjLIAlO138KZVDFqfooX96Tvw6MfqbHqXlyeDMpT0nGA2uqMMQDue9hpBBL0E3/BeJO4Agi6GFSTXkQz2I9L1ea4zPSwtHpvY7k+ij6l/tteXaEFPfzTIwGUdPzR60M4f4L3TairwSol4rsSRaoBqwWrA2g3pm31TwMVFV2Y6BJqEoxY2YseamjK+IRAqeq3x/51uV/zCnBjGxjKQcw4UCRROWaCEBEOyZTdJle7OBDnsrv0+OdIAIjS0LOOhQ9PESSboCezwOgYH9tMrT+80bPfN+aCX1P3vSOQCpEFS1povQ/P7T6M3koRbzxnoYdhArqFI6w/itqV2R547ufpJxRkOs9/2vRXgdrUkt9AcVmbA75SZ+Gtq//awL464j8W0eKP15kEziEXf12Tdk6VI4AfjmpQWRTUh269PTP3WmYWatsKU9rpI8XDi4TXOATmAUkq79wxp7QYGiRS0HuDQhfATykfIj1eu08SNyCBWQxOnwhY6lMbMMPAwpAQFMELdD0vxeMpH/S+fDHyDKlsem+pfdMF+j5K8dknngnnouB4iVXVP4lvTArVCd7li1TdB9ANakMUf7IRcGh9rIlfSOLArZ0V0ncxIEo59Vk7MwaCI1DTSuNXwhGQAJDc9rF/05259RirLtv6N9rWoDox4zyByt2n1z2LthwGLOZrCrv3ENSm+VvWN6gRo6aPnnn0fNJYL0/ud3duPge7DQLu3G7nnH0tq+/wCp7gId8AhyEGsfDbKkk/vr+tVkqIIYoLTMF/H9VdxlNjvwioOV/ImOFwqaOdE/Nf3ereaKFnIzoDMHNenmM/Lw24IcIW6T8H/t0YNYeGwAjk2YSNJT8jihD8V0D38FPBFy6LtkssykuxQKs8FoeEcHEWKq6Oo6mqrzb35ZSeN7cbUtzky6ycbAehJ8/sn6gHr2q/DkfHrmh4EWp9H19b3196/AnFHYrPg=="
     },
     "commitment": "a1800b78b7f36d0429cee61941dc954545ce3147f04f7e1b931bd7f1384ae9dc",
     "envelope": {
@@ -657,9 +657,9 @@
     "op": "open_plan",
     "sealed": {
      "v": 1,
-     "epk": "fff1b4f065af2de95a8276431f6ddf329cdb17a3aa2f5df51a6e85bb1c53196b",
-     "nonce": "32383b7d8e2d2e3b8454d013",
-     "ct": "eoWOfwQVRMMxq1r54FtwZkuRMnaKyK4AVxp8SK6ZiZCuEQW/YW51mAXNhWZYrsVD60PVvv6IkA1lVfxZu+nzhsGS7qkmux/J1PJKcl5jioHP1rq2NAzK/jXWl95h3H2CExI43E4b4tnlVAqja4qEZj5GZ/XzCBM5JtZNz6ywClFIpXVu7UlfyvNvvXSqO2bremz6IF7U/xHGjWAZfHYbjb+LJe/HADMmz6frFpSCMMZB+ATfTwke0LMWH9K0Oms3iq/QO+h48SgDECLeyh9wl8GBJCPp29WWo1a7FrwvEyGUdjhZdDNspA6mMxDHWgP9AARQx96aRBtI7VP2ugQmdnn+njRXQZEQoRxowUAL1y6x5/29ynSD2I4d7BXA3yOf+dmMEzWdNF72UDFs3lUlLvkk4fdQazWwn+zEpjmGytLWa5cNI8JxG4gzrkSn/J46uxrd2aqatwbBn/5yUdcCSArLqG4+wVXsSLI8xyLulVfo2NK6a6FtjEZ5uGDfKXPU1oiiFh0nfRkKwtC5JPmtDI7evRuE9ZfLkiTbqrExG/nzwVUYUqcfegGnnyIDbjq24mXfbQJzw5qeeXapbyOsjsnRlHJgVbDcklZAflJusq3I6TP5lFP4Ob5VUcQSxKYw3i38cXuTr7ZVNfsmkluXS8CapC0ch5gO69zvynWgiTXZkaV9nrg/v7tBoqEVUJj5ldp3GT4KNpzD2eRg83yFq+/Pi3GMK3lvd48/UC9Jj3I0FpP12LE8LMRANO6ioKiuFkEuxcmz628+Ub1Bqxc6/1BAgiedMry1chDW6o1dkWcm8eAeLyLkh+vXfDlwK1EDnkpNW3eweFSSDytjfONPQkIIJ+d4Cl8G6AkvVWZgMTLXeJtpm+0tel4nPn9bxlHwRPmwr8cvHqhjkiOtUEUuZ8rMWsdAK8iZF7oKuE7FEPKueQEQ5515Hh0p5eReAqFyDXw53DLg6wapRLy3m8uDsyJdi34KbFZYWeFJ9951mgMkCZXSp12GsVTisSR7xK2igoKgrD2CLt7azw8A+vhXT96ZBOpUm96G+XtRpfSAiFmRWLNXd1CGSA=="
+     "epk": "11d2eb1cfbbc9f1ee080b86172bb2e650c2b8e21d4a2bf73f312ddf897b64f0e",
+     "nonce": "d11dc415074a02f999492655",
+     "ct": "oTcVg8ZD4KwGRwUROifvRWFVrMoVtoaXY9j69/2OauZIF4Bobps4S+FwPCH+B3zRbbqc0hDacCRahf+BZcNsX1IzwH9rTx+YNm44TYF8sTgRnRwfpPehoEjLIAlO138KZVDFqfooX96Tvw6MfqbHqXlyeDMpT0nGA2uqMMQDue9hpBBL0E3/BeJO4Agi6GFSTXkQz2I9L1ea4zPSwtHpvY7k+ij6l/tteXaEFPfzTIwGUdPzR60M4f4L3TairwSol4rsSRaoBqwWrA2g3pm31TwMVFV2Y6BJqEoxY2YseamjK+IRAqeq3x/51uV/zCnBjGxjKQcw4UCRROWaCEBEOyZTdJle7OBDnsrv0+OdIAIjS0LOOhQ9PESSboCezwOgYH9tMrT+80bPfN+aCX1P3vSOQCpEFS1povQ/P7T6M3koRbzxnoYdhArqFI6w/itqV2R547ufpJxRkOs9/2vRXgdrUkt9AcVmbA75SZ+Gtq//awL464j8W0eKP15kEziEXf12Tdk6VI4AfjmpQWRTUh269PTP3WmYWatsKU9rpI8XDi4TXOATmAUkq79wxp7QYGiRS0HuDQhfATykfIj1eu08SNyCBWQxOnwhY6lMbMMPAwpAQFMELdD0vxeMpH/S+fDHyDKlsem+pfdMF+j5K8dknngnnouB4iVXVP4lvTArVCd7li1TdB9ANakMUf7IRcGh9rIlfSOLArZ0V0ncxIEo59Vk7MwaCI1DTSuNXwhGQAJDc9rF/05259RirLtv6N9rWoDox4zyByt2n1z2LthwGLOZrCrv3ENSm+VvWN6gRo6aPnnn0fNJYL0/ud3duPge7DQLu3G7nnH0tq+/wCp7gId8AhyEGsfDbKkk/vr+tVkqIIYoLTMF/H9VdxlNjvwioOV/ImOFwqaOdE/Nf3ereaKFnIzoDMHNenmM/Lw24IcIW6T8H/t0YNYeGwAjk2YSNJT8jihD8V0D38FPBFy6LtkssykuxQKs8FoeEcHEWKq6Oo6mqrzb35ZSeN7cbUtzky6ycbAehJ8/sn6gHr2q/DkfHrmh4EWp9H19b3196/AnFHYrPg=="
     },
     "commitment": "",
     "envelope": {
@@ -1557,7 +1557,7 @@
     "ok": true,
     "result": {
      "type": "sell",
-     "amount": "1",
+     "amount": "3",
      "period_index": 0
     }
    }
@@ -1625,7 +1625,415 @@
     "ok": true,
     "result": {
      "type": "sell",
-     "amount": "1",
+     "amount": "3",
+     "period_index": 0
+    }
+   }
+  },
+  {
+   "name": "propose_sale plan 0 period remainder under the smallest sale seed 01",
+   "build": "vectors",
+   "input": {
+    "op": "propose_sale",
+    "plan": {
+     "allocation": "10000000000000000000000000",
+     "beneficiary": {
+      "asset": "nep141:usdc.near",
+      "near_account": "founder.near"
+     },
+     "end": "2027-12-01T00:00:00.250Z",
+     "max_sell_per_period_bps": 200,
+     "max_sell_per_tx_bps": 25,
+     "max_slippage_bps": 100,
+     "on_end": "release_remaining_to_beneficiary",
+     "period_days": 30,
+     "price_agreement_bps": 100,
+     "price_floor_usd": "1.50",
+     "price_sources": [
+      "1click_quote",
+      "binance",
+      "coinbase"
+     ],
+     "schedule": {
+      "max_gap_minutes": 1440,
+      "min_gap_minutes": 60,
+      "mode": "randomized"
+     },
+     "start": "2026-12-01T00:00:00Z",
+     "token": {
+      "address": "acme.near",
+      "chain": "near",
+      "decimals": 18,
+      "symbol": "ACME"
+     },
+     "venues": [
+      "1click"
+     ],
+     "version": 1
+    },
+    "envelope": {
+     "period_ms": 2592000000,
+     "max_amount_per_period": "250000000000000000000000",
+     "max_amount_per_tx": "50000000000000000000000",
+     "min_price_usd_e6": "750000",
+     "min_gap_ms": 3600000
+    },
+    "state": {
+     "period_index": 0,
+     "sold_in_period": "193750000000000000000000",
+     "sold_total": "0",
+     "last_sale_ms": null,
+     "next_sale_at_ms": 1796083201000
+    },
+    "now_ms": 1796090400000,
+    "balance": "10000000000000000000000000",
+    "random_seed_hex": "01"
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "sell",
+     "amount": "6250000000000000000000",
+     "period_index": 0
+    }
+   }
+  },
+  {
+   "name": "propose_sale plan 0 period remainder under the smallest sale seed c0ffee",
+   "build": "vectors",
+   "input": {
+    "op": "propose_sale",
+    "plan": {
+     "allocation": "10000000000000000000000000",
+     "beneficiary": {
+      "asset": "nep141:usdc.near",
+      "near_account": "founder.near"
+     },
+     "end": "2027-12-01T00:00:00.250Z",
+     "max_sell_per_period_bps": 200,
+     "max_sell_per_tx_bps": 25,
+     "max_slippage_bps": 100,
+     "on_end": "release_remaining_to_beneficiary",
+     "period_days": 30,
+     "price_agreement_bps": 100,
+     "price_floor_usd": "1.50",
+     "price_sources": [
+      "1click_quote",
+      "binance",
+      "coinbase"
+     ],
+     "schedule": {
+      "max_gap_minutes": 1440,
+      "min_gap_minutes": 60,
+      "mode": "randomized"
+     },
+     "start": "2026-12-01T00:00:00Z",
+     "token": {
+      "address": "acme.near",
+      "chain": "near",
+      "decimals": 18,
+      "symbol": "ACME"
+     },
+     "venues": [
+      "1click"
+     ],
+     "version": 1
+    },
+    "envelope": {
+     "period_ms": 2592000000,
+     "max_amount_per_period": "250000000000000000000000",
+     "max_amount_per_tx": "50000000000000000000000",
+     "min_price_usd_e6": "750000",
+     "min_gap_ms": 3600000
+    },
+    "state": {
+     "period_index": 0,
+     "sold_in_period": "193750000000000000000000",
+     "sold_total": "0",
+     "last_sale_ms": null,
+     "next_sale_at_ms": 1796083201000
+    },
+    "now_ms": 1796090400000,
+    "balance": "10000000000000000000000000",
+    "random_seed_hex": "c0ffee"
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "sell",
+     "amount": "6250000000000000000000",
+     "period_index": 0
+    }
+   }
+  },
+  {
+   "name": "propose_sale plan 0 period remainder within one sale seed 01",
+   "build": "vectors",
+   "input": {
+    "op": "propose_sale",
+    "plan": {
+     "allocation": "10000000000000000000000000",
+     "beneficiary": {
+      "asset": "nep141:usdc.near",
+      "near_account": "founder.near"
+     },
+     "end": "2027-12-01T00:00:00.250Z",
+     "max_sell_per_period_bps": 200,
+     "max_sell_per_tx_bps": 25,
+     "max_slippage_bps": 100,
+     "on_end": "release_remaining_to_beneficiary",
+     "period_days": 30,
+     "price_agreement_bps": 100,
+     "price_floor_usd": "1.50",
+     "price_sources": [
+      "1click_quote",
+      "binance",
+      "coinbase"
+     ],
+     "schedule": {
+      "max_gap_minutes": 1440,
+      "min_gap_minutes": 60,
+      "mode": "randomized"
+     },
+     "start": "2026-12-01T00:00:00Z",
+     "token": {
+      "address": "acme.near",
+      "chain": "near",
+      "decimals": 18,
+      "symbol": "ACME"
+     },
+     "venues": [
+      "1click"
+     ],
+     "version": 1
+    },
+    "envelope": {
+     "period_ms": 2592000000,
+     "max_amount_per_period": "250000000000000000000000",
+     "max_amount_per_tx": "50000000000000000000000",
+     "min_price_usd_e6": "750000",
+     "min_gap_ms": 3600000
+    },
+    "state": {
+     "period_index": 0,
+     "sold_in_period": "181250000000000000000000",
+     "sold_total": "0",
+     "last_sale_ms": null,
+     "next_sale_at_ms": 1796083201000
+    },
+    "now_ms": 1796090400000,
+    "balance": "10000000000000000000000000",
+    "random_seed_hex": "01"
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "sell",
+     "amount": "18750000000000000000000",
+     "period_index": 0
+    }
+   }
+  },
+  {
+   "name": "propose_sale plan 0 period remainder within one sale seed c0ffee",
+   "build": "vectors",
+   "input": {
+    "op": "propose_sale",
+    "plan": {
+     "allocation": "10000000000000000000000000",
+     "beneficiary": {
+      "asset": "nep141:usdc.near",
+      "near_account": "founder.near"
+     },
+     "end": "2027-12-01T00:00:00.250Z",
+     "max_sell_per_period_bps": 200,
+     "max_sell_per_tx_bps": 25,
+     "max_slippage_bps": 100,
+     "on_end": "release_remaining_to_beneficiary",
+     "period_days": 30,
+     "price_agreement_bps": 100,
+     "price_floor_usd": "1.50",
+     "price_sources": [
+      "1click_quote",
+      "binance",
+      "coinbase"
+     ],
+     "schedule": {
+      "max_gap_minutes": 1440,
+      "min_gap_minutes": 60,
+      "mode": "randomized"
+     },
+     "start": "2026-12-01T00:00:00Z",
+     "token": {
+      "address": "acme.near",
+      "chain": "near",
+      "decimals": 18,
+      "symbol": "ACME"
+     },
+     "venues": [
+      "1click"
+     ],
+     "version": 1
+    },
+    "envelope": {
+     "period_ms": 2592000000,
+     "max_amount_per_period": "250000000000000000000000",
+     "max_amount_per_tx": "50000000000000000000000",
+     "min_price_usd_e6": "750000",
+     "min_gap_ms": 3600000
+    },
+    "state": {
+     "period_index": 0,
+     "sold_in_period": "181250000000000000000000",
+     "sold_total": "0",
+     "last_sale_ms": null,
+     "next_sale_at_ms": 1796083201000
+    },
+    "now_ms": 1796090400000,
+    "balance": "10000000000000000000000000",
+    "random_seed_hex": "c0ffee"
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "sell",
+     "amount": "18750000000000000000000",
+     "period_index": 0
+    }
+   }
+  },
+  {
+   "name": "propose_sale plan 0 period remainder just over one sale seed 01",
+   "build": "vectors",
+   "input": {
+    "op": "propose_sale",
+    "plan": {
+     "allocation": "10000000000000000000000000",
+     "beneficiary": {
+      "asset": "nep141:usdc.near",
+      "near_account": "founder.near"
+     },
+     "end": "2027-12-01T00:00:00.250Z",
+     "max_sell_per_period_bps": 200,
+     "max_sell_per_tx_bps": 25,
+     "max_slippage_bps": 100,
+     "on_end": "release_remaining_to_beneficiary",
+     "period_days": 30,
+     "price_agreement_bps": 100,
+     "price_floor_usd": "1.50",
+     "price_sources": [
+      "1click_quote",
+      "binance",
+      "coinbase"
+     ],
+     "schedule": {
+      "max_gap_minutes": 1440,
+      "min_gap_minutes": 60,
+      "mode": "randomized"
+     },
+     "start": "2026-12-01T00:00:00Z",
+     "token": {
+      "address": "acme.near",
+      "chain": "near",
+      "decimals": 18,
+      "symbol": "ACME"
+     },
+     "venues": [
+      "1click"
+     ],
+     "version": 1
+    },
+    "envelope": {
+     "period_ms": 2592000000,
+     "max_amount_per_period": "250000000000000000000000",
+     "max_amount_per_tx": "50000000000000000000000",
+     "min_price_usd_e6": "750000",
+     "min_gap_ms": 3600000
+    },
+    "state": {
+     "period_index": 0,
+     "sold_in_period": "168750000000000000000000",
+     "sold_total": "0",
+     "last_sale_ms": null,
+     "next_sale_at_ms": 1796083201000
+    },
+    "now_ms": 1796090400000,
+    "balance": "10000000000000000000000000",
+    "random_seed_hex": "01"
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "sell",
+     "amount": "18408363400410753335193",
+     "period_index": 0
+    }
+   }
+  },
+  {
+   "name": "propose_sale plan 0 period remainder just over one sale seed c0ffee",
+   "build": "vectors",
+   "input": {
+    "op": "propose_sale",
+    "plan": {
+     "allocation": "10000000000000000000000000",
+     "beneficiary": {
+      "asset": "nep141:usdc.near",
+      "near_account": "founder.near"
+     },
+     "end": "2027-12-01T00:00:00.250Z",
+     "max_sell_per_period_bps": 200,
+     "max_sell_per_tx_bps": 25,
+     "max_slippage_bps": 100,
+     "on_end": "release_remaining_to_beneficiary",
+     "period_days": 30,
+     "price_agreement_bps": 100,
+     "price_floor_usd": "1.50",
+     "price_sources": [
+      "1click_quote",
+      "binance",
+      "coinbase"
+     ],
+     "schedule": {
+      "max_gap_minutes": 1440,
+      "min_gap_minutes": 60,
+      "mode": "randomized"
+     },
+     "start": "2026-12-01T00:00:00Z",
+     "token": {
+      "address": "acme.near",
+      "chain": "near",
+      "decimals": 18,
+      "symbol": "ACME"
+     },
+     "venues": [
+      "1click"
+     ],
+     "version": 1
+    },
+    "envelope": {
+     "period_ms": 2592000000,
+     "max_amount_per_period": "250000000000000000000000",
+     "max_amount_per_tx": "50000000000000000000000",
+     "min_price_usd_e6": "750000",
+     "min_gap_ms": 3600000
+    },
+    "state": {
+     "period_index": 0,
+     "sold_in_period": "168750000000000000000000",
+     "sold_total": "0",
+     "last_sale_ms": null,
+     "next_sale_at_ms": 1796083201000
+    },
+    "now_ms": 1796090400000,
+    "balance": "10000000000000000000000000",
+    "random_seed_hex": "c0ffee"
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "sell",
+     "amount": "18750000000000000000000",
      "period_index": 0
     }
    }
@@ -2052,6 +2460,246 @@
     "ok": true,
     "result": {
      "next_sale_at_ms": 1796091904736
+    }
+   }
+  },
+  {
+   "name": "handover_state plan 0 no sales yet seed 03",
+   "build": "vectors",
+   "input": {
+    "op": "handover_state",
+    "plan": {
+     "allocation": "10000000000000000000000000",
+     "beneficiary": {
+      "asset": "nep141:usdc.near",
+      "near_account": "founder.near"
+     },
+     "end": "2027-12-01T00:00:00.250Z",
+     "max_sell_per_period_bps": 200,
+     "max_sell_per_tx_bps": 25,
+     "max_slippage_bps": 100,
+     "on_end": "release_remaining_to_beneficiary",
+     "period_days": 30,
+     "price_agreement_bps": 100,
+     "price_floor_usd": "1.50",
+     "price_sources": [
+      "1click_quote",
+      "binance",
+      "coinbase"
+     ],
+     "schedule": {
+      "max_gap_minutes": 1440,
+      "min_gap_minutes": 60,
+      "mode": "randomized"
+     },
+     "start": "2026-12-01T00:00:00Z",
+     "token": {
+      "address": "acme.near",
+      "chain": "near",
+      "decimals": 18,
+      "symbol": "ACME"
+     },
+     "venues": [
+      "1click"
+     ],
+     "version": 1
+    },
+    "counters": {
+     "period_index": 0,
+     "sold_in_period": "0",
+     "sold_total": "0",
+     "last_sale_ms": null
+    },
+    "random_seed_hex": "03"
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "period_index": 0,
+     "sold_in_period": "0",
+     "sold_total": "0",
+     "last_sale_ms": null,
+     "next_sale_at_ms": 1796093471512
+    }
+   }
+  },
+  {
+   "name": "handover_state plan 0 no sales yet seed feed",
+   "build": "vectors",
+   "input": {
+    "op": "handover_state",
+    "plan": {
+     "allocation": "10000000000000000000000000",
+     "beneficiary": {
+      "asset": "nep141:usdc.near",
+      "near_account": "founder.near"
+     },
+     "end": "2027-12-01T00:00:00.250Z",
+     "max_sell_per_period_bps": 200,
+     "max_sell_per_tx_bps": 25,
+     "max_slippage_bps": 100,
+     "on_end": "release_remaining_to_beneficiary",
+     "period_days": 30,
+     "price_agreement_bps": 100,
+     "price_floor_usd": "1.50",
+     "price_sources": [
+      "1click_quote",
+      "binance",
+      "coinbase"
+     ],
+     "schedule": {
+      "max_gap_minutes": 1440,
+      "min_gap_minutes": 60,
+      "mode": "randomized"
+     },
+     "start": "2026-12-01T00:00:00Z",
+     "token": {
+      "address": "acme.near",
+      "chain": "near",
+      "decimals": 18,
+      "symbol": "ACME"
+     },
+     "venues": [
+      "1click"
+     ],
+     "version": 1
+    },
+    "counters": {
+     "period_index": 0,
+     "sold_in_period": "0",
+     "sold_total": "0",
+     "last_sale_ms": null
+    },
+    "random_seed_hex": "feed"
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "period_index": 0,
+     "sold_in_period": "0",
+     "sold_total": "0",
+     "last_sale_ms": null,
+     "next_sale_at_ms": 1796088407894
+    }
+   }
+  },
+  {
+   "name": "handover_state plan 0 after sales seed 03",
+   "build": "vectors",
+   "input": {
+    "op": "handover_state",
+    "plan": {
+     "allocation": "10000000000000000000000000",
+     "beneficiary": {
+      "asset": "nep141:usdc.near",
+      "near_account": "founder.near"
+     },
+     "end": "2027-12-01T00:00:00.250Z",
+     "max_sell_per_period_bps": 200,
+     "max_sell_per_tx_bps": 25,
+     "max_slippage_bps": 100,
+     "on_end": "release_remaining_to_beneficiary",
+     "period_days": 30,
+     "price_agreement_bps": 100,
+     "price_floor_usd": "1.50",
+     "price_sources": [
+      "1click_quote",
+      "binance",
+      "coinbase"
+     ],
+     "schedule": {
+      "max_gap_minutes": 1440,
+      "min_gap_minutes": 60,
+      "mode": "randomized"
+     },
+     "start": "2026-12-01T00:00:00Z",
+     "token": {
+      "address": "acme.near",
+      "chain": "near",
+      "decimals": 18,
+      "symbol": "ACME"
+     },
+     "venues": [
+      "1click"
+     ],
+     "version": 1
+    },
+    "counters": {
+     "period_index": 1,
+     "sold_in_period": "66666666666666666666666",
+     "sold_total": "200000000000000000000000",
+     "last_sale_ms": 1798675205000
+    },
+    "random_seed_hex": "03"
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "period_index": 1,
+     "sold_in_period": "66666666666666666666666",
+     "sold_total": "200000000000000000000000",
+     "last_sale_ms": 1798675205000,
+     "next_sale_at_ms": 1798699876036
+    }
+   }
+  },
+  {
+   "name": "handover_state plan 0 after sales seed feed",
+   "build": "vectors",
+   "input": {
+    "op": "handover_state",
+    "plan": {
+     "allocation": "10000000000000000000000000",
+     "beneficiary": {
+      "asset": "nep141:usdc.near",
+      "near_account": "founder.near"
+     },
+     "end": "2027-12-01T00:00:00.250Z",
+     "max_sell_per_period_bps": 200,
+     "max_sell_per_tx_bps": 25,
+     "max_slippage_bps": 100,
+     "on_end": "release_remaining_to_beneficiary",
+     "period_days": 30,
+     "price_agreement_bps": 100,
+     "price_floor_usd": "1.50",
+     "price_sources": [
+      "1click_quote",
+      "binance",
+      "coinbase"
+     ],
+     "schedule": {
+      "max_gap_minutes": 1440,
+      "min_gap_minutes": 60,
+      "mode": "randomized"
+     },
+     "start": "2026-12-01T00:00:00Z",
+     "token": {
+      "address": "acme.near",
+      "chain": "near",
+      "decimals": 18,
+      "symbol": "ACME"
+     },
+     "venues": [
+      "1click"
+     ],
+     "version": 1
+    },
+    "counters": {
+     "period_index": 1,
+     "sold_in_period": "66666666666666666666666",
+     "sold_total": "200000000000000000000000",
+     "last_sale_ms": 1798675205000
+    },
+    "random_seed_hex": "feed"
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "period_index": 1,
+     "sold_in_period": "66666666666666666666666",
+     "sold_total": "200000000000000000000000",
+     "last_sale_ms": 1798675205000,
+     "next_sale_at_ms": 1798691212396
     }
    }
   },
@@ -2947,7 +3595,7 @@
     "ok": true,
     "result": {
      "type": "sell",
-     "amount": "1",
+     "amount": "3",
      "period_index": 0
     }
    }
@@ -3016,7 +3664,421 @@
     "ok": true,
     "result": {
      "type": "sell",
-     "amount": "1",
+     "amount": "3",
+     "period_index": 0
+    }
+   }
+  },
+  {
+   "name": "propose_sale plan 1 period remainder under the smallest sale seed 01",
+   "build": "vectors",
+   "input": {
+    "op": "propose_sale",
+    "plan": {
+     "allocation": "123456789012",
+     "beneficiary": {
+      "asset": "nep141:usdc.near",
+      "evm_address": "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
+      "near_account": "treasury.sputnik-dao.near"
+     },
+     "end": "2029-03-01T00:00:00Z",
+     "max_sell_per_period_bps": 1000,
+     "max_sell_per_tx_bps": 333,
+     "max_slippage_bps": 100,
+     "on_end": "release_remaining_to_beneficiary",
+     "period_days": 7,
+     "price_agreement_bps": 250,
+     "price_floor_usd": "0.000125",
+     "price_sources": [
+      "binance",
+      "1click_quote"
+     ],
+     "schedule": {
+      "max_gap_minutes": 3,
+      "min_gap_minutes": 0,
+      "mode": "randomized"
+     },
+     "start": "2028-02-29T12:34:56.789Z",
+     "token": {
+      "address": "0x1c7d4b196cb0c7b01d743fbc6116a902379c7238",
+      "chain": "evm",
+      "chain_id": 11155111,
+      "decimals": 6,
+      "symbol": "KITE"
+     },
+     "venues": [
+      "1click"
+     ],
+     "version": 1
+    },
+    "envelope": {
+     "period_ms": 604800000,
+     "max_amount_per_period": "12962962846",
+     "max_amount_per_tx": "4419753046",
+     "min_price_usd_e6": "62",
+     "min_gap_ms": 0
+    },
+    "state": {
+     "period_index": 0,
+     "sold_in_period": "11317901133",
+     "sold_total": "0",
+     "last_sale_ms": null,
+     "next_sale_at_ms": 1835440497789
+    },
+    "now_ms": 1835447696789,
+    "balance": "123456789012",
+    "random_seed_hex": "01"
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "sell",
+     "amount": "1027777768",
+     "period_index": 0
+    }
+   }
+  },
+  {
+   "name": "propose_sale plan 1 period remainder under the smallest sale seed c0ffee",
+   "build": "vectors",
+   "input": {
+    "op": "propose_sale",
+    "plan": {
+     "allocation": "123456789012",
+     "beneficiary": {
+      "asset": "nep141:usdc.near",
+      "evm_address": "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
+      "near_account": "treasury.sputnik-dao.near"
+     },
+     "end": "2029-03-01T00:00:00Z",
+     "max_sell_per_period_bps": 1000,
+     "max_sell_per_tx_bps": 333,
+     "max_slippage_bps": 100,
+     "on_end": "release_remaining_to_beneficiary",
+     "period_days": 7,
+     "price_agreement_bps": 250,
+     "price_floor_usd": "0.000125",
+     "price_sources": [
+      "binance",
+      "1click_quote"
+     ],
+     "schedule": {
+      "max_gap_minutes": 3,
+      "min_gap_minutes": 0,
+      "mode": "randomized"
+     },
+     "start": "2028-02-29T12:34:56.789Z",
+     "token": {
+      "address": "0x1c7d4b196cb0c7b01d743fbc6116a902379c7238",
+      "chain": "evm",
+      "chain_id": 11155111,
+      "decimals": 6,
+      "symbol": "KITE"
+     },
+     "venues": [
+      "1click"
+     ],
+     "version": 1
+    },
+    "envelope": {
+     "period_ms": 604800000,
+     "max_amount_per_period": "12962962846",
+     "max_amount_per_tx": "4419753046",
+     "min_price_usd_e6": "62",
+     "min_gap_ms": 0
+    },
+    "state": {
+     "period_index": 0,
+     "sold_in_period": "11317901133",
+     "sold_total": "0",
+     "last_sale_ms": null,
+     "next_sale_at_ms": 1835440497789
+    },
+    "now_ms": 1835447696789,
+    "balance": "123456789012",
+    "random_seed_hex": "c0ffee"
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "sell",
+     "amount": "1027777768",
+     "period_index": 0
+    }
+   }
+  },
+  {
+   "name": "propose_sale plan 1 period remainder within one sale seed 01",
+   "build": "vectors",
+   "input": {
+    "op": "propose_sale",
+    "plan": {
+     "allocation": "123456789012",
+     "beneficiary": {
+      "asset": "nep141:usdc.near",
+      "evm_address": "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
+      "near_account": "treasury.sputnik-dao.near"
+     },
+     "end": "2029-03-01T00:00:00Z",
+     "max_sell_per_period_bps": 1000,
+     "max_sell_per_tx_bps": 333,
+     "max_slippage_bps": 100,
+     "on_end": "release_remaining_to_beneficiary",
+     "period_days": 7,
+     "price_agreement_bps": 250,
+     "price_floor_usd": "0.000125",
+     "price_sources": [
+      "binance",
+      "1click_quote"
+     ],
+     "schedule": {
+      "max_gap_minutes": 3,
+      "min_gap_minutes": 0,
+      "mode": "randomized"
+     },
+     "start": "2028-02-29T12:34:56.789Z",
+     "token": {
+      "address": "0x1c7d4b196cb0c7b01d743fbc6116a902379c7238",
+      "chain": "evm",
+      "chain_id": 11155111,
+      "decimals": 6,
+      "symbol": "KITE"
+     },
+     "venues": [
+      "1click"
+     ],
+     "version": 1
+    },
+    "envelope": {
+     "period_ms": 604800000,
+     "max_amount_per_period": "12962962846",
+     "max_amount_per_tx": "4419753046",
+     "min_price_usd_e6": "62",
+     "min_gap_ms": 0
+    },
+    "state": {
+     "period_index": 0,
+     "sold_in_period": "9262345596",
+     "sold_total": "0",
+     "last_sale_ms": null,
+     "next_sale_at_ms": 1835440497789
+    },
+    "now_ms": 1835447696789,
+    "balance": "123456789012",
+    "random_seed_hex": "01"
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "sell",
+     "amount": "3083333305",
+     "period_index": 0
+    }
+   }
+  },
+  {
+   "name": "propose_sale plan 1 period remainder within one sale seed c0ffee",
+   "build": "vectors",
+   "input": {
+    "op": "propose_sale",
+    "plan": {
+     "allocation": "123456789012",
+     "beneficiary": {
+      "asset": "nep141:usdc.near",
+      "evm_address": "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
+      "near_account": "treasury.sputnik-dao.near"
+     },
+     "end": "2029-03-01T00:00:00Z",
+     "max_sell_per_period_bps": 1000,
+     "max_sell_per_tx_bps": 333,
+     "max_slippage_bps": 100,
+     "on_end": "release_remaining_to_beneficiary",
+     "period_days": 7,
+     "price_agreement_bps": 250,
+     "price_floor_usd": "0.000125",
+     "price_sources": [
+      "binance",
+      "1click_quote"
+     ],
+     "schedule": {
+      "max_gap_minutes": 3,
+      "min_gap_minutes": 0,
+      "mode": "randomized"
+     },
+     "start": "2028-02-29T12:34:56.789Z",
+     "token": {
+      "address": "0x1c7d4b196cb0c7b01d743fbc6116a902379c7238",
+      "chain": "evm",
+      "chain_id": 11155111,
+      "decimals": 6,
+      "symbol": "KITE"
+     },
+     "venues": [
+      "1click"
+     ],
+     "version": 1
+    },
+    "envelope": {
+     "period_ms": 604800000,
+     "max_amount_per_period": "12962962846",
+     "max_amount_per_tx": "4419753046",
+     "min_price_usd_e6": "62",
+     "min_gap_ms": 0
+    },
+    "state": {
+     "period_index": 0,
+     "sold_in_period": "9262345596",
+     "sold_total": "0",
+     "last_sale_ms": null,
+     "next_sale_at_ms": 1835440497789
+    },
+    "now_ms": 1835447696789,
+    "balance": "123456789012",
+    "random_seed_hex": "c0ffee"
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "sell",
+     "amount": "3083333305",
+     "period_index": 0
+    }
+   }
+  },
+  {
+   "name": "propose_sale plan 1 period remainder just over one sale seed 01",
+   "build": "vectors",
+   "input": {
+    "op": "propose_sale",
+    "plan": {
+     "allocation": "123456789012",
+     "beneficiary": {
+      "asset": "nep141:usdc.near",
+      "evm_address": "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
+      "near_account": "treasury.sputnik-dao.near"
+     },
+     "end": "2029-03-01T00:00:00Z",
+     "max_sell_per_period_bps": 1000,
+     "max_sell_per_tx_bps": 333,
+     "max_slippage_bps": 100,
+     "on_end": "release_remaining_to_beneficiary",
+     "period_days": 7,
+     "price_agreement_bps": 250,
+     "price_floor_usd": "0.000125",
+     "price_sources": [
+      "binance",
+      "1click_quote"
+     ],
+     "schedule": {
+      "max_gap_minutes": 3,
+      "min_gap_minutes": 0,
+      "mode": "randomized"
+     },
+     "start": "2028-02-29T12:34:56.789Z",
+     "token": {
+      "address": "0x1c7d4b196cb0c7b01d743fbc6116a902379c7238",
+      "chain": "evm",
+      "chain_id": 11155111,
+      "decimals": 6,
+      "symbol": "KITE"
+     },
+     "venues": [
+      "1click"
+     ],
+     "version": 1
+    },
+    "envelope": {
+     "period_ms": 604800000,
+     "max_amount_per_period": "12962962846",
+     "max_amount_per_tx": "4419753046",
+     "min_price_usd_e6": "62",
+     "min_gap_ms": 0
+    },
+    "state": {
+     "period_index": 0,
+     "sold_in_period": "7206790059",
+     "sold_total": "0",
+     "last_sale_ms": null,
+     "next_sale_at_ms": 1835440497789
+    },
+    "now_ms": 1835447696789,
+    "balance": "123456789012",
+    "random_seed_hex": "01"
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "sell",
+     "amount": "2475625148",
+     "period_index": 0
+    }
+   }
+  },
+  {
+   "name": "propose_sale plan 1 period remainder just over one sale seed c0ffee",
+   "build": "vectors",
+   "input": {
+    "op": "propose_sale",
+    "plan": {
+     "allocation": "123456789012",
+     "beneficiary": {
+      "asset": "nep141:usdc.near",
+      "evm_address": "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
+      "near_account": "treasury.sputnik-dao.near"
+     },
+     "end": "2029-03-01T00:00:00Z",
+     "max_sell_per_period_bps": 1000,
+     "max_sell_per_tx_bps": 333,
+     "max_slippage_bps": 100,
+     "on_end": "release_remaining_to_beneficiary",
+     "period_days": 7,
+     "price_agreement_bps": 250,
+     "price_floor_usd": "0.000125",
+     "price_sources": [
+      "binance",
+      "1click_quote"
+     ],
+     "schedule": {
+      "max_gap_minutes": 3,
+      "min_gap_minutes": 0,
+      "mode": "randomized"
+     },
+     "start": "2028-02-29T12:34:56.789Z",
+     "token": {
+      "address": "0x1c7d4b196cb0c7b01d743fbc6116a902379c7238",
+      "chain": "evm",
+      "chain_id": 11155111,
+      "decimals": 6,
+      "symbol": "KITE"
+     },
+     "venues": [
+      "1click"
+     ],
+     "version": 1
+    },
+    "envelope": {
+     "period_ms": 604800000,
+     "max_amount_per_period": "12962962846",
+     "max_amount_per_tx": "4419753046",
+     "min_price_usd_e6": "62",
+     "min_gap_ms": 0
+    },
+    "state": {
+     "period_index": 0,
+     "sold_in_period": "7206790059",
+     "sold_total": "0",
+     "last_sale_ms": null,
+     "next_sale_at_ms": 1835440497789
+    },
+    "now_ms": 1835447696789,
+    "balance": "123456789012",
+    "random_seed_hex": "c0ffee"
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "sell",
+     "amount": "3083333305",
      "period_index": 0
     }
    }
@@ -3450,6 +4512,250 @@
     "ok": true,
     "result": {
      "next_sale_at_ms": 1835440630723
+    }
+   }
+  },
+  {
+   "name": "handover_state plan 1 no sales yet seed 03",
+   "build": "vectors",
+   "input": {
+    "op": "handover_state",
+    "plan": {
+     "allocation": "123456789012",
+     "beneficiary": {
+      "asset": "nep141:usdc.near",
+      "evm_address": "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
+      "near_account": "treasury.sputnik-dao.near"
+     },
+     "end": "2029-03-01T00:00:00Z",
+     "max_sell_per_period_bps": 1000,
+     "max_sell_per_tx_bps": 333,
+     "max_slippage_bps": 100,
+     "on_end": "release_remaining_to_beneficiary",
+     "period_days": 7,
+     "price_agreement_bps": 250,
+     "price_floor_usd": "0.000125",
+     "price_sources": [
+      "binance",
+      "1click_quote"
+     ],
+     "schedule": {
+      "max_gap_minutes": 3,
+      "min_gap_minutes": 0,
+      "mode": "randomized"
+     },
+     "start": "2028-02-29T12:34:56.789Z",
+     "token": {
+      "address": "0x1c7d4b196cb0c7b01d743fbc6116a902379c7238",
+      "chain": "evm",
+      "chain_id": 11155111,
+      "decimals": 6,
+      "symbol": "KITE"
+     },
+     "venues": [
+      "1click"
+     ],
+     "version": 1
+    },
+    "counters": {
+     "period_index": 0,
+     "sold_in_period": "0",
+     "sold_total": "0",
+     "last_sale_ms": null
+    },
+    "random_seed_hex": "03"
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "period_index": 0,
+     "sold_in_period": "0",
+     "sold_total": "0",
+     "last_sale_ms": null,
+     "next_sale_at_ms": 1835440538921
+    }
+   }
+  },
+  {
+   "name": "handover_state plan 1 no sales yet seed feed",
+   "build": "vectors",
+   "input": {
+    "op": "handover_state",
+    "plan": {
+     "allocation": "123456789012",
+     "beneficiary": {
+      "asset": "nep141:usdc.near",
+      "evm_address": "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
+      "near_account": "treasury.sputnik-dao.near"
+     },
+     "end": "2029-03-01T00:00:00Z",
+     "max_sell_per_period_bps": 1000,
+     "max_sell_per_tx_bps": 333,
+     "max_slippage_bps": 100,
+     "on_end": "release_remaining_to_beneficiary",
+     "period_days": 7,
+     "price_agreement_bps": 250,
+     "price_floor_usd": "0.000125",
+     "price_sources": [
+      "binance",
+      "1click_quote"
+     ],
+     "schedule": {
+      "max_gap_minutes": 3,
+      "min_gap_minutes": 0,
+      "mode": "randomized"
+     },
+     "start": "2028-02-29T12:34:56.789Z",
+     "token": {
+      "address": "0x1c7d4b196cb0c7b01d743fbc6116a902379c7238",
+      "chain": "evm",
+      "chain_id": 11155111,
+      "decimals": 6,
+      "symbol": "KITE"
+     },
+     "venues": [
+      "1click"
+     ],
+     "version": 1
+    },
+    "counters": {
+     "period_index": 0,
+     "sold_in_period": "0",
+     "sold_total": "0",
+     "last_sale_ms": null
+    },
+    "random_seed_hex": "feed"
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "period_index": 0,
+     "sold_in_period": "0",
+     "sold_total": "0",
+     "last_sale_ms": null,
+     "next_sale_at_ms": 1835440675698
+    }
+   }
+  },
+  {
+   "name": "handover_state plan 1 after sales seed 03",
+   "build": "vectors",
+   "input": {
+    "op": "handover_state",
+    "plan": {
+     "allocation": "123456789012",
+     "beneficiary": {
+      "asset": "nep141:usdc.near",
+      "evm_address": "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
+      "near_account": "treasury.sputnik-dao.near"
+     },
+     "end": "2029-03-01T00:00:00Z",
+     "max_sell_per_period_bps": 1000,
+     "max_sell_per_tx_bps": 333,
+     "max_slippage_bps": 100,
+     "on_end": "release_remaining_to_beneficiary",
+     "period_days": 7,
+     "price_agreement_bps": 250,
+     "price_floor_usd": "0.000125",
+     "price_sources": [
+      "binance",
+      "1click_quote"
+     ],
+     "schedule": {
+      "max_gap_minutes": 3,
+      "min_gap_minutes": 0,
+      "mode": "randomized"
+     },
+     "start": "2028-02-29T12:34:56.789Z",
+     "token": {
+      "address": "0x1c7d4b196cb0c7b01d743fbc6116a902379c7238",
+      "chain": "evm",
+      "chain_id": 11155111,
+      "decimals": 6,
+      "symbol": "KITE"
+     },
+     "venues": [
+      "1click"
+     ],
+     "version": 1
+    },
+    "counters": {
+     "period_index": 1,
+     "sold_in_period": "4115226300",
+     "sold_total": "12345678901",
+     "last_sale_ms": 1836045301789
+    },
+    "random_seed_hex": "03"
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "period_index": 1,
+     "sold_in_period": "4115226300",
+     "sold_total": "12345678901",
+     "last_sale_ms": 1836045301789,
+     "next_sale_at_ms": 1836045343921
+    }
+   }
+  },
+  {
+   "name": "handover_state plan 1 after sales seed feed",
+   "build": "vectors",
+   "input": {
+    "op": "handover_state",
+    "plan": {
+     "allocation": "123456789012",
+     "beneficiary": {
+      "asset": "nep141:usdc.near",
+      "evm_address": "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
+      "near_account": "treasury.sputnik-dao.near"
+     },
+     "end": "2029-03-01T00:00:00Z",
+     "max_sell_per_period_bps": 1000,
+     "max_sell_per_tx_bps": 333,
+     "max_slippage_bps": 100,
+     "on_end": "release_remaining_to_beneficiary",
+     "period_days": 7,
+     "price_agreement_bps": 250,
+     "price_floor_usd": "0.000125",
+     "price_sources": [
+      "binance",
+      "1click_quote"
+     ],
+     "schedule": {
+      "max_gap_minutes": 3,
+      "min_gap_minutes": 0,
+      "mode": "randomized"
+     },
+     "start": "2028-02-29T12:34:56.789Z",
+     "token": {
+      "address": "0x1c7d4b196cb0c7b01d743fbc6116a902379c7238",
+      "chain": "evm",
+      "chain_id": 11155111,
+      "decimals": 6,
+      "symbol": "KITE"
+     },
+     "venues": [
+      "1click"
+     ],
+     "version": 1
+    },
+    "counters": {
+     "period_index": 1,
+     "sold_in_period": "4115226300",
+     "sold_total": "12345678901",
+     "last_sale_ms": 1836045301789
+    },
+    "random_seed_hex": "feed"
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "period_index": 1,
+     "sold_in_period": "4115226300",
+     "sold_total": "12345678901",
+     "last_sale_ms": 1836045301789,
+     "next_sale_at_ms": 1836045480698
     }
    }
   },
@@ -4547,6 +5853,2283 @@
    }
   },
   {
+   "name": "trust_check_mandate valid",
+   "build": "vectors",
+   "input": {
+    "op": "trust_check_mandate",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    }
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "problems": [],
+     "checks": [
+      {
+       "rule": "No target is on the public exclusion list",
+       "ok": true
+      },
+      {
+       "rule": "The largest trade fits the turnover cap",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  {
+   "name": "trust_check_mandate weights not 100%",
+   "build": "vectors",
+   "input": {
+    "op": "trust_check_mandate",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 3000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    }
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "problems": [
+      "Target weights must add up to 100%"
+     ],
+     "checks": [
+      {
+       "rule": "No target is on the public exclusion list",
+       "ok": true
+      },
+      {
+       "rule": "The largest trade fits the turnover cap",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  {
+   "name": "trust_check_mandate repeated asset",
+   "build": "vectors",
+   "input": {
+    "op": "trust_check_mandate",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    }
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "problems": [
+      "An asset appears twice"
+     ],
+     "checks": [
+      {
+       "rule": "No target is on the public exclusion list",
+       "ok": true
+      },
+      {
+       "rule": "The largest trade fits the turnover cap",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  {
+   "name": "trust_check_mandate target outside the universe",
+   "build": "vectors",
+   "input": {
+    "op": "trust_check_mandate",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    }
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "problems": [
+      "Every target must be in the allowed universe"
+     ],
+     "checks": [
+      {
+       "rule": "No target is on the public exclusion list",
+       "ok": true
+      },
+      {
+       "rule": "The largest trade fits the turnover cap",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  {
+   "name": "trust_check_mandate target in an excluded sector",
+   "build": "vectors",
+   "input": {
+    "op": "trust_check_mandate",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy",
+      "bonds"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    }
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "problems": [
+      "A target is in an excluded sector"
+     ],
+     "checks": [
+      {
+       "rule": "No target is on the public exclusion list",
+       "ok": true
+      },
+      {
+       "rule": "The largest trade fits the turnover cap",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  {
+   "name": "trust_check_mandate smallest above largest",
+   "build": "vectors",
+   "input": {
+    "op": "trust_check_mandate",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500.5",
+     "min_trade_usd": "600",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    }
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "problems": [
+      "The smallest trade cannot be larger than the largest"
+     ],
+     "checks": [
+      {
+       "rule": "No target is on the public exclusion list",
+       "ok": true
+      },
+      {
+       "rule": "The largest trade fits the turnover cap",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  {
+   "name": "trust_check_mandate largest is zero",
+   "build": "vectors",
+   "input": {
+    "op": "trust_check_mandate",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "0.000000",
+     "min_trade_usd": "0",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    }
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "problems": [
+      "The largest trade must be above zero"
+     ],
+     "checks": [
+      {
+       "rule": "No target is on the public exclusion list",
+       "ok": true
+      },
+      {
+       "rule": "The largest trade fits the turnover cap",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  {
+   "name": "trust_check_mandate target publicly excluded",
+   "build": "vectors",
+   "input": {
+    "op": "trust_check_mandate",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near",
+      "nep141:bond.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    }
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "problems": [],
+     "checks": [
+      {
+       "rule": "No target is on the public exclusion list",
+       "ok": false
+      },
+      {
+       "rule": "The largest trade fits the turnover cap",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  {
+   "name": "trust_check_mandate largest trade above the cap",
+   "build": "vectors",
+   "input": {
+    "op": "trust_check_mandate",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "1000.000001",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    }
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "problems": [],
+     "checks": [
+      {
+       "rule": "No target is on the public exclusion list",
+       "ok": true
+      },
+      {
+       "rule": "The largest trade fits the turnover cap",
+       "ok": false
+      }
+     ]
+    }
+   }
+  },
+  {
+   "name": "trust_rebalance all in the index: capped by the largest trade",
+   "build": "vectors",
+   "input": {
+    "op": "trust_rebalance",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    },
+    "counters": {
+     "start_ms": 1799136000000,
+     "period_index": 10,
+     "turnover_in_period_usd_e6": "0",
+     "last_trade_ms": null
+    },
+    "holdings": [
+     {
+      "asset": "nep141:idx.near",
+      "amount": "1000000000000000000000",
+      "decimals": 18
+     }
+    ],
+    "prices": [
+     {
+      "asset": "nep141:idx.near",
+      "price_usd_e6": "2000000"
+     },
+     {
+      "asset": "nep141:bond.near",
+      "price_usd_e6": "1000000"
+     },
+     {
+      "asset": "nep141:gold.near",
+      "price_usd_e6": "2500123456"
+     },
+     {
+      "asset": "nep141:oil.near",
+      "price_usd_e6": "75500000"
+     }
+    ],
+    "now_ms": 1800000000000
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "trade",
+     "origin": "nep141:idx.near",
+     "destination": "nep141:bond.near",
+     "amount": "250000000000000000000",
+     "usd_e6": "500000000"
+    }
+   }
+  },
+  {
+   "name": "trust_rebalance on target",
+   "build": "vectors",
+   "input": {
+    "op": "trust_rebalance",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    },
+    "counters": {
+     "start_ms": 1799136000000,
+     "period_index": 10,
+     "turnover_in_period_usd_e6": "0",
+     "last_trade_ms": null
+    },
+    "holdings": [
+     {
+      "asset": "nep141:idx.near",
+      "amount": "600000000000000000000",
+      "decimals": 18
+     },
+     {
+      "asset": "nep141:bond.near",
+      "amount": "800000000000000000000",
+      "decimals": 18
+     }
+    ],
+    "prices": [
+     {
+      "asset": "nep141:idx.near",
+      "price_usd_e6": "2000000"
+     },
+     {
+      "asset": "nep141:bond.near",
+      "price_usd_e6": "1000000"
+     },
+     {
+      "asset": "nep141:gold.near",
+      "price_usd_e6": "2500123456"
+     },
+     {
+      "asset": "nep141:oil.near",
+      "price_usd_e6": "75500000"
+     }
+    ],
+    "now_ms": 1800000000000
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "hold",
+     "reason": "within_bands"
+    }
+   }
+  },
+  {
+   "name": "trust_rebalance drift inside the band",
+   "build": "vectors",
+   "input": {
+    "op": "trust_rebalance",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    },
+    "counters": {
+     "start_ms": 1799136000000,
+     "period_index": 10,
+     "turnover_in_period_usd_e6": "0",
+     "last_trade_ms": null
+    },
+    "holdings": [
+     {
+      "asset": "nep141:idx.near",
+      "amount": "620000000000000000000",
+      "decimals": 18
+     },
+     {
+      "asset": "nep141:bond.near",
+      "amount": "760000000000000000000",
+      "decimals": 18
+     }
+    ],
+    "prices": [
+     {
+      "asset": "nep141:idx.near",
+      "price_usd_e6": "2000000"
+     },
+     {
+      "asset": "nep141:bond.near",
+      "price_usd_e6": "1000000"
+     },
+     {
+      "asset": "nep141:gold.near",
+      "price_usd_e6": "2500123456"
+     },
+     {
+      "asset": "nep141:oil.near",
+      "price_usd_e6": "75500000"
+     }
+    ],
+    "now_ms": 1800000000000
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "hold",
+     "reason": "within_bands"
+    }
+   }
+  },
+  {
+   "name": "trust_rebalance drift beyond the band",
+   "build": "vectors",
+   "input": {
+    "op": "trust_rebalance",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    },
+    "counters": {
+     "start_ms": 1799136000000,
+     "period_index": 10,
+     "turnover_in_period_usd_e6": "0",
+     "last_trade_ms": null
+    },
+    "holdings": [
+     {
+      "asset": "nep141:idx.near",
+      "amount": "700000000000000000000",
+      "decimals": 18
+     },
+     {
+      "asset": "nep141:bond.near",
+      "amount": "600000000000000000000",
+      "decimals": 18
+     }
+    ],
+    "prices": [
+     {
+      "asset": "nep141:idx.near",
+      "price_usd_e6": "2000000"
+     },
+     {
+      "asset": "nep141:bond.near",
+      "price_usd_e6": "1000000"
+     },
+     {
+      "asset": "nep141:gold.near",
+      "price_usd_e6": "2500123456"
+     },
+     {
+      "asset": "nep141:oil.near",
+      "price_usd_e6": "75500000"
+     }
+    ],
+    "now_ms": 1800000000000
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "trade",
+     "origin": "nep141:idx.near",
+     "destination": "nep141:bond.near",
+     "amount": "100000000000000000000",
+     "usd_e6": "200000000"
+    }
+   }
+  },
+  {
+   "name": "trust_rebalance an excluded holding is sold whatever the band",
+   "build": "vectors",
+   "input": {
+    "op": "trust_rebalance",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    },
+    "counters": {
+     "start_ms": 1799136000000,
+     "period_index": 10,
+     "turnover_in_period_usd_e6": "0",
+     "last_trade_ms": null
+    },
+    "holdings": [
+     {
+      "asset": "nep141:idx.near",
+      "amount": "600000000000000000000",
+      "decimals": 18
+     },
+     {
+      "asset": "nep141:bond.near",
+      "amount": "800000000000000000000",
+      "decimals": 18
+     },
+     {
+      "asset": "nep141:oil.near",
+      "amount": "1000000000000000000",
+      "decimals": 18
+     }
+    ],
+    "prices": [
+     {
+      "asset": "nep141:idx.near",
+      "price_usd_e6": "2000000"
+     },
+     {
+      "asset": "nep141:bond.near",
+      "price_usd_e6": "1000000"
+     },
+     {
+      "asset": "nep141:gold.near",
+      "price_usd_e6": "2500123456"
+     },
+     {
+      "asset": "nep141:oil.near",
+      "price_usd_e6": "75500000"
+     }
+    ],
+    "now_ms": 1800000000000
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "trade",
+     "origin": "nep141:oil.near",
+     "destination": "nep141:idx.near",
+     "amount": "600000000000000000",
+     "usd_e6": "45300000"
+    }
+   }
+  },
+  {
+   "name": "trust_rebalance a holding outside the targets is sold",
+   "build": "vectors",
+   "input": {
+    "op": "trust_rebalance",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    },
+    "counters": {
+     "start_ms": 1799136000000,
+     "period_index": 10,
+     "turnover_in_period_usd_e6": "0",
+     "last_trade_ms": null
+    },
+    "holdings": [
+     {
+      "asset": "nep141:idx.near",
+      "amount": "600000000000000000000",
+      "decimals": 18
+     },
+     {
+      "asset": "nep141:bond.near",
+      "amount": "800000000000000000000",
+      "decimals": 18
+     },
+     {
+      "asset": "nep141:gold.near",
+      "amount": "100000000",
+      "decimals": 8
+     }
+    ],
+    "prices": [
+     {
+      "asset": "nep141:idx.near",
+      "price_usd_e6": "2000000"
+     },
+     {
+      "asset": "nep141:bond.near",
+      "price_usd_e6": "1000000"
+     },
+     {
+      "asset": "nep141:gold.near",
+      "price_usd_e6": "2500123456"
+     },
+     {
+      "asset": "nep141:oil.near",
+      "price_usd_e6": "75500000"
+     }
+    ],
+    "now_ms": 1800000000000
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "trade",
+     "origin": "nep141:gold.near",
+     "destination": "nep141:idx.near",
+     "amount": "19999012",
+     "usd_e6": "500000000"
+    }
+   }
+  },
+  {
+   "name": "trust_rebalance minimum gap since the last trade",
+   "build": "vectors",
+   "input": {
+    "op": "trust_rebalance",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    },
+    "counters": {
+     "start_ms": 1799136000000,
+     "period_index": 10,
+     "turnover_in_period_usd_e6": "0",
+     "last_trade_ms": 1799999940000
+    },
+    "holdings": [
+     {
+      "asset": "nep141:idx.near",
+      "amount": "1000000000000000000000",
+      "decimals": 18
+     }
+    ],
+    "prices": [
+     {
+      "asset": "nep141:idx.near",
+      "price_usd_e6": "2000000"
+     },
+     {
+      "asset": "nep141:bond.near",
+      "price_usd_e6": "1000000"
+     },
+     {
+      "asset": "nep141:gold.near",
+      "price_usd_e6": "2500123456"
+     },
+     {
+      "asset": "nep141:oil.near",
+      "price_usd_e6": "75500000"
+     }
+    ],
+    "now_ms": 1800000000000
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "hold",
+     "reason": "min_gap"
+    }
+   }
+  },
+  {
+   "name": "trust_rebalance turnover cap used this period",
+   "build": "vectors",
+   "input": {
+    "op": "trust_rebalance",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    },
+    "counters": {
+     "start_ms": 1799136000000,
+     "period_index": 10,
+     "turnover_in_period_usd_e6": "1000000000",
+     "last_trade_ms": null
+    },
+    "holdings": [
+     {
+      "asset": "nep141:idx.near",
+      "amount": "1000000000000000000000",
+      "decimals": 18
+     }
+    ],
+    "prices": [
+     {
+      "asset": "nep141:idx.near",
+      "price_usd_e6": "2000000"
+     },
+     {
+      "asset": "nep141:bond.near",
+      "price_usd_e6": "1000000"
+     },
+     {
+      "asset": "nep141:gold.near",
+      "price_usd_e6": "2500123456"
+     },
+     {
+      "asset": "nep141:oil.near",
+      "price_usd_e6": "75500000"
+     }
+    ],
+    "now_ms": 1800000000000
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "hold",
+     "reason": "turnover_used"
+    }
+   }
+  },
+  {
+   "name": "trust_rebalance a new period resets the turnover",
+   "build": "vectors",
+   "input": {
+    "op": "trust_rebalance",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    },
+    "counters": {
+     "start_ms": 1799136000000,
+     "period_index": 9,
+     "turnover_in_period_usd_e6": "1000000000",
+     "last_trade_ms": null
+    },
+    "holdings": [
+     {
+      "asset": "nep141:idx.near",
+      "amount": "1000000000000000000000",
+      "decimals": 18
+     }
+    ],
+    "prices": [
+     {
+      "asset": "nep141:idx.near",
+      "price_usd_e6": "2000000"
+     },
+     {
+      "asset": "nep141:bond.near",
+      "price_usd_e6": "1000000"
+     },
+     {
+      "asset": "nep141:gold.near",
+      "price_usd_e6": "2500123456"
+     },
+     {
+      "asset": "nep141:oil.near",
+      "price_usd_e6": "75500000"
+     }
+    ],
+    "now_ms": 1800000000000
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "trade",
+     "origin": "nep141:idx.near",
+     "destination": "nep141:bond.near",
+     "amount": "250000000000000000000",
+     "usd_e6": "500000000"
+    }
+   }
+  },
+  {
+   "name": "trust_rebalance the rest of the cap limits the trade",
+   "build": "vectors",
+   "input": {
+    "op": "trust_rebalance",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    },
+    "counters": {
+     "start_ms": 1799136000000,
+     "period_index": 10,
+     "turnover_in_period_usd_e6": "876543210",
+     "last_trade_ms": null
+    },
+    "holdings": [
+     {
+      "asset": "nep141:idx.near",
+      "amount": "1000000000000000000000",
+      "decimals": 18
+     }
+    ],
+    "prices": [
+     {
+      "asset": "nep141:idx.near",
+      "price_usd_e6": "2000000"
+     },
+     {
+      "asset": "nep141:bond.near",
+      "price_usd_e6": "1000000"
+     },
+     {
+      "asset": "nep141:gold.near",
+      "price_usd_e6": "2500123456"
+     },
+     {
+      "asset": "nep141:oil.near",
+      "price_usd_e6": "75500000"
+     }
+    ],
+    "now_ms": 1800000000000
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "trade",
+     "origin": "nep141:idx.near",
+     "destination": "nep141:bond.near",
+     "amount": "61728395000000000000",
+     "usd_e6": "123456790"
+    }
+   }
+  },
+  {
+   "name": "trust_rebalance no price for a holding",
+   "build": "vectors",
+   "input": {
+    "op": "trust_rebalance",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    },
+    "counters": {
+     "start_ms": 1799136000000,
+     "period_index": 10,
+     "turnover_in_period_usd_e6": "0",
+     "last_trade_ms": null
+    },
+    "holdings": [
+     {
+      "asset": "nep141:idx.near",
+      "amount": "600000000000000000000",
+      "decimals": 18
+     },
+     {
+      "asset": "nep141:silver.near",
+      "amount": "5000000000000000000",
+      "decimals": 18
+     }
+    ],
+    "prices": [
+     {
+      "asset": "nep141:idx.near",
+      "price_usd_e6": "2000000"
+     },
+     {
+      "asset": "nep141:bond.near",
+      "price_usd_e6": "1000000"
+     },
+     {
+      "asset": "nep141:gold.near",
+      "price_usd_e6": "2500123456"
+     },
+     {
+      "asset": "nep141:oil.near",
+      "price_usd_e6": "75500000"
+     }
+    ],
+    "now_ms": 1800000000000
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "hold",
+     "reason": "no_price"
+    }
+   }
+  },
+  {
+   "name": "trust_rebalance nothing held",
+   "build": "vectors",
+   "input": {
+    "op": "trust_rebalance",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    },
+    "counters": {
+     "start_ms": 1799136000000,
+     "period_index": 10,
+     "turnover_in_period_usd_e6": "0",
+     "last_trade_ms": null
+    },
+    "holdings": [
+     {
+      "asset": "nep141:idx.near",
+      "amount": "0",
+      "decimals": 18
+     }
+    ],
+    "prices": [
+     {
+      "asset": "nep141:idx.near",
+      "price_usd_e6": "2000000"
+     },
+     {
+      "asset": "nep141:bond.near",
+      "price_usd_e6": "1000000"
+     },
+     {
+      "asset": "nep141:gold.near",
+      "price_usd_e6": "2500123456"
+     },
+     {
+      "asset": "nep141:oil.near",
+      "price_usd_e6": "75500000"
+     }
+    ],
+    "now_ms": 1800000000000
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "hold",
+     "reason": "no_value"
+    }
+   }
+  },
+  {
+   "name": "trust_rebalance a target the envelope now excludes is sold",
+   "build": "vectors",
+   "input": {
+    "op": "trust_rebalance",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near",
+      "nep141:bond.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    },
+    "counters": {
+     "start_ms": 1799136000000,
+     "period_index": 10,
+     "turnover_in_period_usd_e6": "0",
+     "last_trade_ms": null
+    },
+    "holdings": [
+     {
+      "asset": "nep141:idx.near",
+      "amount": "600000000000000000000",
+      "decimals": 18
+     },
+     {
+      "asset": "nep141:bond.near",
+      "amount": "800000000000000000000",
+      "decimals": 18
+     }
+    ],
+    "prices": [
+     {
+      "asset": "nep141:idx.near",
+      "price_usd_e6": "2000000"
+     },
+     {
+      "asset": "nep141:bond.near",
+      "price_usd_e6": "1000000"
+     },
+     {
+      "asset": "nep141:gold.near",
+      "price_usd_e6": "2500123456"
+     },
+     {
+      "asset": "nep141:oil.near",
+      "price_usd_e6": "75500000"
+     }
+    ],
+    "now_ms": 1800000000000
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "trade",
+     "origin": "nep141:bond.near",
+     "destination": "nep141:idx.near",
+     "amount": "500000000000000000000",
+     "usd_e6": "500000000"
+    }
+   }
+  },
+  {
+   "name": "trust_rebalance every target excluded",
+   "build": "vectors",
+   "input": {
+    "op": "trust_rebalance",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:idx.near",
+      "nep141:bond.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    },
+    "counters": {
+     "start_ms": 1799136000000,
+     "period_index": 10,
+     "turnover_in_period_usd_e6": "0",
+     "last_trade_ms": null
+    },
+    "holdings": [
+     {
+      "asset": "nep141:idx.near",
+      "amount": "600000000000000000000",
+      "decimals": 18
+     }
+    ],
+    "prices": [
+     {
+      "asset": "nep141:idx.near",
+      "price_usd_e6": "2000000"
+     },
+     {
+      "asset": "nep141:bond.near",
+      "price_usd_e6": "1000000"
+     },
+     {
+      "asset": "nep141:gold.near",
+      "price_usd_e6": "2500123456"
+     },
+     {
+      "asset": "nep141:oil.near",
+      "price_usd_e6": "75500000"
+     }
+    ],
+    "now_ms": 1800000000000
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "hold",
+     "reason": "no_target"
+    }
+   }
+  },
+  {
+   "name": "trust_rebalance too small to trade",
+   "build": "vectors",
+   "input": {
+    "op": "trust_rebalance",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    },
+    "counters": {
+     "start_ms": 1799136000000,
+     "period_index": 10,
+     "turnover_in_period_usd_e6": "0",
+     "last_trade_ms": null
+    },
+    "holdings": [
+     {
+      "asset": "nep141:idx.near",
+      "amount": "10000000000000000000",
+      "decimals": 18
+     }
+    ],
+    "prices": [
+     {
+      "asset": "nep141:idx.near",
+      "price_usd_e6": "2000000"
+     },
+     {
+      "asset": "nep141:bond.near",
+      "price_usd_e6": "1000000"
+     },
+     {
+      "asset": "nep141:gold.near",
+      "price_usd_e6": "2500123456"
+     },
+     {
+      "asset": "nep141:oil.near",
+      "price_usd_e6": "75500000"
+     }
+    ],
+    "now_ms": 1800000000000
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "hold",
+     "reason": "too_small"
+    }
+   }
+  },
+  {
+   "name": "trust_rebalance before the trust starts",
+   "build": "vectors",
+   "input": {
+    "op": "trust_rebalance",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    },
+    "counters": {
+     "start_ms": 1799136000000,
+     "period_index": 10,
+     "turnover_in_period_usd_e6": "0",
+     "last_trade_ms": null
+    },
+    "holdings": [
+     {
+      "asset": "nep141:idx.near",
+      "amount": "1000000000000000000000",
+      "decimals": 18
+     }
+    ],
+    "prices": [
+     {
+      "asset": "nep141:idx.near",
+      "price_usd_e6": "2000000"
+     },
+     {
+      "asset": "nep141:bond.near",
+      "price_usd_e6": "1000000"
+     },
+     {
+      "asset": "nep141:gold.near",
+      "price_usd_e6": "2500123456"
+     },
+     {
+      "asset": "nep141:oil.near",
+      "price_usd_e6": "75500000"
+     }
+    ],
+    "now_ms": 1799135999999
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "hold",
+     "reason": "not_started"
+    }
+   }
+  },
+  {
+   "name": "trust_rebalance odd decimals and prices round down",
+   "build": "vectors",
+   "input": {
+    "op": "trust_rebalance",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    },
+    "counters": {
+     "start_ms": 1799136000000,
+     "period_index": 10,
+     "turnover_in_period_usd_e6": "0",
+     "last_trade_ms": null
+    },
+    "holdings": [
+     {
+      "asset": "nep141:idx.near",
+      "amount": "333000000",
+      "decimals": 6
+     },
+     {
+      "asset": "nep141:bond.near",
+      "amount": "1000000000000000000000000",
+      "decimals": 24
+     }
+    ],
+    "prices": [
+     {
+      "asset": "nep141:idx.near",
+      "price_usd_e6": "1234567"
+     },
+     {
+      "asset": "nep141:bond.near",
+      "price_usd_e6": "999999"
+     }
+    ],
+    "now_ms": 1800000000000
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "trade",
+     "origin": "nep141:idx.near",
+     "destination": "nep141:bond.near",
+     "amount": "132714000",
+     "usd_e6": "163844325"
+    }
+   }
+  },
+  {
    "name": "production refuses a host-chosen random seed",
    "build": "production",
    "input": {
@@ -4934,9 +8517,9 @@
     "op": "open_plan",
     "sealed": {
      "v": 1,
-     "epk": "4b8b4d147605dade644b68cda7605890073ca4c61b41d9d7ab929cf93ff94840",
-     "nonce": "1b5a028564d5e32e03ec64b7",
-     "ct": "bG0dHTiHfuyZOCuDU1xDbKVuBe1r7zRdE58gc6cNaIKeLVuFJERHBjO9BTOaAMBkNFDZbM281cOzwogxQK3SnoHoCxoobeMXaiJXgbEA1NVZSZm64MupeAHcL4DzJ+TTzZa7e0FYWq9KgTDt6JrkfR5FTBf9I5Kbnr91U464OSE9m6S/CPgh8CT+DWky1ewxDVuSUgoocEE29CDMVdJNOoCWIULMZ5QGMkHeOr4FjbMavTbc+sM0yKzYy0+z3Ik0xpiuZKaQUk6WNcug9ghd0yRcnbNr6hIXG8huVN3ryfbywQFYgGqNvG+46iQXAz4Wft0VwuCZ8qA9+LDFr6AtfMGXtc2ev0xa9HnkgKjy/iahMWiD1Mk8SnCw1AB6u1yzuQKFjgn+Y4x4GPH0xH0IUL8W75mG8VgNi1IJmV9aN7jrOYOBsDRZXlFUWH24/W9IJ/FOo3OVxPEMXFaeqo+CC6Yqv4DEmvmbh6ZAIq1U+0nyZPW6u24J/R9asc37cwz+79kur7l/blxzcT+plg0Vh3LCkbSYpAVN3QatLjLriXvniZ1Bq5snLWqrNx7uTkiXgORfSmUefFI1FfVVqGsXc/NHelQ74hcY5m32tFflbIoA4V4IWIOi0jmiZe34Sl07dxclBtjsRzvQLNc0z6g8cy2sx3pdw2/iU7QE/gEg7c1YSDil48oBCrAYod61bOHV11yxuTg2edCCLw7391KKYzD9CzsRecnC02gdWyJBAOPOu8d8YJ1LUPI3GODnUwS0I0LZV51rbS8YdICj4SouWfeabzy07YHuGfgu0szQ/CI74bDdEJHexu8N/3dh5hzESjoqNeDBFlW2uoigQCkuvYrpN730kAeBo63/VY+3jMiXsI1mhhO3DTyEcWTBX3B1GgWf90i+71LtozCIatAb7+eqNpIVZea9xo00qoe/+OCcoEucEw=="
+     "epk": "1a51d36435b04fb8c47ae470c2fc46d28c218303ca56e607cee052dd2b873921",
+     "nonce": "f47e37322e3d1e5046262d24",
+     "ct": "gxMPyDtbvNAy2A9IfvQX30cyvurLhFfr+xIIhGFyS0hz2f2rc45TTD+N4H9maejCqDo5oP6et5Alkc9Y6TXaCibTlrDBYQqIGYZsPfEZTa+m2hqHDmGNN1HQ9+7RRRhZRv82onNEEUYcTF0n1MZDXHx+T7OYYoW5sVMKRDdRmbERso+yxk+ybb8V4XOT1+RgklABFvn1z5OfiUoZW9REEnfoxggKt2Br+6+mJJXKd0z0bB/g9qF7VA4Cznp9LbHGJXJ2Di4S5SUHHYuBTf4tpMVqsNEKCAod012sSy95Aovy53qUvbC3Bg7atE7erZmGgWkYKqyT+VxYzYwZs7PCTc+Ecx0vjwUxQWXuSfRAk+ZLR1kN1mewujmQAnwltJXJqIE392l6CH+4TOL6fwJbUlyIDbNRQzfnXultv/0GWTCj2BB8Yr/+07vYR0YciYnTT6H9n5Zwz2ClHwh0gCtYh8EZzqU5mUHRYx34zR3hBqys5162JYLnh1YHEy9GAWcLGAtUTIodOm1CQGDhHv08hDAL8fUNzSRJQMG2XyD/YcbB2Crxgwohmsz9DdZAYun9CcKMEk1KAKZOyrkuEcbiknaTYsj2s+Np1a0DsrSj9CnRiTmVTGccr1M4YLUHvaJLILmxcgLUbBYrI5wLl7zrYKLS900bnrS/QmRcUQSROOIl24c5HKQ87EeGf3NcxhqU8W30KpOhbrgoIVS67zmI98Zta2G7VQ+dqoVLICXvL1Bl5TMtyLa/NI957vKxb/sHCvhc1dpugt5lfUlLAOgu11U8CBNEcwe8ywGbYL6h8yx4O2I56U0p4Q0LylSUJPddGeGdSg9YXTx8C15tVoKOsi0cLCU6bbhZX+ml8scqsRnNyVIE8e14Q1G2AeXY5XXEWELVX+Y3J++Z/Eczwc6gP9S+PF1WyzzKgaktwjd7zBua9A7JAw=="
     },
     "commitment": "5512b8a0735280d244669850e14cf219b9d0864d662a92058a2b8c5da248a746",
     "envelope": {
@@ -4987,9 +8570,9 @@
     "op": "open_plan",
     "sealed": {
      "v": 1,
-     "epk": "4b8b4d147605dade644b68cda7605890073ca4c61b41d9d7ab929cf93ff94840",
-     "nonce": "1b5a028564d5e32e03ec64b7",
-     "ct": "bG0dHTiHfuyZOCuDU1xDbKVuBe1r7zRdE58gc6cNaIKeLVuFJERHBjO9BTOaAMBkNFDZbM281cOzwogxQK3SnoHoCxoobeMXaiJXgbEA1NVZSZm64MupeAHcL4DzJ+TTzZa7e0FYWq9KgTDt6JrkfR5FTBf9I5Kbnr91U464OSE9m6S/CPgh8CT+DWky1ewxDVuSUgoocEE29CDMVdJNOoCWIULMZ5QGMkHeOr4FjbMavTbc+sM0yKzYy0+z3Ik0xpiuZKaQUk6WNcug9ghd0yRcnbNr6hIXG8huVN3ryfbywQFYgGqNvG+46iQXAz4Wft0VwuCZ8qA9+LDFr6AtfMGXtc2ev0xa9HnkgKjy/iahMWiD1Mk8SnCw1AB6u1yzuQKFjgn+Y4x4GPH0xH0IUL8W75mG8VgNi1IJmV9aN7jrOYOBsDRZXlFUWH24/W9IJ/FOo3OVxPEMXFaeqo+CC6Yqv4DEmvmbh6ZAIq1U+0nyZPW6u24J/R9asc37cwz+79kur7l/blxzcT+plg0Vh3LCkbSYpAVN3QatLjLriXvniZ1Bq5snLWqrNx7uTkiXgORfSmUefFI1FfVVqGsXc/NHelQ74hcY5m32tFflbIoA4V4IWIOi0jmiZe34Sl07dxclBtjsRzvQLNc0z6g8cy2sx3pdw2/iU7QE/gEg7c1YSDil48oBCrAYod61bOHV11yxuTg2edCCLw7391KKYzD9CzsRecnC02gdWyJBAOPOu8d8YJ1LUPI3GODnUwS0I0LZV51rbS8YdICj4SouWfeabzy07YHuGfgu0szQ/CI74bDdEJHexu8N/3dh5hzESjoqNeDBFlW2uoigQCkuvYrpN730kAeBo63/VY+3jMiXsI1mhhO3DTyEcWTBX3B1GgWf90i+71LtozCIatAb7+eqNpIVZea9xo00qoe/+OCcoEucEw=="
+     "epk": "1a51d36435b04fb8c47ae470c2fc46d28c218303ca56e607cee052dd2b873921",
+     "nonce": "f47e37322e3d1e5046262d24",
+     "ct": "gxMPyDtbvNAy2A9IfvQX30cyvurLhFfr+xIIhGFyS0hz2f2rc45TTD+N4H9maejCqDo5oP6et5Alkc9Y6TXaCibTlrDBYQqIGYZsPfEZTa+m2hqHDmGNN1HQ9+7RRRhZRv82onNEEUYcTF0n1MZDXHx+T7OYYoW5sVMKRDdRmbERso+yxk+ybb8V4XOT1+RgklABFvn1z5OfiUoZW9REEnfoxggKt2Br+6+mJJXKd0z0bB/g9qF7VA4Cznp9LbHGJXJ2Di4S5SUHHYuBTf4tpMVqsNEKCAod012sSy95Aovy53qUvbC3Bg7atE7erZmGgWkYKqyT+VxYzYwZs7PCTc+Ecx0vjwUxQWXuSfRAk+ZLR1kN1mewujmQAnwltJXJqIE392l6CH+4TOL6fwJbUlyIDbNRQzfnXultv/0GWTCj2BB8Yr/+07vYR0YciYnTT6H9n5Zwz2ClHwh0gCtYh8EZzqU5mUHRYx34zR3hBqys5162JYLnh1YHEy9GAWcLGAtUTIodOm1CQGDhHv08hDAL8fUNzSRJQMG2XyD/YcbB2Crxgwohmsz9DdZAYun9CcKMEk1KAKZOyrkuEcbiknaTYsj2s+Np1a0DsrSj9CnRiTmVTGccr1M4YLUHvaJLILmxcgLUbBYrI5wLl7zrYKLS900bnrS/QmRcUQSROOIl24c5HKQ87EeGf3NcxhqU8W30KpOhbrgoIVS67zmI98Zta2G7VQ+dqoVLICXvL1Bl5TMtyLa/NI957vKxb/sHCvhc1dpugt5lfUlLAOgu11U8CBNEcwe8ywGbYL6h8yx4O2I56U0p4Q0LylSUJPddGeGdSg9YXTx8C15tVoKOsi0cLCU6bbhZX+ml8scqsRnNyVIE8e14Q1G2AeXY5XXEWELVX+Y3J++Z/Eczwc6gP9S+PF1WyzzKgaktwjd7zBua9A7JAw=="
     },
     "commitment": "5512b8a0735280d244669850e14cf219b9d0864d662a92058a2b8c5da248a746",
     "envelope": {
@@ -5040,9 +8623,9 @@
     "op": "open_plan",
     "sealed": {
      "v": 1,
-     "epk": "4b8b4d147605dade644b68cda7605890073ca4c61b41d9d7ab929cf93ff94840",
-     "nonce": "1b5a028564d5e32e03ec64b7",
-     "ct": "bG0dHTiHfuyZOCuDU1xDbKVuBe1r7zRdE58gc6cNaIKeLVuFJERHBjO9BTOaAMBkNFDZbM281cOzwogxQK3SnoHoCxoobeMXaiJXgbEA1NVZSZm64MupeAHcL4DzJ+TTzZa7e0FYWq9KgTDt6JrkfR5FTBf9I5Kbnr91U464OSE9m6S/CPgh8CT+DWky1ewxDVuSUgoocEE29CDMVdJNOoCWIULMZ5QGMkHeOr4FjbMavTbc+sM0yKzYy0+z3Ik0xpiuZKaQUk6WNcug9ghd0yRcnbNr6hIXG8huVN3ryfbywQFYgGqNvG+46iQXAz4Wft0VwuCZ8qA9+LDFr6AtfMGXtc2ev0xa9HnkgKjy/iahMWiD1Mk8SnCw1AB6u1yzuQKFjgn+Y4x4GPH0xH0IUL8W75mG8VgNi1IJmV9aN7jrOYOBsDRZXlFUWH24/W9IJ/FOo3OVxPEMXFaeqo+CC6Yqv4DEmvmbh6ZAIq1U+0nyZPW6u24J/R9asc37cwz+79kur7l/blxzcT+plg0Vh3LCkbSYpAVN3QatLjLriXvniZ1Bq5snLWqrNx7uTkiXgORfSmUefFI1FfVVqGsXc/NHelQ74hcY5m32tFflbIoA4V4IWIOi0jmiZe34Sl07dxclBtjsRzvQLNc0z6g8cy2sx3pdw2/iU7QE/gEg7c1YSDil48oBCrAYod61bOHV11yxuTg2edCCLw7391KKYzD9CzsRecnC02gdWyJBAOPOu8d8YJ1LUPI3GODnUwS0I0LZV51rbS8YdICj4SouWfeabzy07YHuGfgu0szQ/CI74bDdEJHexu8N/3dh5hzESjoqNeDBFlW2uoigQCkuvYrpN730kAeBo63/VY+3jMiXsI1mhhO3DTyEcWTBX3B1GgWf90i+71LtozCIatAb7+eqNpIVZea9xo00qoe/+OCcoEucEw=="
+     "epk": "1a51d36435b04fb8c47ae470c2fc46d28c218303ca56e607cee052dd2b873921",
+     "nonce": "f47e37322e3d1e5046262d24",
+     "ct": "gxMPyDtbvNAy2A9IfvQX30cyvurLhFfr+xIIhGFyS0hz2f2rc45TTD+N4H9maejCqDo5oP6et5Alkc9Y6TXaCibTlrDBYQqIGYZsPfEZTa+m2hqHDmGNN1HQ9+7RRRhZRv82onNEEUYcTF0n1MZDXHx+T7OYYoW5sVMKRDdRmbERso+yxk+ybb8V4XOT1+RgklABFvn1z5OfiUoZW9REEnfoxggKt2Br+6+mJJXKd0z0bB/g9qF7VA4Cznp9LbHGJXJ2Di4S5SUHHYuBTf4tpMVqsNEKCAod012sSy95Aovy53qUvbC3Bg7atE7erZmGgWkYKqyT+VxYzYwZs7PCTc+Ecx0vjwUxQWXuSfRAk+ZLR1kN1mewujmQAnwltJXJqIE392l6CH+4TOL6fwJbUlyIDbNRQzfnXultv/0GWTCj2BB8Yr/+07vYR0YciYnTT6H9n5Zwz2ClHwh0gCtYh8EZzqU5mUHRYx34zR3hBqys5162JYLnh1YHEy9GAWcLGAtUTIodOm1CQGDhHv08hDAL8fUNzSRJQMG2XyD/YcbB2Crxgwohmsz9DdZAYun9CcKMEk1KAKZOyrkuEcbiknaTYsj2s+Np1a0DsrSj9CnRiTmVTGccr1M4YLUHvaJLILmxcgLUbBYrI5wLl7zrYKLS900bnrS/QmRcUQSROOIl24c5HKQ87EeGf3NcxhqU8W30KpOhbrgoIVS67zmI98Zta2G7VQ+dqoVLICXvL1Bl5TMtyLa/NI957vKxb/sHCvhc1dpugt5lfUlLAOgu11U8CBNEcwe8ywGbYL6h8yx4O2I56U0p4Q0LylSUJPddGeGdSg9YXTx8C15tVoKOsi0cLCU6bbhZX+ml8scqsRnNyVIE8e14Q1G2AeXY5XXEWELVX+Y3J++Z/Eczwc6gP9S+PF1WyzzKgaktwjd7zBua9A7JAw=="
     },
     "commitment": "d0a6ef80977ca4eaf5e6ee73f03bce82527c365436a7542cec73b0fc7d16bfbf",
     "envelope": {
@@ -5093,9 +8676,9 @@
     "op": "open_plan",
     "sealed": {
      "v": 1,
-     "epk": "4b8b4d147605dade644b68cda7605890073ca4c61b41d9d7ab929cf93ff94840",
-     "nonce": "1b5a028564d5e32e03ec64b7",
-     "ct": "bG0dHTiHfuyZOCuDU1xDbKVuBe1r7zRdE58gc6cNaIKeLVuFJERHBjO9BTOaAMBkNFDZbM281cOzwogxQK3SnoHoCxoobeMXaiJXgbEA1NVZSZm64MupeAHcL4DzJ+TTzZa7e0FYWq9KgTDt6JrkfR5FTBf9I5Kbnr91U464OSE9m6S/CPgh8CT+DWky1ewxDVuSUgoocEE29CDMVdJNOoCWIULMZ5QGMkHeOr4FjbMavTbc+sM0yKzYy0+z3Ik0xpiuZKaQUk6WNcug9ghd0yRcnbNr6hIXG8huVN3ryfbywQFYgGqNvG+46iQXAz4Wft0VwuCZ8qA9+LDFr6AtfMGXtc2ev0xa9HnkgKjy/iahMWiD1Mk8SnCw1AB6u1yzuQKFjgn+Y4x4GPH0xH0IUL8W75mG8VgNi1IJmV9aN7jrOYOBsDRZXlFUWH24/W9IJ/FOo3OVxPEMXFaeqo+CC6Yqv4DEmvmbh6ZAIq1U+0nyZPW6u24J/R9asc37cwz+79kur7l/blxzcT+plg0Vh3LCkbSYpAVN3QatLjLriXvniZ1Bq5snLWqrNx7uTkiXgORfSmUefFI1FfVVqGsXc/NHelQ74hcY5m32tFflbIoA4V4IWIOi0jmiZe34Sl07dxclBtjsRzvQLNc0z6g8cy2sx3pdw2/iU7QE/gEg7c1YSDil48oBCrAYod61bOHV11yxuTg2edCCLw7391KKYzD9CzsRecnC02gdWyJBAOPOu8d8YJ1LUPI3GODnUwS0I0LZV51rbS8YdICj4SouWfeabzy07YHuGfgu0szQ/CI74bDdEJHexu8N/3dh5hzESjoqNeDBFlW2uoigQCkuvYrpN730kAeBo63/VY+3jMiXsI1mhhO3DTyEcWTBX3B1GgWf90i+71LtozCIatAb7+eqNpIVZea9xo00qoe/+OCcoEucEw=="
+     "epk": "1a51d36435b04fb8c47ae470c2fc46d28c218303ca56e607cee052dd2b873921",
+     "nonce": "f47e37322e3d1e5046262d24",
+     "ct": "gxMPyDtbvNAy2A9IfvQX30cyvurLhFfr+xIIhGFyS0hz2f2rc45TTD+N4H9maejCqDo5oP6et5Alkc9Y6TXaCibTlrDBYQqIGYZsPfEZTa+m2hqHDmGNN1HQ9+7RRRhZRv82onNEEUYcTF0n1MZDXHx+T7OYYoW5sVMKRDdRmbERso+yxk+ybb8V4XOT1+RgklABFvn1z5OfiUoZW9REEnfoxggKt2Br+6+mJJXKd0z0bB/g9qF7VA4Cznp9LbHGJXJ2Di4S5SUHHYuBTf4tpMVqsNEKCAod012sSy95Aovy53qUvbC3Bg7atE7erZmGgWkYKqyT+VxYzYwZs7PCTc+Ecx0vjwUxQWXuSfRAk+ZLR1kN1mewujmQAnwltJXJqIE392l6CH+4TOL6fwJbUlyIDbNRQzfnXultv/0GWTCj2BB8Yr/+07vYR0YciYnTT6H9n5Zwz2ClHwh0gCtYh8EZzqU5mUHRYx34zR3hBqys5162JYLnh1YHEy9GAWcLGAtUTIodOm1CQGDhHv08hDAL8fUNzSRJQMG2XyD/YcbB2Crxgwohmsz9DdZAYun9CcKMEk1KAKZOyrkuEcbiknaTYsj2s+Np1a0DsrSj9CnRiTmVTGccr1M4YLUHvaJLILmxcgLUbBYrI5wLl7zrYKLS900bnrS/QmRcUQSROOIl24c5HKQ87EeGf3NcxhqU8W30KpOhbrgoIVS67zmI98Zta2G7VQ+dqoVLICXvL1Bl5TMtyLa/NI957vKxb/sHCvhc1dpugt5lfUlLAOgu11U8CBNEcwe8ywGbYL6h8yx4O2I56U0p4Q0LylSUJPddGeGdSg9YXTx8C15tVoKOsi0cLCU6bbhZX+ml8scqsRnNyVIE8e14Q1G2AeXY5XXEWELVX+Y3J++Z/Eczwc6gP9S+PF1WyzzKgaktwjd7zBua9A7JAw=="
     },
     "commitment": "",
     "envelope": {
@@ -5121,9 +8704,9 @@
     "op": "open_plan",
     "sealed": {
      "v": 1,
-     "epk": "fff1b4f065af2de95a8276431f6ddf329cdb17a3aa2f5df51a6e85bb1c53196b",
-     "nonce": "32383b7d8e2d2e3b8454d013",
-     "ct": "eoWOfwQVRMMxq1r54FtwZkuRMnaKyK4AVxp8SK6ZiZCuEQW/YW51mAXNhWZYrsVD60PVvv6IkA1lVfxZu+nzhsGS7qkmux/J1PJKcl5jioHP1rq2NAzK/jXWl95h3H2CExI43E4b4tnlVAqja4qEZj5GZ/XzCBM5JtZNz6ywClFIpXVu7UlfyvNvvXSqO2bremz6IF7U/xHGjWAZfHYbjb+LJe/HADMmz6frFpSCMMZB+ATfTwke0LMWH9K0Oms3iq/QO+h48SgDECLeyh9wl8GBJCPp29WWo1a7FrwvEyGUdjhZdDNspA6mMxDHWgP9AARQx96aRBtI7VP2ugQmdnn+njRXQZEQoRxowUAL1y6x5/29ynSD2I4d7BXA3yOf+dmMEzWdNF72UDFs3lUlLvkk4fdQazWwn+zEpjmGytLWa5cNI8JxG4gzrkSn/J46uxrd2aqatwbBn/5yUdcCSArLqG4+wVXsSLI8xyLulVfo2NK6a6FtjEZ5uGDfKXPU1oiiFh0nfRkKwtC5JPmtDI7evRuE9ZfLkiTbqrExG/nzwVUYUqcfegGnnyIDbjq24mXfbQJzw5qeeXapbyOsjsnRlHJgVbDcklZAflJusq3I6TP5lFP4Ob5VUcQSxKYw3i38cXuTr7ZVNfsmkluXS8CapC0ch5gO69zvynWgiTXZkaV9nrg/v7tBoqEVUJj5ldp3GT4KNpzD2eRg83yFq+/Pi3GMK3lvd48/UC9Jj3I0FpP12LE8LMRANO6ioKiuFkEuxcmz628+Ub1Bqxc6/1BAgiedMry1chDW6o1dkWcm8eAeLyLkh+vXfDlwK1EDnkpNW3eweFSSDytjfONPQkIIJ+d4Cl8G6AkvVWZgMTLXeJtpm+0tel4nPn9bxlHwRPmwr8cvHqhjkiOtUEUuZ8rMWsdAK8iZF7oKuE7FEPKueQEQ5515Hh0p5eReAqFyDXw53DLg6wapRLy3m8uDsyJdi34KbFZYWeFJ9951mgMkCZXSp12GsVTisSR7xK2igoKgrD2CLt7azw8A+vhXT96ZBOpUm96G+XtRpfSAiFmRWLNXd1CGSA=="
+     "epk": "11d2eb1cfbbc9f1ee080b86172bb2e650c2b8e21d4a2bf73f312ddf897b64f0e",
+     "nonce": "d11dc415074a02f999492655",
+     "ct": "oTcVg8ZD4KwGRwUROifvRWFVrMoVtoaXY9j69/2OauZIF4Bobps4S+FwPCH+B3zRbbqc0hDacCRahf+BZcNsX1IzwH9rTx+YNm44TYF8sTgRnRwfpPehoEjLIAlO138KZVDFqfooX96Tvw6MfqbHqXlyeDMpT0nGA2uqMMQDue9hpBBL0E3/BeJO4Agi6GFSTXkQz2I9L1ea4zPSwtHpvY7k+ij6l/tteXaEFPfzTIwGUdPzR60M4f4L3TairwSol4rsSRaoBqwWrA2g3pm31TwMVFV2Y6BJqEoxY2YseamjK+IRAqeq3x/51uV/zCnBjGxjKQcw4UCRROWaCEBEOyZTdJle7OBDnsrv0+OdIAIjS0LOOhQ9PESSboCezwOgYH9tMrT+80bPfN+aCX1P3vSOQCpEFS1povQ/P7T6M3koRbzxnoYdhArqFI6w/itqV2R547ufpJxRkOs9/2vRXgdrUkt9AcVmbA75SZ+Gtq//awL464j8W0eKP15kEziEXf12Tdk6VI4AfjmpQWRTUh269PTP3WmYWatsKU9rpI8XDi4TXOATmAUkq79wxp7QYGiRS0HuDQhfATykfIj1eu08SNyCBWQxOnwhY6lMbMMPAwpAQFMELdD0vxeMpH/S+fDHyDKlsem+pfdMF+j5K8dknngnnouB4iVXVP4lvTArVCd7li1TdB9ANakMUf7IRcGh9rIlfSOLArZ0V0ncxIEo59Vk7MwaCI1DTSuNXwhGQAJDc9rF/05259RirLtv6N9rWoDox4zyByt2n1z2LthwGLOZrCrv3ENSm+VvWN6gRo6aPnnn0fNJYL0/ud3duPge7DQLu3G7nnH0tq+/wCp7gId8AhyEGsfDbKkk/vr+tVkqIIYoLTMF/H9VdxlNjvwioOV/ImOFwqaOdE/Nf3ereaKFnIzoDMHNenmM/Lw24IcIW6T8H/t0YNYeGwAjk2YSNJT8jihD8V0D38FPBFy6LtkssykuxQKs8FoeEcHEWKq6Oo6mqrzb35ZSeN7cbUtzky6ycbAehJ8/sn6gHr2q/DkfHrmh4EWp9H19b3196/AnFHYrPg=="
     },
     "commitment": "5b4390360edd58739e7dafd2d5a2ca7137b81333d3c4fc79ef48a423fccb3e5b",
     "envelope": {
@@ -5174,9 +8757,9 @@
     "op": "open_plan",
     "sealed": {
      "v": 1,
-     "epk": "fff1b4f065af2de95a8276431f6ddf329cdb17a3aa2f5df51a6e85bb1c53196b",
-     "nonce": "32383b7d8e2d2e3b8454d013",
-     "ct": "eoWOfwQVRMMxq1r54FtwZkuRMnaKyK4AVxp8SK6ZiZCuEQW/YW51mAXNhWZYrsVD60PVvv6IkA1lVfxZu+nzhsGS7qkmux/J1PJKcl5jioHP1rq2NAzK/jXWl95h3H2CExI43E4b4tnlVAqja4qEZj5GZ/XzCBM5JtZNz6ywClFIpXVu7UlfyvNvvXSqO2bremz6IF7U/xHGjWAZfHYbjb+LJe/HADMmz6frFpSCMMZB+ATfTwke0LMWH9K0Oms3iq/QO+h48SgDECLeyh9wl8GBJCPp29WWo1a7FrwvEyGUdjhZdDNspA6mMxDHWgP9AARQx96aRBtI7VP2ugQmdnn+njRXQZEQoRxowUAL1y6x5/29ynSD2I4d7BXA3yOf+dmMEzWdNF72UDFs3lUlLvkk4fdQazWwn+zEpjmGytLWa5cNI8JxG4gzrkSn/J46uxrd2aqatwbBn/5yUdcCSArLqG4+wVXsSLI8xyLulVfo2NK6a6FtjEZ5uGDfKXPU1oiiFh0nfRkKwtC5JPmtDI7evRuE9ZfLkiTbqrExG/nzwVUYUqcfegGnnyIDbjq24mXfbQJzw5qeeXapbyOsjsnRlHJgVbDcklZAflJusq3I6TP5lFP4Ob5VUcQSxKYw3i38cXuTr7ZVNfsmkluXS8CapC0ch5gO69zvynWgiTXZkaV9nrg/v7tBoqEVUJj5ldp3GT4KNpzD2eRg83yFq+/Pi3GMK3lvd48/UC9Jj3I0FpP12LE8LMRANO6ioKiuFkEuxcmz628+Ub1Bqxc6/1BAgiedMry1chDW6o1dkWcm8eAeLyLkh+vXfDlwK1EDnkpNW3eweFSSDytjfONPQkIIJ+d4Cl8G6AkvVWZgMTLXeJtpm+0tel4nPn9bxlHwRPmwr8cvHqhjkiOtUEUuZ8rMWsdAK8iZF7oKuE7FEPKueQEQ5515Hh0p5eReAqFyDXw53DLg6wapRLy3m8uDsyJdi34KbFZYWeFJ9951mgMkCZXSp12GsVTisSR7xK2igoKgrD2CLt7azw8A+vhXT96ZBOpUm96G+XtRpfSAiFmRWLNXd1CGSA=="
+     "epk": "11d2eb1cfbbc9f1ee080b86172bb2e650c2b8e21d4a2bf73f312ddf897b64f0e",
+     "nonce": "d11dc415074a02f999492655",
+     "ct": "oTcVg8ZD4KwGRwUROifvRWFVrMoVtoaXY9j69/2OauZIF4Bobps4S+FwPCH+B3zRbbqc0hDacCRahf+BZcNsX1IzwH9rTx+YNm44TYF8sTgRnRwfpPehoEjLIAlO138KZVDFqfooX96Tvw6MfqbHqXlyeDMpT0nGA2uqMMQDue9hpBBL0E3/BeJO4Agi6GFSTXkQz2I9L1ea4zPSwtHpvY7k+ij6l/tteXaEFPfzTIwGUdPzR60M4f4L3TairwSol4rsSRaoBqwWrA2g3pm31TwMVFV2Y6BJqEoxY2YseamjK+IRAqeq3x/51uV/zCnBjGxjKQcw4UCRROWaCEBEOyZTdJle7OBDnsrv0+OdIAIjS0LOOhQ9PESSboCezwOgYH9tMrT+80bPfN+aCX1P3vSOQCpEFS1povQ/P7T6M3koRbzxnoYdhArqFI6w/itqV2R547ufpJxRkOs9/2vRXgdrUkt9AcVmbA75SZ+Gtq//awL464j8W0eKP15kEziEXf12Tdk6VI4AfjmpQWRTUh269PTP3WmYWatsKU9rpI8XDi4TXOATmAUkq79wxp7QYGiRS0HuDQhfATykfIj1eu08SNyCBWQxOnwhY6lMbMMPAwpAQFMELdD0vxeMpH/S+fDHyDKlsem+pfdMF+j5K8dknngnnouB4iVXVP4lvTArVCd7li1TdB9ANakMUf7IRcGh9rIlfSOLArZ0V0ncxIEo59Vk7MwaCI1DTSuNXwhGQAJDc9rF/05259RirLtv6N9rWoDox4zyByt2n1z2LthwGLOZrCrv3ENSm+VvWN6gRo6aPnnn0fNJYL0/ud3duPge7DQLu3G7nnH0tq+/wCp7gId8AhyEGsfDbKkk/vr+tVkqIIYoLTMF/H9VdxlNjvwioOV/ImOFwqaOdE/Nf3ereaKFnIzoDMHNenmM/Lw24IcIW6T8H/t0YNYeGwAjk2YSNJT8jihD8V0D38FPBFy6LtkssykuxQKs8FoeEcHEWKq6Oo6mqrzb35ZSeN7cbUtzky6ycbAehJ8/sn6gHr2q/DkfHrmh4EWp9H19b3196/AnFHYrPg=="
     },
     "commitment": "5b4390360edd58739e7dafd2d5a2ca7137b81333d3c4fc79ef48a423fccb3e5b",
     "envelope": {
@@ -5227,9 +8810,9 @@
     "op": "open_plan",
     "sealed": {
      "v": 1,
-     "epk": "fff1b4f065af2de95a8276431f6ddf329cdb17a3aa2f5df51a6e85bb1c53196b",
-     "nonce": "32383b7d8e2d2e3b8454d013",
-     "ct": "eoWOfwQVRMMxq1r54FtwZkuRMnaKyK4AVxp8SK6ZiZCuEQW/YW51mAXNhWZYrsVD60PVvv6IkA1lVfxZu+nzhsGS7qkmux/J1PJKcl5jioHP1rq2NAzK/jXWl95h3H2CExI43E4b4tnlVAqja4qEZj5GZ/XzCBM5JtZNz6ywClFIpXVu7UlfyvNvvXSqO2bremz6IF7U/xHGjWAZfHYbjb+LJe/HADMmz6frFpSCMMZB+ATfTwke0LMWH9K0Oms3iq/QO+h48SgDECLeyh9wl8GBJCPp29WWo1a7FrwvEyGUdjhZdDNspA6mMxDHWgP9AARQx96aRBtI7VP2ugQmdnn+njRXQZEQoRxowUAL1y6x5/29ynSD2I4d7BXA3yOf+dmMEzWdNF72UDFs3lUlLvkk4fdQazWwn+zEpjmGytLWa5cNI8JxG4gzrkSn/J46uxrd2aqatwbBn/5yUdcCSArLqG4+wVXsSLI8xyLulVfo2NK6a6FtjEZ5uGDfKXPU1oiiFh0nfRkKwtC5JPmtDI7evRuE9ZfLkiTbqrExG/nzwVUYUqcfegGnnyIDbjq24mXfbQJzw5qeeXapbyOsjsnRlHJgVbDcklZAflJusq3I6TP5lFP4Ob5VUcQSxKYw3i38cXuTr7ZVNfsmkluXS8CapC0ch5gO69zvynWgiTXZkaV9nrg/v7tBoqEVUJj5ldp3GT4KNpzD2eRg83yFq+/Pi3GMK3lvd48/UC9Jj3I0FpP12LE8LMRANO6ioKiuFkEuxcmz628+Ub1Bqxc6/1BAgiedMry1chDW6o1dkWcm8eAeLyLkh+vXfDlwK1EDnkpNW3eweFSSDytjfONPQkIIJ+d4Cl8G6AkvVWZgMTLXeJtpm+0tel4nPn9bxlHwRPmwr8cvHqhjkiOtUEUuZ8rMWsdAK8iZF7oKuE7FEPKueQEQ5515Hh0p5eReAqFyDXw53DLg6wapRLy3m8uDsyJdi34KbFZYWeFJ9951mgMkCZXSp12GsVTisSR7xK2igoKgrD2CLt7azw8A+vhXT96ZBOpUm96G+XtRpfSAiFmRWLNXd1CGSA=="
+     "epk": "11d2eb1cfbbc9f1ee080b86172bb2e650c2b8e21d4a2bf73f312ddf897b64f0e",
+     "nonce": "d11dc415074a02f999492655",
+     "ct": "oTcVg8ZD4KwGRwUROifvRWFVrMoVtoaXY9j69/2OauZIF4Bobps4S+FwPCH+B3zRbbqc0hDacCRahf+BZcNsX1IzwH9rTx+YNm44TYF8sTgRnRwfpPehoEjLIAlO138KZVDFqfooX96Tvw6MfqbHqXlyeDMpT0nGA2uqMMQDue9hpBBL0E3/BeJO4Agi6GFSTXkQz2I9L1ea4zPSwtHpvY7k+ij6l/tteXaEFPfzTIwGUdPzR60M4f4L3TairwSol4rsSRaoBqwWrA2g3pm31TwMVFV2Y6BJqEoxY2YseamjK+IRAqeq3x/51uV/zCnBjGxjKQcw4UCRROWaCEBEOyZTdJle7OBDnsrv0+OdIAIjS0LOOhQ9PESSboCezwOgYH9tMrT+80bPfN+aCX1P3vSOQCpEFS1povQ/P7T6M3koRbzxnoYdhArqFI6w/itqV2R547ufpJxRkOs9/2vRXgdrUkt9AcVmbA75SZ+Gtq//awL464j8W0eKP15kEziEXf12Tdk6VI4AfjmpQWRTUh269PTP3WmYWatsKU9rpI8XDi4TXOATmAUkq79wxp7QYGiRS0HuDQhfATykfIj1eu08SNyCBWQxOnwhY6lMbMMPAwpAQFMELdD0vxeMpH/S+fDHyDKlsem+pfdMF+j5K8dknngnnouB4iVXVP4lvTArVCd7li1TdB9ANakMUf7IRcGh9rIlfSOLArZ0V0ncxIEo59Vk7MwaCI1DTSuNXwhGQAJDc9rF/05259RirLtv6N9rWoDox4zyByt2n1z2LthwGLOZrCrv3ENSm+VvWN6gRo6aPnnn0fNJYL0/ud3duPge7DQLu3G7nnH0tq+/wCp7gId8AhyEGsfDbKkk/vr+tVkqIIYoLTMF/H9VdxlNjvwioOV/ImOFwqaOdE/Nf3ereaKFnIzoDMHNenmM/Lw24IcIW6T8H/t0YNYeGwAjk2YSNJT8jihD8V0D38FPBFy6LtkssykuxQKs8FoeEcHEWKq6Oo6mqrzb35ZSeN7cbUtzky6ycbAehJ8/sn6gHr2q/DkfHrmh4EWp9H19b3196/AnFHYrPg=="
     },
     "commitment": "a1800b78b7f36d0429cee61941dc954545ce3147f04f7e1b931bd7f1384ae9dc",
     "envelope": {
@@ -5280,9 +8863,9 @@
     "op": "open_plan",
     "sealed": {
      "v": 1,
-     "epk": "fff1b4f065af2de95a8276431f6ddf329cdb17a3aa2f5df51a6e85bb1c53196b",
-     "nonce": "32383b7d8e2d2e3b8454d013",
-     "ct": "eoWOfwQVRMMxq1r54FtwZkuRMnaKyK4AVxp8SK6ZiZCuEQW/YW51mAXNhWZYrsVD60PVvv6IkA1lVfxZu+nzhsGS7qkmux/J1PJKcl5jioHP1rq2NAzK/jXWl95h3H2CExI43E4b4tnlVAqja4qEZj5GZ/XzCBM5JtZNz6ywClFIpXVu7UlfyvNvvXSqO2bremz6IF7U/xHGjWAZfHYbjb+LJe/HADMmz6frFpSCMMZB+ATfTwke0LMWH9K0Oms3iq/QO+h48SgDECLeyh9wl8GBJCPp29WWo1a7FrwvEyGUdjhZdDNspA6mMxDHWgP9AARQx96aRBtI7VP2ugQmdnn+njRXQZEQoRxowUAL1y6x5/29ynSD2I4d7BXA3yOf+dmMEzWdNF72UDFs3lUlLvkk4fdQazWwn+zEpjmGytLWa5cNI8JxG4gzrkSn/J46uxrd2aqatwbBn/5yUdcCSArLqG4+wVXsSLI8xyLulVfo2NK6a6FtjEZ5uGDfKXPU1oiiFh0nfRkKwtC5JPmtDI7evRuE9ZfLkiTbqrExG/nzwVUYUqcfegGnnyIDbjq24mXfbQJzw5qeeXapbyOsjsnRlHJgVbDcklZAflJusq3I6TP5lFP4Ob5VUcQSxKYw3i38cXuTr7ZVNfsmkluXS8CapC0ch5gO69zvynWgiTXZkaV9nrg/v7tBoqEVUJj5ldp3GT4KNpzD2eRg83yFq+/Pi3GMK3lvd48/UC9Jj3I0FpP12LE8LMRANO6ioKiuFkEuxcmz628+Ub1Bqxc6/1BAgiedMry1chDW6o1dkWcm8eAeLyLkh+vXfDlwK1EDnkpNW3eweFSSDytjfONPQkIIJ+d4Cl8G6AkvVWZgMTLXeJtpm+0tel4nPn9bxlHwRPmwr8cvHqhjkiOtUEUuZ8rMWsdAK8iZF7oKuE7FEPKueQEQ5515Hh0p5eReAqFyDXw53DLg6wapRLy3m8uDsyJdi34KbFZYWeFJ9951mgMkCZXSp12GsVTisSR7xK2igoKgrD2CLt7azw8A+vhXT96ZBOpUm96G+XtRpfSAiFmRWLNXd1CGSA=="
+     "epk": "11d2eb1cfbbc9f1ee080b86172bb2e650c2b8e21d4a2bf73f312ddf897b64f0e",
+     "nonce": "d11dc415074a02f999492655",
+     "ct": "oTcVg8ZD4KwGRwUROifvRWFVrMoVtoaXY9j69/2OauZIF4Bobps4S+FwPCH+B3zRbbqc0hDacCRahf+BZcNsX1IzwH9rTx+YNm44TYF8sTgRnRwfpPehoEjLIAlO138KZVDFqfooX96Tvw6MfqbHqXlyeDMpT0nGA2uqMMQDue9hpBBL0E3/BeJO4Agi6GFSTXkQz2I9L1ea4zPSwtHpvY7k+ij6l/tteXaEFPfzTIwGUdPzR60M4f4L3TairwSol4rsSRaoBqwWrA2g3pm31TwMVFV2Y6BJqEoxY2YseamjK+IRAqeq3x/51uV/zCnBjGxjKQcw4UCRROWaCEBEOyZTdJle7OBDnsrv0+OdIAIjS0LOOhQ9PESSboCezwOgYH9tMrT+80bPfN+aCX1P3vSOQCpEFS1povQ/P7T6M3koRbzxnoYdhArqFI6w/itqV2R547ufpJxRkOs9/2vRXgdrUkt9AcVmbA75SZ+Gtq//awL464j8W0eKP15kEziEXf12Tdk6VI4AfjmpQWRTUh269PTP3WmYWatsKU9rpI8XDi4TXOATmAUkq79wxp7QYGiRS0HuDQhfATykfIj1eu08SNyCBWQxOnwhY6lMbMMPAwpAQFMELdD0vxeMpH/S+fDHyDKlsem+pfdMF+j5K8dknngnnouB4iVXVP4lvTArVCd7li1TdB9ANakMUf7IRcGh9rIlfSOLArZ0V0ncxIEo59Vk7MwaCI1DTSuNXwhGQAJDc9rF/05259RirLtv6N9rWoDox4zyByt2n1z2LthwGLOZrCrv3ENSm+VvWN6gRo6aPnnn0fNJYL0/ud3duPge7DQLu3G7nnH0tq+/wCp7gId8AhyEGsfDbKkk/vr+tVkqIIYoLTMF/H9VdxlNjvwioOV/ImOFwqaOdE/Nf3ereaKFnIzoDMHNenmM/Lw24IcIW6T8H/t0YNYeGwAjk2YSNJT8jihD8V0D38FPBFy6LtkssykuxQKs8FoeEcHEWKq6Oo6mqrzb35ZSeN7cbUtzky6ycbAehJ8/sn6gHr2q/DkfHrmh4EWp9H19b3196/AnFHYrPg=="
     },
     "commitment": "",
     "envelope": {
@@ -6374,6 +9957,2283 @@
     "ok": true,
     "result": {
      "valid": false
+    }
+   }
+  },
+  {
+   "name": "trust_check_mandate valid (production build)",
+   "build": "production",
+   "input": {
+    "op": "trust_check_mandate",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    }
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "problems": [],
+     "checks": [
+      {
+       "rule": "No target is on the public exclusion list",
+       "ok": true
+      },
+      {
+       "rule": "The largest trade fits the turnover cap",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  {
+   "name": "trust_check_mandate weights not 100% (production build)",
+   "build": "production",
+   "input": {
+    "op": "trust_check_mandate",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 3000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    }
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "problems": [
+      "Target weights must add up to 100%"
+     ],
+     "checks": [
+      {
+       "rule": "No target is on the public exclusion list",
+       "ok": true
+      },
+      {
+       "rule": "The largest trade fits the turnover cap",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  {
+   "name": "trust_check_mandate repeated asset (production build)",
+   "build": "production",
+   "input": {
+    "op": "trust_check_mandate",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    }
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "problems": [
+      "An asset appears twice"
+     ],
+     "checks": [
+      {
+       "rule": "No target is on the public exclusion list",
+       "ok": true
+      },
+      {
+       "rule": "The largest trade fits the turnover cap",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  {
+   "name": "trust_check_mandate target outside the universe (production build)",
+   "build": "production",
+   "input": {
+    "op": "trust_check_mandate",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    }
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "problems": [
+      "Every target must be in the allowed universe"
+     ],
+     "checks": [
+      {
+       "rule": "No target is on the public exclusion list",
+       "ok": true
+      },
+      {
+       "rule": "The largest trade fits the turnover cap",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  {
+   "name": "trust_check_mandate target in an excluded sector (production build)",
+   "build": "production",
+   "input": {
+    "op": "trust_check_mandate",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy",
+      "bonds"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    }
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "problems": [
+      "A target is in an excluded sector"
+     ],
+     "checks": [
+      {
+       "rule": "No target is on the public exclusion list",
+       "ok": true
+      },
+      {
+       "rule": "The largest trade fits the turnover cap",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  {
+   "name": "trust_check_mandate smallest above largest (production build)",
+   "build": "production",
+   "input": {
+    "op": "trust_check_mandate",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500.5",
+     "min_trade_usd": "600",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    }
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "problems": [
+      "The smallest trade cannot be larger than the largest"
+     ],
+     "checks": [
+      {
+       "rule": "No target is on the public exclusion list",
+       "ok": true
+      },
+      {
+       "rule": "The largest trade fits the turnover cap",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  {
+   "name": "trust_check_mandate largest is zero (production build)",
+   "build": "production",
+   "input": {
+    "op": "trust_check_mandate",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "0.000000",
+     "min_trade_usd": "0",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    }
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "problems": [
+      "The largest trade must be above zero"
+     ],
+     "checks": [
+      {
+       "rule": "No target is on the public exclusion list",
+       "ok": true
+      },
+      {
+       "rule": "The largest trade fits the turnover cap",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  {
+   "name": "trust_check_mandate target publicly excluded (production build)",
+   "build": "production",
+   "input": {
+    "op": "trust_check_mandate",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near",
+      "nep141:bond.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    }
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "problems": [],
+     "checks": [
+      {
+       "rule": "No target is on the public exclusion list",
+       "ok": false
+      },
+      {
+       "rule": "The largest trade fits the turnover cap",
+       "ok": true
+      }
+     ]
+    }
+   }
+  },
+  {
+   "name": "trust_check_mandate largest trade above the cap (production build)",
+   "build": "production",
+   "input": {
+    "op": "trust_check_mandate",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "1000.000001",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    }
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "problems": [],
+     "checks": [
+      {
+       "rule": "No target is on the public exclusion list",
+       "ok": true
+      },
+      {
+       "rule": "The largest trade fits the turnover cap",
+       "ok": false
+      }
+     ]
+    }
+   }
+  },
+  {
+   "name": "trust_rebalance all in the index: capped by the largest trade (production build)",
+   "build": "production",
+   "input": {
+    "op": "trust_rebalance",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    },
+    "counters": {
+     "start_ms": 1799136000000,
+     "period_index": 10,
+     "turnover_in_period_usd_e6": "0",
+     "last_trade_ms": null
+    },
+    "holdings": [
+     {
+      "asset": "nep141:idx.near",
+      "amount": "1000000000000000000000",
+      "decimals": 18
+     }
+    ],
+    "prices": [
+     {
+      "asset": "nep141:idx.near",
+      "price_usd_e6": "2000000"
+     },
+     {
+      "asset": "nep141:bond.near",
+      "price_usd_e6": "1000000"
+     },
+     {
+      "asset": "nep141:gold.near",
+      "price_usd_e6": "2500123456"
+     },
+     {
+      "asset": "nep141:oil.near",
+      "price_usd_e6": "75500000"
+     }
+    ],
+    "now_ms": 1800000000000
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "trade",
+     "origin": "nep141:idx.near",
+     "destination": "nep141:bond.near",
+     "amount": "250000000000000000000",
+     "usd_e6": "500000000"
+    }
+   }
+  },
+  {
+   "name": "trust_rebalance on target (production build)",
+   "build": "production",
+   "input": {
+    "op": "trust_rebalance",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    },
+    "counters": {
+     "start_ms": 1799136000000,
+     "period_index": 10,
+     "turnover_in_period_usd_e6": "0",
+     "last_trade_ms": null
+    },
+    "holdings": [
+     {
+      "asset": "nep141:idx.near",
+      "amount": "600000000000000000000",
+      "decimals": 18
+     },
+     {
+      "asset": "nep141:bond.near",
+      "amount": "800000000000000000000",
+      "decimals": 18
+     }
+    ],
+    "prices": [
+     {
+      "asset": "nep141:idx.near",
+      "price_usd_e6": "2000000"
+     },
+     {
+      "asset": "nep141:bond.near",
+      "price_usd_e6": "1000000"
+     },
+     {
+      "asset": "nep141:gold.near",
+      "price_usd_e6": "2500123456"
+     },
+     {
+      "asset": "nep141:oil.near",
+      "price_usd_e6": "75500000"
+     }
+    ],
+    "now_ms": 1800000000000
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "hold",
+     "reason": "within_bands"
+    }
+   }
+  },
+  {
+   "name": "trust_rebalance drift inside the band (production build)",
+   "build": "production",
+   "input": {
+    "op": "trust_rebalance",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    },
+    "counters": {
+     "start_ms": 1799136000000,
+     "period_index": 10,
+     "turnover_in_period_usd_e6": "0",
+     "last_trade_ms": null
+    },
+    "holdings": [
+     {
+      "asset": "nep141:idx.near",
+      "amount": "620000000000000000000",
+      "decimals": 18
+     },
+     {
+      "asset": "nep141:bond.near",
+      "amount": "760000000000000000000",
+      "decimals": 18
+     }
+    ],
+    "prices": [
+     {
+      "asset": "nep141:idx.near",
+      "price_usd_e6": "2000000"
+     },
+     {
+      "asset": "nep141:bond.near",
+      "price_usd_e6": "1000000"
+     },
+     {
+      "asset": "nep141:gold.near",
+      "price_usd_e6": "2500123456"
+     },
+     {
+      "asset": "nep141:oil.near",
+      "price_usd_e6": "75500000"
+     }
+    ],
+    "now_ms": 1800000000000
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "hold",
+     "reason": "within_bands"
+    }
+   }
+  },
+  {
+   "name": "trust_rebalance drift beyond the band (production build)",
+   "build": "production",
+   "input": {
+    "op": "trust_rebalance",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    },
+    "counters": {
+     "start_ms": 1799136000000,
+     "period_index": 10,
+     "turnover_in_period_usd_e6": "0",
+     "last_trade_ms": null
+    },
+    "holdings": [
+     {
+      "asset": "nep141:idx.near",
+      "amount": "700000000000000000000",
+      "decimals": 18
+     },
+     {
+      "asset": "nep141:bond.near",
+      "amount": "600000000000000000000",
+      "decimals": 18
+     }
+    ],
+    "prices": [
+     {
+      "asset": "nep141:idx.near",
+      "price_usd_e6": "2000000"
+     },
+     {
+      "asset": "nep141:bond.near",
+      "price_usd_e6": "1000000"
+     },
+     {
+      "asset": "nep141:gold.near",
+      "price_usd_e6": "2500123456"
+     },
+     {
+      "asset": "nep141:oil.near",
+      "price_usd_e6": "75500000"
+     }
+    ],
+    "now_ms": 1800000000000
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "trade",
+     "origin": "nep141:idx.near",
+     "destination": "nep141:bond.near",
+     "amount": "100000000000000000000",
+     "usd_e6": "200000000"
+    }
+   }
+  },
+  {
+   "name": "trust_rebalance an excluded holding is sold whatever the band (production build)",
+   "build": "production",
+   "input": {
+    "op": "trust_rebalance",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    },
+    "counters": {
+     "start_ms": 1799136000000,
+     "period_index": 10,
+     "turnover_in_period_usd_e6": "0",
+     "last_trade_ms": null
+    },
+    "holdings": [
+     {
+      "asset": "nep141:idx.near",
+      "amount": "600000000000000000000",
+      "decimals": 18
+     },
+     {
+      "asset": "nep141:bond.near",
+      "amount": "800000000000000000000",
+      "decimals": 18
+     },
+     {
+      "asset": "nep141:oil.near",
+      "amount": "1000000000000000000",
+      "decimals": 18
+     }
+    ],
+    "prices": [
+     {
+      "asset": "nep141:idx.near",
+      "price_usd_e6": "2000000"
+     },
+     {
+      "asset": "nep141:bond.near",
+      "price_usd_e6": "1000000"
+     },
+     {
+      "asset": "nep141:gold.near",
+      "price_usd_e6": "2500123456"
+     },
+     {
+      "asset": "nep141:oil.near",
+      "price_usd_e6": "75500000"
+     }
+    ],
+    "now_ms": 1800000000000
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "trade",
+     "origin": "nep141:oil.near",
+     "destination": "nep141:idx.near",
+     "amount": "600000000000000000",
+     "usd_e6": "45300000"
+    }
+   }
+  },
+  {
+   "name": "trust_rebalance a holding outside the targets is sold (production build)",
+   "build": "production",
+   "input": {
+    "op": "trust_rebalance",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    },
+    "counters": {
+     "start_ms": 1799136000000,
+     "period_index": 10,
+     "turnover_in_period_usd_e6": "0",
+     "last_trade_ms": null
+    },
+    "holdings": [
+     {
+      "asset": "nep141:idx.near",
+      "amount": "600000000000000000000",
+      "decimals": 18
+     },
+     {
+      "asset": "nep141:bond.near",
+      "amount": "800000000000000000000",
+      "decimals": 18
+     },
+     {
+      "asset": "nep141:gold.near",
+      "amount": "100000000",
+      "decimals": 8
+     }
+    ],
+    "prices": [
+     {
+      "asset": "nep141:idx.near",
+      "price_usd_e6": "2000000"
+     },
+     {
+      "asset": "nep141:bond.near",
+      "price_usd_e6": "1000000"
+     },
+     {
+      "asset": "nep141:gold.near",
+      "price_usd_e6": "2500123456"
+     },
+     {
+      "asset": "nep141:oil.near",
+      "price_usd_e6": "75500000"
+     }
+    ],
+    "now_ms": 1800000000000
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "trade",
+     "origin": "nep141:gold.near",
+     "destination": "nep141:idx.near",
+     "amount": "19999012",
+     "usd_e6": "500000000"
+    }
+   }
+  },
+  {
+   "name": "trust_rebalance minimum gap since the last trade (production build)",
+   "build": "production",
+   "input": {
+    "op": "trust_rebalance",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    },
+    "counters": {
+     "start_ms": 1799136000000,
+     "period_index": 10,
+     "turnover_in_period_usd_e6": "0",
+     "last_trade_ms": 1799999940000
+    },
+    "holdings": [
+     {
+      "asset": "nep141:idx.near",
+      "amount": "1000000000000000000000",
+      "decimals": 18
+     }
+    ],
+    "prices": [
+     {
+      "asset": "nep141:idx.near",
+      "price_usd_e6": "2000000"
+     },
+     {
+      "asset": "nep141:bond.near",
+      "price_usd_e6": "1000000"
+     },
+     {
+      "asset": "nep141:gold.near",
+      "price_usd_e6": "2500123456"
+     },
+     {
+      "asset": "nep141:oil.near",
+      "price_usd_e6": "75500000"
+     }
+    ],
+    "now_ms": 1800000000000
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "hold",
+     "reason": "min_gap"
+    }
+   }
+  },
+  {
+   "name": "trust_rebalance turnover cap used this period (production build)",
+   "build": "production",
+   "input": {
+    "op": "trust_rebalance",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    },
+    "counters": {
+     "start_ms": 1799136000000,
+     "period_index": 10,
+     "turnover_in_period_usd_e6": "1000000000",
+     "last_trade_ms": null
+    },
+    "holdings": [
+     {
+      "asset": "nep141:idx.near",
+      "amount": "1000000000000000000000",
+      "decimals": 18
+     }
+    ],
+    "prices": [
+     {
+      "asset": "nep141:idx.near",
+      "price_usd_e6": "2000000"
+     },
+     {
+      "asset": "nep141:bond.near",
+      "price_usd_e6": "1000000"
+     },
+     {
+      "asset": "nep141:gold.near",
+      "price_usd_e6": "2500123456"
+     },
+     {
+      "asset": "nep141:oil.near",
+      "price_usd_e6": "75500000"
+     }
+    ],
+    "now_ms": 1800000000000
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "hold",
+     "reason": "turnover_used"
+    }
+   }
+  },
+  {
+   "name": "trust_rebalance a new period resets the turnover (production build)",
+   "build": "production",
+   "input": {
+    "op": "trust_rebalance",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    },
+    "counters": {
+     "start_ms": 1799136000000,
+     "period_index": 9,
+     "turnover_in_period_usd_e6": "1000000000",
+     "last_trade_ms": null
+    },
+    "holdings": [
+     {
+      "asset": "nep141:idx.near",
+      "amount": "1000000000000000000000",
+      "decimals": 18
+     }
+    ],
+    "prices": [
+     {
+      "asset": "nep141:idx.near",
+      "price_usd_e6": "2000000"
+     },
+     {
+      "asset": "nep141:bond.near",
+      "price_usd_e6": "1000000"
+     },
+     {
+      "asset": "nep141:gold.near",
+      "price_usd_e6": "2500123456"
+     },
+     {
+      "asset": "nep141:oil.near",
+      "price_usd_e6": "75500000"
+     }
+    ],
+    "now_ms": 1800000000000
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "trade",
+     "origin": "nep141:idx.near",
+     "destination": "nep141:bond.near",
+     "amount": "250000000000000000000",
+     "usd_e6": "500000000"
+    }
+   }
+  },
+  {
+   "name": "trust_rebalance the rest of the cap limits the trade (production build)",
+   "build": "production",
+   "input": {
+    "op": "trust_rebalance",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    },
+    "counters": {
+     "start_ms": 1799136000000,
+     "period_index": 10,
+     "turnover_in_period_usd_e6": "876543210",
+     "last_trade_ms": null
+    },
+    "holdings": [
+     {
+      "asset": "nep141:idx.near",
+      "amount": "1000000000000000000000",
+      "decimals": 18
+     }
+    ],
+    "prices": [
+     {
+      "asset": "nep141:idx.near",
+      "price_usd_e6": "2000000"
+     },
+     {
+      "asset": "nep141:bond.near",
+      "price_usd_e6": "1000000"
+     },
+     {
+      "asset": "nep141:gold.near",
+      "price_usd_e6": "2500123456"
+     },
+     {
+      "asset": "nep141:oil.near",
+      "price_usd_e6": "75500000"
+     }
+    ],
+    "now_ms": 1800000000000
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "trade",
+     "origin": "nep141:idx.near",
+     "destination": "nep141:bond.near",
+     "amount": "61728395000000000000",
+     "usd_e6": "123456790"
+    }
+   }
+  },
+  {
+   "name": "trust_rebalance no price for a holding (production build)",
+   "build": "production",
+   "input": {
+    "op": "trust_rebalance",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    },
+    "counters": {
+     "start_ms": 1799136000000,
+     "period_index": 10,
+     "turnover_in_period_usd_e6": "0",
+     "last_trade_ms": null
+    },
+    "holdings": [
+     {
+      "asset": "nep141:idx.near",
+      "amount": "600000000000000000000",
+      "decimals": 18
+     },
+     {
+      "asset": "nep141:silver.near",
+      "amount": "5000000000000000000",
+      "decimals": 18
+     }
+    ],
+    "prices": [
+     {
+      "asset": "nep141:idx.near",
+      "price_usd_e6": "2000000"
+     },
+     {
+      "asset": "nep141:bond.near",
+      "price_usd_e6": "1000000"
+     },
+     {
+      "asset": "nep141:gold.near",
+      "price_usd_e6": "2500123456"
+     },
+     {
+      "asset": "nep141:oil.near",
+      "price_usd_e6": "75500000"
+     }
+    ],
+    "now_ms": 1800000000000
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "hold",
+     "reason": "no_price"
+    }
+   }
+  },
+  {
+   "name": "trust_rebalance nothing held (production build)",
+   "build": "production",
+   "input": {
+    "op": "trust_rebalance",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    },
+    "counters": {
+     "start_ms": 1799136000000,
+     "period_index": 10,
+     "turnover_in_period_usd_e6": "0",
+     "last_trade_ms": null
+    },
+    "holdings": [
+     {
+      "asset": "nep141:idx.near",
+      "amount": "0",
+      "decimals": 18
+     }
+    ],
+    "prices": [
+     {
+      "asset": "nep141:idx.near",
+      "price_usd_e6": "2000000"
+     },
+     {
+      "asset": "nep141:bond.near",
+      "price_usd_e6": "1000000"
+     },
+     {
+      "asset": "nep141:gold.near",
+      "price_usd_e6": "2500123456"
+     },
+     {
+      "asset": "nep141:oil.near",
+      "price_usd_e6": "75500000"
+     }
+    ],
+    "now_ms": 1800000000000
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "hold",
+     "reason": "no_value"
+    }
+   }
+  },
+  {
+   "name": "trust_rebalance a target the envelope now excludes is sold (production build)",
+   "build": "production",
+   "input": {
+    "op": "trust_rebalance",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near",
+      "nep141:bond.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    },
+    "counters": {
+     "start_ms": 1799136000000,
+     "period_index": 10,
+     "turnover_in_period_usd_e6": "0",
+     "last_trade_ms": null
+    },
+    "holdings": [
+     {
+      "asset": "nep141:idx.near",
+      "amount": "600000000000000000000",
+      "decimals": 18
+     },
+     {
+      "asset": "nep141:bond.near",
+      "amount": "800000000000000000000",
+      "decimals": 18
+     }
+    ],
+    "prices": [
+     {
+      "asset": "nep141:idx.near",
+      "price_usd_e6": "2000000"
+     },
+     {
+      "asset": "nep141:bond.near",
+      "price_usd_e6": "1000000"
+     },
+     {
+      "asset": "nep141:gold.near",
+      "price_usd_e6": "2500123456"
+     },
+     {
+      "asset": "nep141:oil.near",
+      "price_usd_e6": "75500000"
+     }
+    ],
+    "now_ms": 1800000000000
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "trade",
+     "origin": "nep141:bond.near",
+     "destination": "nep141:idx.near",
+     "amount": "500000000000000000000",
+     "usd_e6": "500000000"
+    }
+   }
+  },
+  {
+   "name": "trust_rebalance every target excluded (production build)",
+   "build": "production",
+   "input": {
+    "op": "trust_rebalance",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:idx.near",
+      "nep141:bond.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    },
+    "counters": {
+     "start_ms": 1799136000000,
+     "period_index": 10,
+     "turnover_in_period_usd_e6": "0",
+     "last_trade_ms": null
+    },
+    "holdings": [
+     {
+      "asset": "nep141:idx.near",
+      "amount": "600000000000000000000",
+      "decimals": 18
+     }
+    ],
+    "prices": [
+     {
+      "asset": "nep141:idx.near",
+      "price_usd_e6": "2000000"
+     },
+     {
+      "asset": "nep141:bond.near",
+      "price_usd_e6": "1000000"
+     },
+     {
+      "asset": "nep141:gold.near",
+      "price_usd_e6": "2500123456"
+     },
+     {
+      "asset": "nep141:oil.near",
+      "price_usd_e6": "75500000"
+     }
+    ],
+    "now_ms": 1800000000000
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "hold",
+     "reason": "no_target"
+    }
+   }
+  },
+  {
+   "name": "trust_rebalance too small to trade (production build)",
+   "build": "production",
+   "input": {
+    "op": "trust_rebalance",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    },
+    "counters": {
+     "start_ms": 1799136000000,
+     "period_index": 10,
+     "turnover_in_period_usd_e6": "0",
+     "last_trade_ms": null
+    },
+    "holdings": [
+     {
+      "asset": "nep141:idx.near",
+      "amount": "10000000000000000000",
+      "decimals": 18
+     }
+    ],
+    "prices": [
+     {
+      "asset": "nep141:idx.near",
+      "price_usd_e6": "2000000"
+     },
+     {
+      "asset": "nep141:bond.near",
+      "price_usd_e6": "1000000"
+     },
+     {
+      "asset": "nep141:gold.near",
+      "price_usd_e6": "2500123456"
+     },
+     {
+      "asset": "nep141:oil.near",
+      "price_usd_e6": "75500000"
+     }
+    ],
+    "now_ms": 1800000000000
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "hold",
+     "reason": "too_small"
+    }
+   }
+  },
+  {
+   "name": "trust_rebalance before the trust starts (production build)",
+   "build": "production",
+   "input": {
+    "op": "trust_rebalance",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    },
+    "counters": {
+     "start_ms": 1799136000000,
+     "period_index": 10,
+     "turnover_in_period_usd_e6": "0",
+     "last_trade_ms": null
+    },
+    "holdings": [
+     {
+      "asset": "nep141:idx.near",
+      "amount": "1000000000000000000000",
+      "decimals": 18
+     }
+    ],
+    "prices": [
+     {
+      "asset": "nep141:idx.near",
+      "price_usd_e6": "2000000"
+     },
+     {
+      "asset": "nep141:bond.near",
+      "price_usd_e6": "1000000"
+     },
+     {
+      "asset": "nep141:gold.near",
+      "price_usd_e6": "2500123456"
+     },
+     {
+      "asset": "nep141:oil.near",
+      "price_usd_e6": "75500000"
+     }
+    ],
+    "now_ms": 1799135999999
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "hold",
+     "reason": "not_started"
+    }
+   }
+  },
+  {
+   "name": "trust_rebalance odd decimals and prices round down (production build)",
+   "build": "production",
+   "input": {
+    "op": "trust_rebalance",
+    "mandate": {
+     "version": 1,
+     "universe": [
+      {
+       "asset": "nep141:idx.near",
+       "sector": "broad"
+      },
+      {
+       "asset": "nep141:bond.near",
+       "sector": "bonds"
+      },
+      {
+       "asset": "nep141:gold.near",
+       "sector": "commodities"
+      },
+      {
+       "asset": "nep141:oil.near",
+       "sector": "energy"
+      }
+     ],
+     "excluded_sectors": [
+      "energy"
+     ],
+     "targets": [
+      {
+       "asset": "nep141:idx.near",
+       "weight_bps": 6000
+      },
+      {
+       "asset": "nep141:bond.near",
+       "weight_bps": 4000
+      }
+     ],
+     "band_bps": 500,
+     "max_trade_usd": "500",
+     "min_trade_usd": "10",
+     "beneficiary": "official.near",
+     "end": "2027-11-15T00:00:00.000Z"
+    },
+    "envelope": {
+     "excluded_assets": [
+      "nep141:oil.near"
+     ],
+     "period_ms": 86400000,
+     "max_turnover_usd_e6": "1000000000",
+     "min_gap_ms": 3600000
+    },
+    "counters": {
+     "start_ms": 1799136000000,
+     "period_index": 10,
+     "turnover_in_period_usd_e6": "0",
+     "last_trade_ms": null
+    },
+    "holdings": [
+     {
+      "asset": "nep141:idx.near",
+      "amount": "333000000",
+      "decimals": 6
+     },
+     {
+      "asset": "nep141:bond.near",
+      "amount": "1000000000000000000000000",
+      "decimals": 24
+     }
+    ],
+    "prices": [
+     {
+      "asset": "nep141:idx.near",
+      "price_usd_e6": "1234567"
+     },
+     {
+      "asset": "nep141:bond.near",
+      "price_usd_e6": "999999"
+     }
+    ],
+    "now_ms": 1800000000000
+   },
+   "expected": {
+    "ok": true,
+    "result": {
+     "type": "trade",
+     "origin": "nep141:idx.near",
+     "destination": "nep141:bond.near",
+     "amount": "132714000",
+     "usd_e6": "163844325"
     }
    }
   }

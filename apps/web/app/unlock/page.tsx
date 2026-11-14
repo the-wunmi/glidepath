@@ -378,8 +378,20 @@ export default function UnlockCasePage() {
             <h3 className="mt-5 mb-2 text-sm font-semibold">
               Each deposit, as a sale through the registry
             </h3>
-            <div className="overflow-x-auto">
-              <table className="table w-full min-w-[30rem] text-sm">
+            {/* On a phone each deposit stacks, so the registry's answer is never scrolled away. */}
+            <ul className="divide-y divide-rule-2 rounded-lg border border-rule-2 text-sm sm:hidden">
+              {d.observed.attempts.map((a, i) => (
+                <li key={deposits[i]?.tx ?? a.at_ms} className="space-y-1.5 px-3 py-2.5">
+                  <p className="flex flex-wrap justify-between gap-x-3">
+                    <span className="num">{at(a.at_ms)}</span>
+                    <span className="num font-semibold">{arb(a.amount)}</span>
+                  </p>
+                  <VerdictBadge v={a.verdict} />
+                </li>
+              ))}
+            </ul>
+            <div className="hidden sm:block">
+              <table className="table w-full text-sm">
                 <thead>
                   <tr>
                     <th scope="col">When</th>

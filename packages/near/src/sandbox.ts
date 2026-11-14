@@ -5,6 +5,12 @@ import { join } from 'node:path';
 import { DEFAULT_ACCOUNT_ID, DEFAULT_PRIVATE_KEY, Sandbox } from 'near-sandbox';
 import type { KeyPairString } from './client.ts';
 
+/** The root account and key of every node near-sandbox starts, the app's `pnpm dev:local` one included. */
+export const SANDBOX_ROOT = {
+  accountId: DEFAULT_ACCOUNT_ID,
+  key: DEFAULT_PRIVATE_KEY as KeyPairString,
+};
+
 export interface LocalNear {
   rpcUrl: string;
   rootAccount: string;

@@ -2,6 +2,13 @@
 
 import type { ChainEnclave, ChainPlan, ChainReceipt, RegistryConfig } from '@vsp/near';
 import type { ChainReveal } from '@vsp/verify';
+import {
+  concurrencyLimit,
+  retryAfterMs,
+  TransientReadError,
+  transientStatus,
+  withRetry,
+} from '@vsp/verify/reads';
 import { useEffect, useState } from 'react';
 
 /**
@@ -29,8 +36,19 @@ export function setNearRpcUrl(url: string | null) {
   else localStorage.removeItem(RPC_KEY);
 }
 
-async function rpc<T>(chain: 'near' | 'evm', method: string, params: unknown): Promise<T> {
+/**
+ * Requests in flight per chain from this page. "Verify all" checks every receipt at once, and a
+ * public node answers a burst of 20 with 429s; a few at a time finish sooner than a burst retried.
+ */
+const limits = { near: concurrencyLimit(4), evm: concurrencyLimit(3) };
+
+/** A read through the page's endpoint for `chain`, retried with backoff while the endpoint is busy. */
+const rpc = <T>(chain: 'near' | 'evm', method: string, params: unknown): Promise<T> =>
+  limits[chain](() => withRetry(() => rpcOnce<T>(chain, method, params)));
+
+async function rpcOnce<T>(chain: 'near' | 'evm', method: string, params: unknown): Promise<T> {
   const url = chain === 'near' ? nearRpcUrl() : '/rpc/evm';
+  const name = chain === 'near' ? 'NEAR' : 'EVM';
   let res: Response;
   try {
     res = await fetch(url, {
@@ -41,12 +59,17 @@ async function rpc<T>(chain: 'near' | 'evm', method: string, params: unknown): P
       signal: AbortSignal.timeout(RPC_TIMEOUT_MS),
     });
   } catch (error) {
-    throw new RpcError(
+    throw new TransientReadError(
       error instanceof DOMException && error.name === 'TimeoutError'
-        ? `The ${chain === 'near' ? 'NEAR' : 'EVM'} RPC did not answer within ${RPC_TIMEOUT_MS / 1000} s`
-        : `The ${chain === 'near' ? 'NEAR' : 'EVM'} RPC at ${url} is not reachable`,
+        ? `The ${name} RPC did not answer within ${RPC_TIMEOUT_MS / 1000} s`
+        : `The ${name} RPC at ${url} is not reachable`,
     );
   }
+  if (transientStatus(res.status))
+    throw new TransientReadError(
+      `The ${name} RPC is busy (HTTP ${res.status}); try again shortly`,
+      retryAfterMs(res.headers.get('retry-after')),
+    );
   const body = (await res.json().catch(() => null)) as {
     result?: T & { error?: string };
     error?: { message?: string; data?: unknown; cause?: { name?: string } };
@@ -117,10 +140,23 @@ export async function nearAccountExists(account: string): Promise<boolean> {
     await viewAccount(account);
     return true;
   } catch (error) {
-    if (error instanceof RpcError && /UNKNOWN_ACCOUNT|does not exist/i.test(error.message))
+    if (
+      error instanceof RpcError &&
+      /UNKNOWN_ACCOUNT|AccountDoesNotExist|does not exist/i.test(error.message)
+    )
       return false;
     throw error;
   }
+}
+
+/** A final NEAR transaction's return value (base64), as the chain stores it. */
+export async function nearTxSuccessValue(txHash: string, sender: string): Promise<string | null> {
+  const out = await rpc<{ status: { SuccessValue?: string } }>('near', 'tx', {
+    tx_hash: txHash,
+    sender_account_id: sender,
+    wait_until: 'FINAL',
+  });
+  return out.status.SuccessValue ?? null;
 }
 
 /** The chain's own clock: the latest final block's timestamp, in ms. */

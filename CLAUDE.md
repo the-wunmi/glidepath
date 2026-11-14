@@ -69,8 +69,73 @@ and that DATABASE_URL serves it; set `OUTLAYER_TICK_SECONDS` high to keep it fro
 - `packages/oneclick` client + simulator on the real paths. `packages/verify` in-browser receipt
   checks. `packages/replay` the unlock replay study (data in `data/replay`) and the demo's real
   case (`src/case.ts`: ARB 2024-03-16, flows read from Arbitrum One via RPC, cited; `/unlock` page).
-- `apps/api` Hono; `/rpc/near` and `/rpc/evm` are read-only proxies for the verifier page.
-  `apps/web` Next.js 16.
+- `apps/api` Hono; `/rpc/near` and `/rpc/evm` are read-only proxies for the verifier page. They
+  keep answers that cannot change (a receipt in a finalized Sepolia block, logs or calls pinned to
+  one, NEAR reads pinned to a block hash, final txs; `rpc-cache.ts`), share identical reads for 2 s,
+  and answer 503 + Retry-After when no node could answer, 400 when the node answered with an error.
+  Sepolia goes through `publicRpcTransport` (`packages/evm`): per-endpoint pacing, rest after a 429,
+  failover; visitors' reads have their own budget. `eth_call`/`eth_getLogs` are allowed on plan tokens
+  only: those in our database plus those on the registry (read once a minute), so plans made before
+  or without this server's database still verify. The browser reads 3-4 at a time and retries
+  429/502/503/network with backoff (`@vsp/verify/reads`); a read that still fails shows "could not
+  be checked" with a retry, never "not broadcast". `apps/web` Next.js 16.
+- Labs (footer only, `/labs`): `contracts/btc-vault` is a coercion-safe Bitcoin vault prototype. A
+  vault is a testnet4 P2WPKH address derived for (vault contract, creator's path); owner withdrawals
+  wait a public delay (contract floor 1 min, `min_delay_ms` per deployment), any guardian can veto
+  before signing or claw back to the fixed recovery address with no delay, anyone executes after
+  the delay. The contract builds the tx (dest + change to itself, version 2, every input RBF) and
+  each BIP143 sighash itself, signs inputs as one joint promise → `on_signed` (ecrecover against
+  the vault key). Rules: one open withdrawal and one open claw-back per vault, ≤4 inputs, outputs
+  ≥546 sats, fee ≥1 sat/vB and ≤25 (withdrawals) or ≤200 (claw-backs) sat/vB of the estimated
+  vsize; a claw-back over coins of a withdrawal that started signing must pay its fee + 1 sat/vB
+  (BIP125; `fee_below_replacement`). Veto only before the first signing round (`signing_started`:
+  a failed round may still have published signatures); a claw-back cancels only such withdrawals.
+  No spend may use coins of another that is signing (`inputs_overlap`). BIP143 signatures combine
+  only within one hashPrevouts+hashOutputs, so `bound_txs` maps sha256 of those two to the amounts
+  first sent for signing; the same coins and outputs with other amounts are refused
+  (`input_amount_mismatch`), while a corrected request (other outputs) is allowed, so a wrong
+  amount freezes nothing. Destinations: P2WPKH, P2WSH, P2TR (v1, 32 bytes), P2PKH, P2SH; other
+  witness versions are refused. No upgrade method, key deleted at deploy. Taproot (all amounts signed)
+  needs Schnorr, which this path does not use. `packages/btc` mirrors it in TS (address, BIP143,
+  witness assembly with low-s, mempool.space client); `contracts/res/btc-vault-vectors.json` is
+  shared (BIP143's own P2WPKH example, BIP173/350 addresses, a vault spend). `pnpm vault:deploy`
+  (dry run unless `--confirm`; `deployments/vault-testnet.json`), `pnpm vault:demo` (testnet, or
+  `--local` rehearsal with the signer simulator and made-up UTXOs; `--rpc` onto the dev:local
+  sandbox writes the git-ignored `deployments/local-vault.json`). `GET /api/vault` serves the
+  record for the server's network; `/labs/vault` reads the chain through `/rpc/near` and
+  mempool.space directly from the browser.
+- Labs: `contracts/blind-trust` is a blind trust prototype for officials. A trust holds a commitment
+  to a sealed mandate (`@vsp/trust`: universe with sectors, excluded sectors, target weights, band,
+  trade sizes, beneficiary, end), a public envelope (excluded 1Click asset ids, turnover cap per
+  period in USD e6 measured on the quote's signed `amountInUsd` rounded up, min gap), a keyless trust
+  account `t<id>.<contract>` running the plan account code by global hash (`new(registry: contract,
+  token: null)`: deposits arrive by plain `ft_transfer`), and a term. Trades are enclave-signed over
+  `vsp/trust-trade/v1\n` ‖ JSON (acks `vsp/trust-ack/v1\n`): seq, held origin token, quote in
+  1Click's format (shares `oneclick.rs`/`events.rs` with the registry by `#[path]`), recipient and
+  refund = the trust account, deposit/refund `ORIGIN_CHAIN` and recipient `DESTINATION_CHAIN`
+  (`routes_on_chain`, `quote_routing`; the registry code checks it too, the deployed testnet
+  registry does not), destination not excluded (envelope ids must be `nep141:<account>`), cost
+  ≤ 50 bps with no flat part, ≥ $10 of `amountInUsd` (`trade_too_small`), `minAmountOut` ≥
+  floor(99% of `amountOut`), turnover cap, gap ≥ 1 minute (`MIN_GAP_MS`, in `validate_envelope`);
+  the quote key must predate the trust (`key_too_new_for_trust`). A newly bought token joins
+  `holdings` (≤12) at once, the trust account is registered on it first (`storage_deposit` →
+  `on_registered` → send), and a failed trade removes it again (`added_holding`). The engine charges
+  `spendRelayer` per relayed trade, refuses gaps under a minute at creation, and stops waking
+  trusts once `trusts.ended_at` is set. No owner method moves
+  assets; `propose_envelope`/`cancel` wait the cooling-off (an envelope change applies lazily, also
+  in views); `finalize` after the end or an effective cancel, then anyone `release`s each holding to
+  the beneficiary. Decision (`decideRebalance`, TS and Rust `trust.rs`, vectors in `pnpm enclave:wasi`):
+  sell the most overweight holding (anything not an effective target always counts), buy the most
+  underweight target, size min(gaps, max trade, turnover left), hold below min trade; hold reasons
+  other than gap/turnover/not-started never leave the enclave. Engine `src/trusts/` (local world
+  bootstrap `bootstrapTrustWorld` with five demo tokens owned by the solver, priced on the simulated
+  market; `trust_created`/`trust_trade`/`trust_release` workflows; `startTrustWorker` every 15 s;
+  tables `trusts`, `trust_trades`); the simulated trust enclave shares the plan enclave's keys;
+  `ModuleTrustEnclave` runs the enclave-wasi ops (tests: `vsp-enclave-local`). API `/api/trusts`
+  (`apps/api/src/trust.ts`), page `/labs/trust` (seal + create) and `/labs/trust/<id>` (total value,
+  attested statements, rules, receipts with Verify all, proof). `pnpm trust:deploy` (dry run unless
+  `--confirm`; `--tokens`, `--outlayer`, `--local`) writes `deployments/trust-testnet.json`, which
+  the server loads on testnet.
 
 ## Decisions
 
@@ -91,8 +156,13 @@ and that DATABASE_URL serves it; set `OUTLAYER_TICK_SECONDS` high to keep it fro
   (`key_too_new_for_plan`); so the bootstrap registers keys before any plan exists. Each quote is
   usable once (`quote_used`, sha256 of the payload, kept until its deadline, at most 7 days ahead).
 - The engine re-signs stuck EVM transfers itself (`broadcast_evm` workflow → `resign_evm` after
-  `EVM_STUCK_BLOCKS`). Finalized `end_reveal` plans are revealed by the `reveal_plan` workflow; owners can
-  reveal from their backup (`POST /api/plans/:id/reveal`). `verifyReveal` re-checks sales in the browser. Changes must
+  `EVM_STUCK_BLOCKS`). An ended ERC-20 plan's remainder goes out through the `release_evm` workflow
+  (started by finalize, keyed by `next_seq`, so a later finalize retries): the owner asks the registry
+  for one MPC-signed transfer of the whole balance to `beneficiary.evm_address`, the engine tops up
+  the plan address's gas if short, sends it and watches it like a sale. The registry's own `finalize`
+  pays out NEP-141 balances only. The verifier rebuilds a release's transfer from the receipt.
+  Finalized `end_reveal` plans are revealed by the `reveal_plan` workflow; owners can reveal from
+  their backup (`POST /api/plans/:id/reveal`). `verifyReveal` re-checks sales in the browser. Changes must
   be acked after they take effect and lapse 7 days later. A cancel cannot be withdrawn once
   effective. The owner or beneficiary can re-sign an unmined EVM transfer (`resign_evm`: both fees
   +12.5% or more, 30 blocks after the last signature); anyone can clear a stale signature
@@ -100,6 +170,11 @@ and that DATABASE_URL serves it; set `OUTLAYER_TICK_SECONDS` high to keep it fro
   a history and each receipt records the key used.
 - Owner actions go through `ownerCall` (plans.ts): the founder signs directly; the treasury DAO
   (Sputnik v2, keyless, founder on its council) acts through proposals.
+- `planEnclave` (web) returns the build that accepted a plan, or null when its key has no attestation
+  served (testnet plans #1 and #2, accepted by this machine's simulated enclave during bring-up; its
+  quote was regenerated when the measured sources changed, so it cannot be served again). The page
+  then says so instead of borrowing the current build's evidence; the verifier still fails their
+  attestation check, by design.
 - Skip reasons never leave the enclave (they would reveal the floor); the timeline says only that a
   sale was skipped. Writes to the API need a JSON body and our Origin.
 - Plan authorization: `POST /api/plans` returns a random 32-byte `ownerKey` once; the DB keeps its
@@ -115,8 +190,8 @@ and that DATABASE_URL serves it; set `OUTLAYER_TICK_SECONDS` high to keep it fro
   0.001–0.01 ETH). The OutLayer tick pays for no run when public state rules a sale out (not
   started or ended, min gap, period cap used, no tokens, a signed sale in flight) unless a change
   awaits its ack. NEAR-token plans need the demo token's code published as a global contract
-  (local bootstrap does it; testnet: `pnpm deploy:testnet --publish-demo-token --confirm`, ~17 NEAR,
-  not run) or NEAR_TOKEN_LAUNCHES=on. Simulated prices are keyed by token address (old symbol keys
+  (local bootstrap does it; testnet: `pnpm deploy:testnet --publish-demo-token --confirm`, published 2026-11-14, tx
+  `4soajy8X…`, 17.2 NEAR burnt, hash `AoefKus5…` in `deployments/testnet.json`) or NEAR_TOKEN_LAUNCHES=on. Simulated prices are keyed by token address (old symbol keys
   still answer), and a symbol may name only one token.
 - One shared daily budget (`relayer_write`, MAX_RELAYER_WRITES_PER_DAY) covers every write the
   relayer pays for. A plan may enroll only the token it launched (`plans.launched_token`), up to
@@ -134,6 +209,34 @@ and that DATABASE_URL serves it; set `OUTLAYER_TICK_SECONDS` high to keep it fro
   `salesplans_dbos`, dropped on a new world. Execution status moves only through `transition()` in
   `workflows.ts`; 1Click silence is `in_doubt`, polled with durable sleeps, never failed. Crash
   tests: `packages/engine/test/crash.test.ts` (SIGKILL after the effect, before the checkpoint).
+- Sale sizes (`saleSize`, TS and Rust): random in [cap/2, cap], and a draw never leaves less than
+  cap/2 of the period (or balance) behind: the remainder joins the sale when it fits, otherwise
+  exactly cap/2 stays. Drawing from what was left instead gave plan #3 a tail of dust sales.
+  The OutLayer module published before this (sha256 `bc8448…`) still has the old sizing.
+- Enclave builds: OutLayer's keystore gives each wasm build its own keys, so a plan runs on the
+  build whose key the registry holds as `acked_by` (`OutLayerEnclave` routes every op;
+  `deployments/outlayer-testnet.json` keeps earlier builds in `previous`, and `/api/meta` serves
+  them as `pastEnclaves`). New plans and changes go to the current build. Sealed records are stored
+  per build (`plan:<id>:outlayer:<signing key>`; the older per-plan key is read for the holder),
+  each noting the change it staged, so the build that staged an effective change runs to ack it.
+  An owner moves a plan with a change of the same terms (new salt) sealed to the current build
+  ("Move to the current enclave" on the plan page, from the browser's backup); the registry lets
+  any active key ack a change and sign sales. A build that takes a plan over (stage with no record)
+  waits one request lifetime after the change applies, then counts from the registry's counters
+  (`handoverState`, TS and Rust). The simulated enclave is a single build with the same logic.
+  Published builds: `bc8448…` and `6c9aa4…` predate takeover; `c965f0…` (plan #4) has takeover but
+  not the backup recount; the current main build `3c0571…` (key `J3prhAPX…`, registered
+  2026-11-14, tx `8Fpthph8…`) and its backup `d5d6c4…` (key `8pfjqtyg…`, tx `2avepJrH…`, same code,
+  build slot "backup") carry the recount and the trust ops. Both rebuild byte for byte from this
+  source; rustc embeds source line numbers, so even a comment edit in `enclave-wasi` that adds or
+  removes a line changes the wasm: keep its line count, or publish a new build. Module errors in
+  accept/stage are refusals (`ModuleError`), never retried runs.
+- Backups: new plans and changes are also sealed to `backups` builds; each accepts or stages its own
+  copy (its ack is not sent). After 2 failed runs in a row the engine runs a backup that follows
+  the plan (same commitment, or the same staged change for an ack) and probes the main build every
+  30 minutes. Each record notes the registry's `next_seq` (`seen_seq`); sales another key signed
+  are recounted from the registry's counters, so the sealed limits hold across builds. Publish a
+  backup with `pnpm outlayer:enclave <step> --backup`, always right after its main build.
 - Demo plans sell 1–3 minutes apart; real plans use hours. Local min cooling-off is 10 minutes.
 - Sandbox time: `NearClient.fastForward` jumps at most 50 blocks and waits for finality between
   jumps (the validity window is 100 blocks; txs sign against the final block), except at bootstrap
@@ -174,11 +277,18 @@ and that DATABASE_URL serves it; set `OUTLAYER_TICK_SECONDS` high to keep it fro
 ## Unverified
 
 - 1Click 400 error texts and rate limits.
-- Chain Signatures latency and per-signature cost; the yield timeout in blocks (sandbox: ~200).
+- The Chain Signatures yield timeout in blocks (sandbox: ~200). Measured on testnet 2026-11-14: a
+  `sign` answered in 6 blocks (~3.6 s); an execute burns ~0.0017 NEAR of gas.
 - Confidential Intents token list and fees.
+- The vault's `STALE_SIGN_BLOCKS` (300) assumes the signer's yield times out after ~200 blocks
+  (sandbox only).
+- The vault on live testnet: gas for up to four 40 Tgas `sign` calls in one execute against
+  `v1.signer-prod.testnet`, a testnet4 broadcast of an assembled vault spend, and mempool.space's
+  CORS for browser reads (mempool.space was unreachable from the build machine on 2026-11-14).
 
 ## Not built
 
 Confidential Intents path, an atomic relayer contract for OutLayer (runs are relayed by an
-account today), in-browser Intel signature checks of OutLayer quotes, multi-enclave sealed backups (the registry already accepts any allowlisted key), blind-trust and
-vault prototypes. The testnet registry is deployed (`deployments/testnet.json`).
+account today), TCB status and revocation checks of OutLayer quotes (Intel's PCS collateral has no
+CORS; the browser checks the quote's signatures up to Intel's root in `@vsp/verify/tdx`), multi-enclave sealed backups (the registry already accepts any allowlisted key), the
+blind trust on OutLayer (no published build has the `trust_*` ops yet) or on testnet (`pnpm trust:deploy --confirm`). The vault contract is not deployed to testnet yet (`pnpm vault:deploy --confirm`). The testnet registry is deployed (`deployments/testnet.json`).

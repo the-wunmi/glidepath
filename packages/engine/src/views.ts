@@ -1,8 +1,9 @@
 import { DomainError } from '@vsp/core';
 import { activity, executions, plans } from '@vsp/db';
+import type { EnclaveIdentity } from '@vsp/enclave';
 import type { ChainEnclave, ChainPlan, RegistryConfig } from '@vsp/near';
 import { desc, eq } from 'drizzle-orm';
-import type { Hex } from 'viem';
+import { erc20Abi, type Hex } from 'viem';
 import { livePricePairs } from './config.ts';
 import { type Engine, oneclickQuoteKey } from './context.ts';
 import { serverLimits } from './guards.ts';
@@ -25,6 +26,11 @@ export function modes(e: Engine) {
     prices: 'mixed',
   } as const;
 }
+
+const pastIdentities = (enclave: Engine['enclave']): Promise<EnclaveIdentity[]> =>
+  'pastIdentities' in enclave && typeof enclave.pastIdentities === 'function'
+    ? (enclave.pastIdentities as () => Promise<EnclaveIdentity[]>)()
+    : Promise.resolve([]);
 
 export async function metaView(e: Engine) {
   const near = e.reads.near;
@@ -55,6 +61,10 @@ export async function metaView(e: Engine) {
     },
     registry: { config, enclaves, accessKeys: registryKeys },
     enclave: identity,
+    /** Earlier builds' evidence, for receipts their keys signed. */
+    pastEnclaves: await pastIdentities(e.enclave),
+    /** Builds new plans are also sealed to; each can stand in when the current build cannot run. */
+    backupEnclaves: (await e.enclave.backupIdentities?.()) ?? [],
     mpcRootPublicKey: e.world.mpcRootPublicKey,
     /** The key 1Click quotes are signed with (the simulator's in mock mode), pinned on-chain too. */
     quoteSigner: oneclickQuoteKey(e.config, e.world),
@@ -70,15 +80,37 @@ export async function planList(e: Engine, owner?: string) {
     e.db.select().from(plans),
   ]);
   const byId = new Map(rows.map((r) => [r.id, r]));
-  return chainPlans
-    .filter((p) => !owner || p.owner === owner)
-    .map((p) => summary(p, byId.get(p.id)))
-    .reverse();
+  const listed = chainPlans.filter((p) => !owner || p.owner === owner);
+  const summaries = await Promise.all(
+    listed.map(async (p) => {
+      const row = byId.get(p.id);
+      return summary(p, row, row ? row.tokenSymbol : await chainSymbol(e, p));
+    }),
+  );
+  return summaries.reverse();
+}
+
+/** Token symbols never change, so each is read from its chain once. */
+const symbols = new Map<string, string>();
+
+/** The symbol of a plan's token read from its chain, for plans this server has no row for. A failed
+ * read answers '?' and is not cached, so the next request tries again. */
+async function chainSymbol(e: Engine, p: ChainPlan): Promise<string> {
+  const token = p.asset.type === 'nep141' ? p.asset.token_id : p.asset.token_address.toLowerCase();
+  const known = symbols.get(token);
+  if (known) return known;
+  const symbol = await (p.asset.type === 'nep141'
+    ? e.reads.near.view<{ symbol: string }>(token, 'ft_metadata', {}).then((m) => m.symbol)
+    : e.evm.public.readContract({ address: token as Hex, abi: erc20Abi, functionName: 'symbol' })
+  ).catch(() => null);
+  if (!symbol) return '?';
+  symbols.set(token, symbol);
+  return symbol;
 }
 
 type PlanRow = typeof plans.$inferSelect;
 
-function summary(p: ChainPlan, row: PlanRow | undefined) {
+function summary(p: ChainPlan, row: PlanRow | undefined, symbol: string) {
   return {
     id: p.id,
     label: p.label,
@@ -95,7 +127,7 @@ function summary(p: ChainPlan, row: PlanRow | undefined) {
       : {
           chain: p.asset.type === 'nep141' ? 'near' : 'evm',
           address: p.asset.type === 'nep141' ? p.asset.token_id : p.asset.token_address,
-          symbol: '?',
+          symbol,
           decimals: p.token_decimals,
         },
     planAccount: p.plan_account,
@@ -130,7 +162,7 @@ export async function planDetail(e: Engine, id: number) {
   const balance = await planBalance(e, chain).catch(() => null);
   return {
     plan: chain,
-    summary: summary(chain, row),
+    summary: summary(chain, row, row ? row.tokenSymbol : await chainSymbol(e, chain)),
     planAccount: {
       id: chain.plan_account,
       accessKeys: keyCount,
@@ -191,7 +223,33 @@ export async function evmPlanTokens(e: Engine): Promise<Set<string>> {
     .select({ address: plans.tokenAddress })
     .from(plans)
     .where(eq(plans.tokenChain, 'evm'));
-  return new Set(rows.map((r) => r.address.toLowerCase()));
+  const out = new Set(rows.map((r) => r.address.toLowerCase()));
+  // A plan made on the registry without this server (or before its database) is a plan too.
+  for (const token of await registryEvmTokens(e)) out.add(token);
+  return out;
+}
+
+const REGISTRY_TOKENS_TTL_MS = 60_000;
+const registryTokens = new WeakMap<Engine, { at: number; tokens: Promise<string[]> }>();
+
+/** The ERC-20s plans on the registry hold, read at most once a minute. */
+function registryEvmTokens(e: Engine): Promise<string[]> {
+  const hit = registryTokens.get(e);
+  if (hit && Date.now() - hit.at < REGISTRY_TOKENS_TTL_MS) return hit.tokens;
+  const tokens = Promise.resolve()
+    .then(() => e.registry.plans())
+    .then((list) =>
+      list.flatMap((p) =>
+        p.asset.type === 'evm_erc20' ? [p.asset.token_address.toLowerCase()] : [],
+      ),
+    )
+    // Without the registry the database's tokens still answer; the next request asks again.
+    .catch(() => {
+      registryTokens.delete(e);
+      return [] as string[];
+    });
+  registryTokens.set(e, { at: Date.now(), tokens });
+  return tokens;
 }
 
 export async function planBalance(e: Engine, plan: ChainPlan): Promise<bigint> {

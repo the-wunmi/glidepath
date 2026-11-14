@@ -7,6 +7,11 @@
  *                                    # (--tx <hash> re-checks an earlier run)
  *   pnpm outlayer:enclave register   # governance pins the key with the run's real measurements
  *
+ * Each step takes `--backup` to publish a backup build of the same code instead: a different wasm
+ * (its build slot is baked in), so the keystore gives it its own keys. New plans are sealed to it
+ * too, and it stands in when the main build cannot run. Publish the main build first; a backup
+ * must run the same code as the build it stands in for.
+ *
  * The module's keys live in OutLayer's keystore, bound to this exact build and to the calling
  * account (the relayer), so a new build means a new key and a new registration. Writes
  * deployments/outlayer-testnet.json (no secrets). Every step that spends checks the account keeps
@@ -33,6 +38,7 @@ const wasmPath = `${root}enclave-wasi/target/wasm32-wasip2/release/vsp-enclave-o
 const recordPath = `${root}deployments/outlayer-testnet.json`;
 
 const optional = (k: string): string | undefined => process.env[k] || undefined;
+const backup = process.argv.includes('--backup');
 const ledgerPath = optional('OUTLAYER_LEDGER');
 const env = (k: string) => {
   const v = optional(k);
@@ -80,7 +86,11 @@ function build() {
     {
       cwd: `${root}enclave-wasi`,
       stdio: 'inherit',
-      env: { ...process.env, VSP_QUOTE_SIGNER_KEY: testnet.quote_signer },
+      env: {
+        ...process.env,
+        VSP_QUOTE_SIGNER_KEY: testnet.quote_signer,
+        ...(backup ? { VSP_BUILD_SLOT: 'backup' } : {}),
+      },
     },
   );
   const bytes = readFileSync(wasmPath);
@@ -145,7 +155,7 @@ async function fetchHash(url: string): Promise<string | null> {
 async function prove() {
   const sha = sha256Hex(new Uint8Array(readFileSync(wasmPath)));
   const wasm = { url: wasmUrl(sha), sha256: sha };
-  const client = new OutLayerClient(caller, CONTRACT, wasm);
+  const client = new OutLayerClient(caller, CONTRACT);
   type Proof = { json: string; signature: string; enclave_key: string };
   // `--tx <hash>` re-checks a run already paid for instead of starting another.
   const earlier = process.argv[process.argv.indexOf('--tx') + 1];
@@ -154,7 +164,7 @@ async function prove() {
     run = await client.outcome<Proof>(earlier, JSON.stringify({ op: 'key_proof' }));
   } else {
     await keepBalance(NEAR / 50n);
-    run = await client.run<Proof>({ op: 'key_proof' });
+    run = await client.run<Proof>({ wasm }, { op: 'key_proof' });
     note('key proof run', run.txHash);
   }
   const proof = JSON.parse(run.result.json) as {
@@ -183,6 +193,40 @@ async function prove() {
   for (const c of checks) console.log(`  ${c.ok ? '✓' : '✗'} ${c.rule}`);
   console.log(`  attestation ${att.url}`);
   if (!checks.every((c) => c.ok)) throw new Error('The key proof did not check out');
+  // The build being replaced stays listed: receipts its key signed still need its evidence.
+  const prior = existsSync(recordPath)
+    ? OutLayerDeployment.parse(JSON.parse(readFileSync(recordPath, 'utf8')))
+    : null;
+  const built = {
+    wasm,
+    signingKey: proof.signing_key,
+    encryptionKeyHex: proof.encryption_key_hex,
+    keyProof: { txHash: run.txHash, json: run.result.json, signature: run.result.signature },
+    attestation: { url: att.url, measurements: att.measurements, quoteHash: att.quoteHash },
+    registerTx: null,
+  };
+  if (backup) {
+    if (!prior) throw new Error('Publish the main build first');
+    // One backup per main build: it must run the same code, so a new one replaces the old.
+    const record = OutLayerDeployment.parse({ ...prior, backups: [built] });
+    writeFileSync(recordPath, `${JSON.stringify(record, null, 2)}\n`);
+    return console.log(`  ✓ wrote the backup build to ${recordPath}`);
+  }
+  const previous = !prior
+    ? []
+    : prior.signingKey === proof.signing_key
+      ? prior.previous
+      : [
+          {
+            wasm: prior.wasm,
+            signingKey: prior.signingKey,
+            encryptionKeyHex: prior.encryptionKeyHex,
+            keyProof: prior.keyProof,
+            attestation: prior.attestation,
+            registerTx: prior.registerTx,
+          },
+          ...prior.previous,
+        ];
   const record = OutLayerDeployment.parse({
     network: 'testnet',
     contract: CONTRACT,
@@ -196,6 +240,9 @@ async function prove() {
     keyProof: { txHash: run.txHash, json: run.result.json, signature: run.result.signature },
     attestation: { url: att.url, measurements: att.measurements, quoteHash: att.quoteHash },
     registerTx: null,
+    previous,
+    // A backup runs the code of the build it stands in for: a new main build starts with none.
+    backups: [],
   });
   writeFileSync(recordPath, `${JSON.stringify(record, null, 2)}\n`);
   console.log(`  ✓ wrote ${recordPath}`);
@@ -204,7 +251,9 @@ async function prove() {
 async function register() {
   if (!existsSync(recordPath)) throw new Error('Run prove first');
   const record = OutLayerDeployment.parse(JSON.parse(readFileSync(recordPath, 'utf8')));
-  if (record.registerTx) return console.log(`  ✓ already registered (tx ${record.registerTx})`);
+  const target = backup ? record.backups[0] : record;
+  if (!target) throw new Error('No backup build: run prove --backup first');
+  if (target.registerTx) return console.log(`  ✓ already registered (tx ${target.registerTx})`);
   if (env('DEPLOY_ACCOUNT_ID') !== testnet.governance)
     throw new Error('DEPLOY_ACCOUNT_ID is not the registry governance');
   await keepBalance(REGISTER_DEPOSIT + NEAR / 100n);
@@ -214,15 +263,15 @@ async function register() {
     testnet.registry,
     'register_enclave',
     {
-      public_key: record.signingKey,
-      measurements: record.attestation.measurements,
-      quote_hash: record.attestation.quoteHash,
+      public_key: target.signingKey,
+      measurements: target.attestation.measurements,
+      quote_hash: target.attestation.quoteHash,
     },
     { deposit: REGISTER_DEPOSIT },
   );
   if (!out.ok) throw new Error(`register_enclave failed: ${out.error}`);
   note('register_enclave', out.txHash);
-  record.registerTx = out.txHash;
+  target.registerTx = out.txHash;
   writeFileSync(recordPath, `${JSON.stringify(record, null, 2)}\n`);
 }
 

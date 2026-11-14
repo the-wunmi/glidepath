@@ -383,6 +383,72 @@ describe('the simulated enclave', () => {
     expect((await e.tick(active)).type).not.toBe('ack_change');
   });
 
+  it('takes over a plan another build accepted through a change, counting that build’s sales', async () => {
+    let now = NOW + 60_000;
+    const h = host();
+    const e = enclave({ ...h, chainTimeMs: async () => now });
+    // The same terms under a new salt, sealed to this enclave, which never held the plan.
+    const moved = await seal(e);
+    const pending = {
+      kind: 'modify' as const,
+      commitment: moved.commitment,
+      envelope: envelopeJson(envelope),
+      requested_at_ms: NOW,
+      effective_at_ms: NOW + 600_000,
+    };
+    const earlier = chainPlan('cd'.repeat(32), {
+      status: 'active',
+      acked_by: 'ed25519:earlier',
+      pending_change: pending,
+    });
+    expect(await e.stageChange(earlier, moved.box)).toEqual({ ok: true, reasons: [] });
+    expect((await e.tick(earlier)).type).toBe('idle');
+    now = NOW + 600_000;
+    expect((await e.tick(earlier)).type).toBe('ack_change');
+
+    // Applied. The earlier build already sold this period's whole sealed cap (2% of 1M).
+    const applied = chainPlan(moved.commitment, {
+      status: 'active',
+      next_seq: 3,
+      sold_in_period: tokens('20000').toString(),
+      sold_total: tokens('20000').toString(),
+      last_sale_ms: NOW + 500_000,
+    });
+    expect(await e.tick(applied)).toMatchObject({ type: 'idle', reason: 'Taking the plan over' });
+    now += 10 * 60_000;
+    expect(await e.tick(applied)).toMatchObject({ type: 'idle', reason: 'period_budget_used' });
+    // The next period: a sale is decided (and quoted) for the next sequence number.
+    now = NOW + 30 * DAY + 60_000;
+    expect(h.quotes).toHaveLength(0);
+    await e.tick(applied);
+    expect(h.quotes).toHaveLength(1);
+  });
+
+  it('as a backup, counts sales another build made from the registry before selling', async () => {
+    let now = NOW + 60_000;
+    const h = host();
+    const e = enclave({ ...h, chainTimeMs: async () => now });
+    const { box, commitment } = await seal(e);
+    // Sealed to this build too when the plan was made; the primary's ack is the one sent.
+    expect((await e.acceptPlan(chainPlan(commitment), box)).ok).toBe(true);
+    // The primary has since sold this period's whole sealed cap (2% of 1M) as seqs 0-2.
+    const sold = chainPlan(commitment, {
+      status: 'active',
+      acked_by: 'ed25519:primary',
+      next_seq: 3,
+      sold_in_period: tokens('20000').toString(),
+      sold_total: tokens('20000').toString(),
+      last_sale_ms: NOW + 50_000,
+    });
+    now = NOW + 10 * 60_000;
+    expect(await e.tick(sold)).toMatchObject({ type: 'idle', reason: 'period_budget_used' });
+    expect(h.quotes).toHaveLength(0);
+    // The next period: it sells, at the registry's next sequence number.
+    now = NOW + 30 * DAY + 60_000;
+    await e.tick(sold);
+    expect(h.quotes).toHaveLength(1);
+  });
+
   it('reveals the sealed terms only after the plan has ended, and only under end_reveal', async () => {
     const e = enclave();
     const { box, commitment } = await seal(e);

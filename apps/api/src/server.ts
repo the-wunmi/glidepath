@@ -3,15 +3,19 @@ import { createDb, createPool } from '@vsp/db';
 import { runMigrations } from '@vsp/db/migrate';
 import {
   bootstrapLocalWorld,
+  bootstrapTrustWorld,
   createEngine,
   identityOnlyEnclave,
   launchDurable,
   liveModeProblems,
   loadConfig,
   loadDeployment,
+  loadTrustDeployment,
   saveWorld,
+  seedTrustMarket,
   shutdownDurable,
   startLocalChains,
+  startTrustWorker,
   startWorker,
   systemDatabaseUrl,
   testnetWorld,
@@ -62,6 +66,8 @@ if (config.NEAR_NETWORK === 'testnet') {
     rpcUrl: evm.rpcUrl,
     chainId: config.EVM_NETWORK === 'sepolia' ? SEPOLIA_CHAIN_ID : config.EVM_CHAIN_ID,
   });
+  // The blind trust prototype (Labs), where `pnpm trust:deploy` has deployed it.
+  world.trust = loadTrustDeployment(config.DEPLOYMENTS_DIR);
   // Pruned testnet nodes do not serve block 0, so the world is named by its registry.
   worldId = `testnet:${deployment.registry}`;
   stopChains = () => evm.stop();
@@ -70,10 +76,18 @@ if (config.NEAR_NETWORK === 'testnet') {
   const chains = await startLocalChains(config);
   worldId = await new NearClient(chains.near.rpcUrl).genesisHash();
   log('deploying contracts and seeding the local world');
-  world = await bootstrapLocalWorld(chains, identityOnlyEnclave(config, db), config.EVM_CHAIN_ID);
+  const enclaveIdentity = identityOnlyEnclave(config, db);
+  world = await bootstrapLocalWorld(chains, enclaveIdentity, config.EVM_CHAIN_ID);
+  // The blind trust prototype (Labs) on the same local world.
+  world.trust = await bootstrapTrustWorld(
+    new NearClient(chains.near.rpcUrl),
+    world,
+    await enclaveIdentity.identity(),
+  );
   stopChains = () => chains.stop();
 }
 const freshWorld = await saveWorld(db, worldId, world);
+if (world.trust) await seedTrustMarket(db, world.trust);
 const e = createEngine(config, db, world, log);
 // DBOS resumes any workflow an earlier process of this same world left unfinished. A new world
 // (new genesis) starts with no workflow history: the old one acted on a chain that is gone.
@@ -83,6 +97,7 @@ await launchDurable(e, {
   logLevel: config.DBOS_LOG_LEVEL,
 });
 const worker = startWorker(e);
+const stopTrustWorker = startTrustWorker(e);
 
 const server = serve(
   { fetch: createApp(e).fetch, port: config.API_PORT, hostname: config.API_HOST },
@@ -98,6 +113,7 @@ async function shutdown() {
   // A job can be waiting on a chain call (an MPC signature); shutdown must not wait for it.
   const within = (p: Promise<unknown>, ms: number) =>
     Promise.race([p, new Promise((r) => setTimeout(r, ms))]);
+  stopTrustWorker();
   await within(worker.stop(), 5_000);
   await within(shutdownDurable(), 5_000);
   await within(stopChains(), 20_000);

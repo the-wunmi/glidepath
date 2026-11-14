@@ -1,9 +1,15 @@
 import { existsSync } from 'node:fs';
+import { isAbsolute, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
 
 /** The repo's .data directory, whatever the working directory of the process. */
 export const REPO_DATA_DIR = fileURLToPath(new URL('../../../.data', import.meta.url));
+const REPO_ROOT = fileURLToPath(new URL('../../../', import.meta.url));
+
+/** A DATA_DIR as the app uses it: relative paths are taken from the repo root, not the cwd. */
+export const resolveDataDir = (dir: string): string =>
+  isAbsolute(dir) ? dir : resolve(REPO_ROOT, dir);
 
 export const LOCAL_DATABASE_URL = 'postgres://salesplans:salesplans@localhost:5437/salesplans';
 
@@ -99,8 +105,8 @@ export const Config = z.object({
   /** Requests per second to any one public endpoint. */
   NEAR_RPC_MAX_PER_SECOND: z.coerce.number().positive().default(8),
   /** The account that relays enclave-signed requests and, on testnet, acts as the demo founder. */
-  RELAYER_ACCOUNT_ID: z.string().optional(),
-  RELAYER_PRIVATE_KEY: z.string().optional(),
+  RELAYER_ACCOUNT_ID: unsetIfEmpty(z.string().optional()),
+  RELAYER_PRIVATE_KEY: unsetIfEmpty(z.string().optional()),
   DEPLOYMENTS_DIR: z.string().default(REPO_DEPLOYMENTS_DIR),
 
   EVM_NETWORK: EvmNetwork,
@@ -109,24 +115,28 @@ export const Config = z.object({
   EVM_CHAIN_ID: z.coerce.number().int().default(31337),
   /** Sepolia only (local uses its own node). */
   EVM_RPC_URL: z.string().default('https://ethereum-sepolia-rpc.publicnode.com'),
-  EVM_RPC_FALLBACK_URLS: z.string().default('https://1rpc.io/sepolia'),
-  /** Sepolia only: the endpoint visitors' reads (/rpc/evm, next addresses) use; default EVM_RPC_URL. */
+  EVM_RPC_FALLBACK_URLS: z
+    .string()
+    .default('https://1rpc.io/sepolia,https://sepolia.gateway.tenderly.co,https://0xrpc.io/sep'),
+  /** Sepolia only: tried first for visitors' reads (/rpc/evm, next addresses), then EVM_RPC_URL's list. */
   EVM_PROXY_RPC_URL: unsetIfEmpty(z.string().url().optional()),
   /**
    * Sepolia only: pays for token deployments and each plan address's gas. The launchpad key that
    * deploys tokens is derived from it.
    */
-  EVM_FUNDER_PRIVATE_KEY: z
-    .string()
-    .regex(/^0x[0-9a-fA-F]{64}$/)
-    .optional(),
+  EVM_FUNDER_PRIVATE_KEY: unsetIfEmpty(
+    z
+      .string()
+      .regex(/^0x[0-9a-fA-F]{64}$/)
+      .optional(),
+  ),
 
   /** 1Click has no testnet: `live` is mainnet only and refused on testnet. */
   ONECLICK_MODE: Mode,
   ONECLICK_BASE_URL: z.string().default('https://1click.chaindefuser.com'),
-  ONECLICK_JWT: z.string().optional(),
+  ONECLICK_JWT: unsetIfEmpty(z.string().optional()),
   /** Overrides 1Click's published quote key in live mode (default: ONECLICK_LIVE_QUOTE_KEY). */
-  ONECLICK_QUOTE_KEY: z.string().optional(),
+  ONECLICK_QUOTE_KEY: unsetIfEmpty(z.string().optional()),
 
   /**
    * Tokens priced from Binance and Coinbase (keyless), as `SYMBOL:PAIR` pairs. Any other token (a
@@ -154,8 +164,12 @@ export const Config = z.object({
   SETTLE_IN_DOUBT_SECONDS: z.coerce.number().int().min(1).default(600),
   /** EVM blocks an MPC-signed transfer may sit unmined before the engine re-signs it with higher fees. */
   EVM_STUCK_BLOCKS: z.coerce.number().int().min(1).default(12),
-  /** Directory for local, non-chain state (the simulated enclave hardware secret). */
-  DATA_DIR: z.string().default(REPO_DATA_DIR),
+  /**
+   * Directory for local, non-chain state (the simulated enclave hardware secret). A relative path is
+   * taken from the repo root, so the API (run from apps/api) and the scripts (run from the root)
+   * share one secret.
+   */
+  DATA_DIR: z.string().default(REPO_DATA_DIR).transform(resolveDataDir),
 });
 export type Config = z.output<typeof Config>;
 
@@ -195,16 +209,20 @@ export function liveModeProblems(c: Config): string[] {
 }
 
 /**
- * Unless ENCLAVE_BACKEND is set, a production server on testnet with an OutLayer deployment record
- * uses the real enclave; development, tests and the local world use the simulator, since every
+ * Unless ENCLAVE_BACKEND is set, a production server on testnet uses the real enclave (and needs its
+ * OutLayer deployment record); development, tests and the local world use the simulator, since every
  * OutLayer run spends testnet NEAR.
  */
 export function loadConfig(env: Record<string, string | undefined> = process.env): Config {
   const parsed = Config.parse(env);
   if (env.ENCLAVE_BACKEND) return parsed;
-  const outlayerReady =
-    env.NODE_ENV === 'production' &&
-    parsed.NEAR_NETWORK === 'testnet' &&
-    existsSync(`${parsed.DEPLOYMENTS_DIR}/outlayer-testnet.json`);
-  return outlayerReady ? { ...parsed, ENCLAVE_BACKEND: 'outlayer' } : parsed;
+  const productionTestnet = env.NODE_ENV === 'production' && parsed.NEAR_NETWORK === 'testnet';
+  if (!productionTestnet) return parsed;
+  // A public server must never fall back to the simulator unnoticed: without the OutLayer record
+  // it refuses to start unless ENCLAVE_BACKEND=simulated is set on purpose.
+  if (!existsSync(`${parsed.DEPLOYMENTS_DIR}/outlayer-testnet.json`))
+    throw new Error(
+      `No ${parsed.DEPLOYMENTS_DIR}/outlayer-testnet.json: run pnpm outlayer:enclave, or set ENCLAVE_BACKEND=simulated to run the labelled simulator`,
+    );
+  return { ...parsed, ENCLAVE_BACKEND: 'outlayer' };
 }

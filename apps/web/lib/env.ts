@@ -46,7 +46,7 @@ export function explorer(meta: Meta | null): Explorer {
 
 /** Why each simulated part is simulated, said once wherever it is used. */
 const SIM_REASONS = {
-  enclave: 'OutLayer’s TEE workers run only on mainnet',
+  enclave: 'this server runs the local stand-in; the live site uses OutLayer’s TDX workers',
   oneclick: '1Click has no testnet',
   chainSignatures: 'a stand-in signer on the local chain',
 } as const;

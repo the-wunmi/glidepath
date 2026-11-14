@@ -180,6 +180,11 @@ export const newSaltHex = (): string => bytesToHex(crypto.getRandomValues(new Ui
 
 const pct = (bps: number) => `${(bps / 100).toFixed(bps % 100 === 0 ? 0 : 2)}%`;
 const day = (iso: string) => iso.slice(0, 10);
+/** A plan's start and end: dates, or UTC times as well when both fall on the same day. */
+const span = (start: string, end: string): [string, string] =>
+  day(start) === day(end)
+    ? [`${start.slice(0, 16).replace('T', ' ')} UTC`, `${end.slice(0, 16).replace('T', ' ')} UTC`]
+    : [day(start), day(end)];
 
 export function gapText(minutes: number): string {
   if (minutes > 0 && minutes % 1440 === 0)
@@ -200,6 +205,7 @@ export function describePlan(plan: SealedPlan): string[] {
   const l = planLimits(plan);
   const sym = plan.token.symbol;
   const d = plan.token.decimals;
+  const [from, to] = span(plan.start, plan.end);
   return [
     `Sell at most ${pct(plan.max_sell_per_period_bps)} of the ${formatAmount(plan.allocation, d)} ${sym} allocation every ${plan.period_days} days (${formatAmount(l.perPeriod, d)} ${sym}).`,
     `No single sale is larger than ${formatAmount(l.perTx, d)} ${sym} (${pct(plan.max_sell_per_tx_bps)}).`,
@@ -207,7 +213,7 @@ export function describePlan(plan: SealedPlan): string[] {
     `Sales happen at random times, ${gapText(plan.schedule.min_gap_minutes)} to ${gapText(plan.schedule.max_gap_minutes)} apart.`,
     `Prices from ${plan.price_sources.join(', ')} must agree within ${pct(plan.price_agreement_bps)}, or the sale waits.`,
     `Proceeds go to ${plan.beneficiary.near_account} as ${plan.beneficiary.asset}.`,
-    `Runs from ${day(plan.start)} to ${day(plan.end)}; anything left then goes to the beneficiary.`,
+    `Runs from ${from} to ${to}; anything left then goes to the beneficiary.`,
   ];
 }
 

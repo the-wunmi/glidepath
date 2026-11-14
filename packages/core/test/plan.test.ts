@@ -61,6 +61,14 @@ describe('sealed plan', () => {
     const lines = describePlan(plan);
     expect(lines[0]).toContain('2% of the 10,000,000 ACME allocation every 30 days');
     expect(lines[3]).toContain('6 hours to 4 days apart');
+    expect(lines[6]).toMatch(/^Runs from \d{4}-\d{2}-\d{2} to \d{4}-\d{2}-\d{2};/);
+  });
+
+  it('gives times as well when a plan starts and ends on the same day', () => {
+    const short = { ...plan, start: '2026-11-14T09:39:00.000Z', end: '2026-11-14T13:00:00.000Z' };
+    expect(describePlan(short)[6]).toContain(
+      'Runs from 2026-11-14 09:39 UTC to 2026-11-14 13:00 UTC;',
+    );
   });
 
   it('commits to the plan and the salt, independent of key order', () => {

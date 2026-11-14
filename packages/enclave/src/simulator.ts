@@ -43,6 +43,7 @@ import type { QuoteRequest, QuoteResponse } from '@vsp/oneclick';
 import {
   checkMarket,
   deferSale,
+  handoverState,
   initialState,
   type PlanState,
   proposeSale,
@@ -94,21 +95,28 @@ const Inflight = z.object({
   expiresAtMs: z.int(),
 });
 
-const PlanRecord = z.object({
+const Terms = z.object({
   plan: SealedPlan,
   salt: z.string(),
   commitment: z.string(),
   envelope: EnvelopeSchema,
+});
+
+const PlanRecord = Terms.extend({
   state: StateJson,
   inflight: Inflight.nullable(),
-  staged: z
-    .object({
-      plan: SealedPlan,
-      salt: z.string(),
-      commitment: z.string(),
-      envelope: EnvelopeSchema,
-    })
-    .nullable(),
+  staged: Terms.nullable(),
+  /**
+   * Set when this enclave takes over a plan another build accepted, through a change sealed to it.
+   * Until the change applies, the terms and state are placeholders; `appliedAtMs` is when this
+   * enclave first saw it applied.
+   */
+  handover: z.object({ appliedAtMs: z.int().nullable() }).nullable().default(null),
+  /**
+   * The registry's `next_seq` when this record last looked; sales it did not sign (another build
+   * standing in) are then counted from the registry. Records from before backups have none.
+   */
+  seenSeq: z.int().nullable().default(null),
 });
 type PlanRecord = z.output<typeof PlanRecord>;
 
@@ -253,6 +261,8 @@ export class SimulatedEnclave implements Enclave {
     return this.cachedIdentity;
   }
 
+  private signingKeyText = () => formatNearKey('ed25519', ed25519.getPublicKey(this.signingSecret));
+
   private sign(domain: string, json: string): SignedMessage {
     return {
       json,
@@ -359,6 +369,8 @@ export class SimulatedEnclave implements Enclave {
       state,
       inflight: null,
       staged: null,
+      handover: null,
+      seenSeq: plan.next_seq,
     });
     const now = await this.options.host.chainTimeMs();
     return { ok: true, ack: this.ack(plan, plan.commitment, envelope, now) };
@@ -383,15 +395,25 @@ export class SimulatedEnclave implements Enclave {
     const change = plan.pending_change;
     if (change?.kind !== 'modify' || !change.commitment || !change.envelope)
       return { ok: false, reasons: ['No plan change is pending on-chain'] };
-    const record = await this.load(plan.id);
-    if (!record) return { ok: false, reasons: ['The enclave does not hold this plan'] };
     const envelope = parseInput(EnvelopeSchema, change.envelope);
     const opened = this.openForPlan(plan, box, { commitment: change.commitment, envelope });
     if (!opened.ok) return { ok: false, reasons: opened.reasons };
-    await this.save(plan.id, {
-      ...record,
-      staged: { plan: opened.plan, salt: opened.salt, commitment: change.commitment, envelope },
-    });
+    const staged = {
+      plan: opened.plan,
+      salt: opened.salt,
+      commitment: change.commitment,
+      envelope,
+    };
+    // With no record of its own, this enclave takes over a plan another build accepted.
+    const record = (await this.load(plan.id)) ?? {
+      ...staged,
+      state: fromState(initialState(opened.plan, this.random)),
+      inflight: null,
+      staged: null,
+      handover: { appliedAtMs: null },
+      seenSeq: null,
+    };
+    await this.save(plan.id, { ...record, staged });
     return { ok: true, reasons: [] };
   }
 
@@ -407,16 +429,17 @@ export class SimulatedEnclave implements Enclave {
 
     // A staged change the chain has now applied becomes the plan the enclave follows.
     if (record.staged && plan.commitment === record.staged.commitment) {
-      record = { ...record, ...record.staged, staged: null, inflight: null };
+      record = {
+        ...record,
+        ...record.staged,
+        staged: null,
+        inflight: null,
+        handover: record.handover && { appliedAtMs: record.handover.appliedAtMs ?? now },
+      };
       await this.save(plan.id, record);
     }
-    if (plan.commitment !== record.commitment)
-      return {
-        type: 'idle',
-        reason: 'The on-chain commitment is not the sealed plan',
-        untilMs: null,
-      };
 
+    // Before the commitment check: an enclave taking a plan over holds only the staged terms.
     const change = plan.pending_change;
     if (
       record.staged &&
@@ -429,24 +452,49 @@ export class SimulatedEnclave implements Enclave {
         ack: this.ack(plan, record.staged.commitment, record.staged.envelope, now),
       };
     }
+    if (plan.commitment !== record.commitment)
+      return {
+        type: 'idle',
+        reason: 'The on-chain commitment is not the sealed plan',
+        untilMs: null,
+      };
+
+    if (record.handover?.appliedAtMs != null) {
+      // The previous build may have signed a sale just before the change applied; it can land
+      // until its request expires. Counting starts from the registry only after that.
+      const countFrom = record.handover.appliedAtMs + REQUEST_TTL_MS;
+      if (now < countFrom)
+        return { type: 'idle', reason: 'Taking the plan over', untilMs: countFrom };
+      record = {
+        ...record,
+        state: fromState(handoverState(record.plan, plan, this.random)),
+        handover: null,
+      };
+      await this.save(plan.id, record);
+    }
 
     // Settle what happened to the last signed request using the chain, not the host's word.
     let state = toState(record.state);
+    let ownLanded = 0;
     if (record.inflight) {
       const inflight = record.inflight;
       if (plan.next_seq > inflight.seq) {
         const receipt = await host.receipt(plan.id, inflight.seq);
-        state =
-          receipt && receipt.status !== 'failed'
-            ? recordSale(
-                record.plan,
-                state,
-                BigInt(inflight.amount),
-                inflight.periodIndex,
-                inflight.issuedAtMs,
-                this.random,
-              )
-            : deferSale(record.plan, state, now, this.random);
+        const landed =
+          !!receipt &&
+          receipt.status !== 'failed' &&
+          (receipt.enclave_key ?? this.signingKeyText()) === this.signingKeyText();
+        ownLanded = landed ? 1 : 0;
+        state = landed
+          ? recordSale(
+              record.plan,
+              state,
+              BigInt(inflight.amount),
+              inflight.periodIndex,
+              inflight.issuedAtMs,
+              this.random,
+            )
+          : deferSale(record.plan, state, now, this.random);
         record = { ...record, state: fromState(state), inflight: null };
         await this.save(plan.id, record);
       } else if (now <= inflight.expiresAtMs) {
@@ -459,6 +507,16 @@ export class SimulatedEnclave implements Enclave {
         record = { ...record, inflight: null };
         await this.save(plan.id, record);
       }
+    }
+
+    // Receipts this build did not sign (another build standing in) are counted from the registry,
+    // which counts every key's sales.
+    // A record that has not tracked the registry yet (a takeover) starts now.
+    if (record.seenSeq !== plan.next_seq) {
+      if (record.seenSeq !== null && plan.next_seq > record.seenSeq + ownLanded)
+        state = handoverState(record.plan, plan, this.random);
+      record = { ...record, state: fromState(state), seenSeq: plan.next_seq };
+      await this.save(plan.id, record);
     }
 
     const balance = await host.planBalance(plan);

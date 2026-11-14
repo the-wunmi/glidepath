@@ -22,6 +22,7 @@ const FOOTER = [
   { href: '/evidence', label: 'Evidence' },
   { href: '/red-team', label: 'Red team' },
   { href: '/how-it-works', label: 'How it works' },
+  { href: '/labs', label: 'Labs' },
   { href: '/operator', label: 'Operator' },
 ];
 

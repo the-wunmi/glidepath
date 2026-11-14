@@ -35,7 +35,22 @@ export interface SignedMessage {
   enclaveKey: string;
 }
 
-export type AcceptResult = { ok: true; ack: SignedMessage } | { ok: false; reasons: string[] };
+/** The same plan sealed to a backup build's key, so that build can stand in for the main one. */
+export interface BackupBox {
+  signingKey: string;
+  box: SealedBox;
+}
+
+/** How each backup build answered when handed its copy. */
+export interface BackupOutcome {
+  signingKey: string;
+  ok: boolean;
+  reasons: string[];
+}
+
+export type AcceptResult =
+  | { ok: true; ack: SignedMessage; backups?: BackupOutcome[] }
+  | { ok: false; reasons: string[] };
 
 export type RevealResult =
   | { ok: true; planJson: string; salt: string }
@@ -57,10 +72,16 @@ export type TickResult =
 export interface Enclave {
   readonly mode: 'mock' | 'live';
   identity(): Promise<EnclaveIdentity>;
+  /** Builds that hold sealed copies of new plans and stand in when the main one cannot run. */
+  backupIdentities?(): Promise<EnclaveIdentity[]>;
   /** Opens a newly sealed plan, checks it against the on-chain commitment and envelope, acks. */
-  acceptPlan(plan: ChainPlan, box: SealedBox): Promise<AcceptResult>;
+  acceptPlan(plan: ChainPlan, box: SealedBox, backups?: BackupBox[]): Promise<AcceptResult>;
   /** Stores a changed plan; it is acked only once the on-chain cooling-off has passed. */
-  stageChange(plan: ChainPlan, box: SealedBox): Promise<{ ok: boolean; reasons: string[] }>;
+  stageChange(
+    plan: ChainPlan,
+    box: SealedBox,
+    backups?: BackupBox[],
+  ): Promise<{ ok: boolean; reasons: string[]; backups?: BackupOutcome[] }>;
   /**
    * The sealed terms and salt, released only once the chain shows the plan has ended and only
    * under the end_reveal policy. Anyone can then check them against the on-chain commitment.

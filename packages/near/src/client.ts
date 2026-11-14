@@ -121,6 +121,8 @@ export interface RpcOptions {
    * than queueing for minutes behind a flood of reads (default: unbounded).
    */
   maxWaiting?: number;
+  /** How long a request keeps trying endpoints that refuse it (default 90 s). */
+  deadlineMs?: number;
 }
 
 const rateLimited = (err: unknown) =>
@@ -129,6 +131,10 @@ const transportFailure = (err: unknown) =>
   /Internal server error|Timeout error|Bad Gateway|unavailable|fetch failed|ECONNRESET|ECONNREFUSED|ETIMEDOUT|RetriesExceeded|socket hang up/i.test(
     `${String((err as Error)?.message ?? err)} ${(err as { type?: string })?.type ?? ''}`,
   );
+
+/** Whether an RPC error means no endpoint could answer, rather than that the node answered with an error. */
+export const nearRpcUnavailable = (err: unknown): boolean =>
+  rateLimited(err) || transportFailure(err);
 
 interface Endpoint {
   url: string;
@@ -144,20 +150,21 @@ interface Endpoint {
 /**
  * A provider for public endpoints that rate-limit. Requests to one endpoint are spaced out; an
  * endpoint that answers 429 or fails at the transport rests (1 s, doubling to 30 s) while the next
- * endpoint takes the request. A request fails only after every endpoint has refused it for 90 s.
+ * endpoint takes the request. A request fails only after every endpoint has refused it for the
+ * deadline (90 s unless set).
  * Contract and protocol errors are answers and return at once. Re-sending a signed transaction
  * to another endpoint is safe: it is the same transaction, with the same hash.
  */
 class PacedProvider extends JsonRpcProvider {
   private readonly endpoints: Endpoint[];
   private readonly spacingMs: number;
-  private static readonly DEADLINE_MS = 90_000;
   private waiting = 0;
 
   constructor(
     urls: string[],
     maxPerSecond?: number,
     private readonly maxWaiting = Number.POSITIVE_INFINITY,
+    private readonly deadlineMs = 90_000,
   ) {
     super({ url: urls[0] ?? '' });
     // The library would wait up to ~30 s on a 429; here an endpoint gets two quick tries, then the
@@ -209,7 +216,7 @@ class PacedProvider extends JsonRpcProvider {
         if (!rateLimited(err) && !transportFailure(err)) throw err;
         ep.strikes++;
         ep.restUntil = Date.now() + Math.min(30_000, 1_000 * 2 ** (ep.strikes - 1));
-        if (Date.now() - started > PacedProvider.DEADLINE_MS) throw err;
+        if (Date.now() - started > this.deadlineMs) throw err;
       }
     }
   };
@@ -229,6 +236,7 @@ export class NearClient {
       [rpcUrl, ...(options.fallbackUrls ?? [])],
       options.maxPerSecond,
       options.maxWaiting,
+      options.deadlineMs,
     );
   }
 

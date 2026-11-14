@@ -5,6 +5,8 @@ members = [
   "plan-account",
   "mpc-signer-sim",
   "demo-token",
+  "btc-vault",
+  "blind-trust",
   "integration-tests",
 ]
 

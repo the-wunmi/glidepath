@@ -1,0 +1,17 @@
+[package]
+name = "blind-trust"
+description = "Glidepath blind trust (prototype): a sealed mandate, a keyless trust account, enclave-signed trades inside a public envelope, receipts."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+near-sdk.workspace = true
+
+[dev-dependencies]
+near-sdk = { workspace = true, features = ["unit-testing"] }
+ed25519-dalek = "2"

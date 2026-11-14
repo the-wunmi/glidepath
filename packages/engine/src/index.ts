@@ -7,6 +7,7 @@ export * from './plans.ts';
 export * from './reference-quote.ts';
 export * from './sim-settings.ts';
 export * from './timeline.ts';
+export * from './trusts/index.ts';
 export * from './views.ts';
 export * from './worker.ts';
 export * from './workflows.ts';

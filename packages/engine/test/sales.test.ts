@@ -297,6 +297,38 @@ describe('a sealed plan on an ERC-20 via Chain Signatures', () => {
     expect(result?.checks.find((c) => c.id === 'broadcast')?.status).toBe('pass');
   }, 300_000);
 
+  it('once it ends, the remainder is MPC-signed to the beneficiary’s address, mined and verifies', async () => {
+    const { e } = world;
+    const { planId } = await sealedPlan(e, { chain: 'evm', symbol: 'EVMR' });
+    const plan = (await e.registry.plan(planId))!;
+    if (plan.asset.type !== 'evm_erc20' || !plan.beneficiary.evm_address) throw new Error('setup');
+    const token = plan.asset.token_address as Hex;
+    const beneficiary = plan.beneficiary.evm_address as Hex;
+    const before = await e.evm.tokenBalance(token, beneficiary);
+    await requestCancel(e, OPERATOR, planId, { actor: e.world.founder });
+    await e.near.fastForward(Math.ceil(660_000 / SANDBOX_MS_PER_BLOCK));
+    await finalizePlan(e, planId);
+    const release = await until(
+      e,
+      'the release mined',
+      async () => {
+        const receipts = await e.registry.receipts(planId);
+        const r = receipts.find((x) => x.kind === 'release' && x.status === 'done');
+        const left = await planBalance(e, (await e.registry.plan(planId))!);
+        return r && left === 0n && r;
+      },
+      { planId },
+    );
+    expect(release.receiver.toLowerCase()).toBe(beneficiary.toLowerCase());
+    const after = await e.evm.tokenBalance(token, beneficiary);
+    expect(after - before).toBe(BigInt(release.amount));
+    const results = await verifyAll(planId);
+    const checked = results.find((r) => r.seq === release.seq);
+    expect(checked?.checks.filter((c) => c.status !== 'pass')).toEqual([]);
+    // Nothing is left, so a repeat is refused before any transaction.
+    await expect(finalizePlan(e, planId)).rejects.toMatchObject({ code: 'conflict' });
+  }, 400_000);
+
   it('a transfer stuck below the base fee is re-signed with higher fees and then mined', async () => {
     const { e } = world;
     const { planId } = await sealedPlan(e, { chain: 'evm', symbol: 'STUCK' });

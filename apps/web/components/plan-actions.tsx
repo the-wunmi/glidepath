@@ -1,11 +1,12 @@
 'use client';
 
-import { canonicalJson } from '@vsp/core';
+import { canonicalJson, newSaltHex, planCommitment, sealTo } from '@vsp/core';
 import Link from 'next/link';
 
 import { type FormEvent, useEffect, useId, useState } from 'react';
 import { api, errorMessage, refusalCode } from '@/lib/api';
-import { backupPlan, loadBackup, type PlanBackup, parseBackupFile } from '@/lib/backup';
+import { attestationFailure, useAttestation } from '@/lib/attestation';
+import { backupPlan, loadBackup, type PlanBackup, parseBackupFile, saveBackup } from '@/lib/backup';
 import { plainTokens, usdE6, wholeTokens } from '@/lib/builder';
 import { refusalText } from '@/lib/copy';
 import { evmChainName, explorer } from '@/lib/env';
@@ -13,6 +14,7 @@ import { DAY_MS, duration, fmtDateTime, tokens } from '@/lib/format';
 import type { AttemptResult, Meta, PlanDetail } from '@/lib/types';
 import { EnvelopeDiff } from './envelope-diff';
 import { useMeta } from './meta';
+import { PlanKeyNeeded } from './plan-key';
 import { Badge, ErrorNote, Field, Hash, Panel } from './ui';
 
 /** One result line under an action: what happened on-chain, with the tx hash. */
@@ -325,6 +327,116 @@ export function EnrollForm({ d, onDone }: { d: PlanDetail; onDone: () => void })
 export const CHANGE_LAPSE_MS = 7 * DAY_MS;
 
 /**
+ * Moves a plan from the enclave build that accepted it to the current one: the same sealed terms
+ * from this browser's backup, under a new salt, sealed to the current build as a plan change. It
+ * cools off like any change; the current build then acks it and runs the plan.
+ */
+export function MoveEnclavePanel({
+  d,
+  meta,
+  canManage,
+  onDone,
+  onWriteTerms,
+}: {
+  d: PlanDetail;
+  meta: Meta;
+  canManage: boolean;
+  onDone: () => void;
+  /** Opens the change form, for an owner whose browser has no copy of the terms. */
+  onWriteTerms: () => void;
+}) {
+  const uid = useId();
+  const p = d.plan;
+  const [backup, setBackup] = useState<PlanBackup | null | undefined>(undefined);
+  const { result: attestation, error: attestationError } = useAttestation(meta);
+  const { busy, error, run } = useAction();
+  useEffect(() => setBackup(loadBackup(p.id, p.commitment)), [p.id, p.commitment]);
+  const plan = backupPlan(backup ?? null);
+  const attestationNote = attestationError
+    ? 'The current enclave’s attestation could not be checked, so nothing is sealed to it yet.'
+    : attestation && !attestation.ok
+      ? attestationFailure(attestation.checks)
+      : null;
+
+  async function move() {
+    if (!plan || !attestation?.ok) return;
+    const salt = newSaltHex();
+    const terms = JSON.parse(canonicalJson(plan));
+    const commitment = planCommitment(plan, salt);
+    // Kept first: the owner's copy of the new commitment must outlive a lost response.
+    saveBackup(p.id, {
+      kind: 'verified-sales-plan-backup',
+      commitment,
+      salt,
+      plan: terms,
+      envelope: p.envelope,
+      created_at: new Date().toISOString(),
+    });
+    const r = await run(() =>
+      api(`/api/plans/${p.id}/change`, {
+        planId: p.id,
+        body: {
+          actor: p.owner,
+          commitment,
+          envelope: p.envelope,
+          sealed_box: sealTo(meta.enclave.encryptionKeyHex, JSON.stringify({ plan: terms, salt })),
+        },
+      }),
+    );
+    if (r) onDone();
+  }
+
+  return (
+    <section className="panel border-accent/50 px-5 py-4" aria-labelledby={`${uid}-title`}>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0 max-w-[68ch]">
+          <h2 id={`${uid}-title`} className="font-semibold">
+            This plan runs on an earlier enclave build
+          </h2>
+          <p className="mt-0.5 text-sm text-ink-2">
+            The build that accepted it still sells under the sealed terms. Moving re-seals the same
+            terms to the current build as a plan change: public at once, applied after the
+            cooling-off, then sold by the current build.
+          </p>
+        </div>
+        {canManage && plan && (
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled={busy || !attestation?.ok}
+            onClick={() => void move()}
+          >
+            {busy ? 'Sealing…' : 'Move to the current enclave'}
+          </button>
+        )}
+      </div>
+      {!canManage ? (
+        <div className="mt-3">
+          <PlanKeyNeeded planId={p.id} />
+        </div>
+      ) : backup === null || (backup !== undefined && !plan) ? (
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <p className="text-sm text-ink-2">
+            This browser has no copy of the plan’s terms to re-seal. Writing the same terms again as
+            a plan change moves it too.
+          </p>
+          <button type="button" className="btn btn-secondary btn-sm" onClick={onWriteTerms}>
+            Write the terms again
+          </button>
+        </div>
+      ) : (
+        attestationNote && <p className="mt-2 text-sm text-fail">{attestationNote}</p>
+      )}
+      {error && (
+        <div className="mt-3">
+          <ErrorNote error={error} />
+        </div>
+      )}
+    </section>
+  );
+}
+
+/**
  * Where a pending change or cancellation stands. Once the cooling-off is over, a change still needs
  * the enclave to apply it; until then the current plan keeps running.
  */
@@ -519,6 +631,20 @@ export function finalizeReady(d: PlanDetail, chainNow: number | null): boolean {
   );
 }
 
+/** An ended plan whose account or address still holds tokens; for an ERC-20, its release has not been mined yet. */
+export function releaseOwed(d: PlanDetail): boolean {
+  return d.plan.status === 'ended' && !!d.balance && BigInt(d.balance) > 0n;
+}
+
+/** The latest receipt is a release, so the transfer is being signed or sent right now. */
+function releaseInFlight(d: PlanDetail): boolean {
+  const latest = d.receipts.reduce<PlanDetail['receipts'][number] | null>(
+    (a, r) => (!a || r.seq > a.seq ? r : a),
+    null,
+  );
+  return releaseOwed(d) && latest?.kind === 'release' && latest.status !== 'failed';
+}
+
 export function FinalizeControl({
   d,
   chainNow,
@@ -532,33 +658,51 @@ export function FinalizeControl({
   prominent?: boolean;
 }) {
   const { busy, error, run } = useAction();
-  const [tx, setTx] = useState<string | null>(null);
+  const [done, setDone] = useState<{ txHash: string | null } | null>(null);
   const p = d.plan;
   const ready = finalizeReady(d, chainNow);
+  const owed = releaseOwed(d);
   const finalize = async () => {
     const r = await run(() =>
-      api<{ txHash: string }>(`/api/plans/${d.plan.id}/finalize`, { body: {} }),
+      api<{ txHash: string | null }>(`/api/plans/${d.plan.id}/finalize`, { body: {} }),
     );
     if (r) {
-      setTx(r.txHash);
+      setDone(r);
       onDone();
     }
   };
+  if (prominent && owed && releaseInFlight(d))
+    return (
+      <section className="panel px-5 py-4" role="status">
+        <h2 className="font-semibold">Releasing the remaining tokens</h2>
+        <p className="mt-0.5 max-w-[62ch] text-sm text-ink-2">
+          The registry asked the MPC network to sign one transfer of what is left to the
+          beneficiary’s address. It is sent as soon as it is signed.
+        </p>
+      </section>
+    );
   if (prominent)
     return (
       <section className="panel flex flex-wrap items-center justify-between gap-4 border-accent/50 px-5 py-4">
         <div className="max-w-[62ch]">
-          <h2 className="font-semibold">Next: finalize the plan</h2>
+          <h2 className="font-semibold">
+            {owed ? 'Next: release the remaining tokens' : 'Next: finalize the plan'}
+          </h2>
           <p className="mt-0.5 text-sm text-ink-2">
-            {p.pending_change?.kind === 'cancel'
-              ? 'The cancellation is in force.'
-              : 'The plan’s end date has passed.'}{' '}
-            Finalizing releases whatever is left to the beneficiary and closes the plan.
+            {owed
+              ? 'The plan has ended, and its address still holds tokens. Releasing has the registry sign one transfer of them to the beneficiary. Anyone may do this.'
+              : `${p.pending_change?.kind === 'cancel' ? 'The cancellation is in force.' : 'The plan’s end date has passed.'} Finalizing releases whatever is left to the beneficiary and closes the plan.`}
           </p>
           {error && <p className="mt-2 text-xs text-fail">{error}</p>}
         </div>
         <button type="button" className="btn btn-primary" disabled={busy} onClick={finalize}>
-          {busy ? 'Finalizing…' : 'Finalize plan'}
+          {busy
+            ? owed
+              ? 'Releasing…'
+              : 'Finalizing…'
+            : owed
+              ? 'Release to the beneficiary'
+              : 'Finalize plan'}
         </button>
       </section>
     );
@@ -585,7 +729,7 @@ export function FinalizeControl({
       </button>
       {!ready && <p className="hint mt-1">{why}</p>}
       {error && <p className="mt-2 text-xs text-fail">{error}</p>}
-      {tx && <Outcome tone="pass" text="Finalized." txHash={tx} />}
+      {done && <Outcome tone="pass" text="Finalized." txHash={done.txHash ?? undefined} />}
     </div>
   );
 }

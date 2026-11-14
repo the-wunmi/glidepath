@@ -11,6 +11,8 @@ import {
   plans,
   simOneClickQuotes,
   simSettings,
+  trusts,
+  trustTrades,
   world,
 } from '@vsp/db';
 import type { Enclave } from '@vsp/enclave';
@@ -28,6 +30,7 @@ import { simulatorPublicKey } from '@vsp/oneclick';
 import { eq, like } from 'drizzle-orm';
 import type { Config } from './config.ts';
 import { defaultSimSettings } from './sim-settings.ts';
+import type { TrustWorld } from './trusts/world.ts';
 
 /**
  * The accounts the engine works with. On the local network every key is a throwaway sandbox key;
@@ -63,6 +66,8 @@ export interface WorldConfig {
    * deploys the code.
    */
   demoTokenCodeHash?: string | null;
+  /** The blind trust prototype's contract and tokens (Labs); absent where it is not deployed. */
+  trust?: TrustWorld | null;
 }
 
 const WASM = (name: string) =>
@@ -333,6 +338,9 @@ export async function saveWorld(
       await tx.delete(executions);
       // The enclave's own identity survives; only per-plan state belonged to the old chain.
       await tx.delete(enclaveStore).where(like(enclaveStore.key, 'plan:%'));
+      await tx.delete(trusts);
+      await tx.delete(trustTrades);
+      await tx.delete(enclaveStore).where(like(enclaveStore.key, 'trust:%'));
       await tx.delete(simOneClickQuotes);
       await tx.delete(activity);
       // The caps count spending on a chain that is gone (always the local sandbox).

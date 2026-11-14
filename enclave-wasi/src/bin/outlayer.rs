@@ -28,6 +28,25 @@ static OUTLAYER_MANIFEST: [u8; MANIFEST.len()] = {
 /// time, so the host cannot substitute quotes of its own and the key is part of the wasm hash.
 const QUOTE_SIGNER_KEY: &str = env!("VSP_QUOTE_SIGNER_KEY");
 
+/// Which build of the same code this is: the main one, or a backup that holds its own sealed copy
+/// of each plan and stands in when the main one cannot run. A different slot is a different wasm,
+/// so the keystore gives it its own keys.
+#[used]
+#[link_section = "vsp.build_slot"]
+static BUILD_SLOT: [u8; SLOT.len()] = {
+    let mut out = [0u8; SLOT.len()];
+    let mut i = 0;
+    while i < SLOT.len() {
+        out[i] = SLOT[i];
+        i += 1;
+    }
+    out
+};
+const SLOT: &[u8] = match option_env!("VSP_BUILD_SLOT") {
+    Some(s) => s.as_bytes(),
+    None => b"main",
+};
+
 mod signing {
     wit_bindgen::generate!({ world: "signing-keys-host", path: "wit/signing" });
 }

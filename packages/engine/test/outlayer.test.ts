@@ -1,4 +1,3 @@
-import { execFileSync, spawnSync } from 'node:child_process';
 import { ed25519 } from '@noble/curves/ed25519.js';
 import {
   base58Encode,
@@ -20,51 +19,40 @@ import type { ChainPlan } from '@vsp/near';
 import type { QuoteResponse } from '@vsp/oneclick';
 import { beforeAll, describe, expect, it } from 'vitest';
 import {
+  type HeldRecord,
   noSalePossible,
+  type OutLayerBuild,
+  type OutLayerDeployment,
   OutLayerEnclave,
   type OutLayerStore,
-  type RunResult,
 } from '../src/outlayer.ts';
+import {
+  buildLocalModule,
+  type LocalBuild,
+  type LocalRun,
+  localBuild,
+  localClient,
+  localDeployment,
+  localDeploymentWithBackups,
+} from './local-enclave.ts';
 
 /**
- * The OutLayer adapter against the module's own code: `vsp-enclave-local` runs the same
- * operations as the OutLayer build (enclave-wasi/src/enclave.rs) with keys from a local seed
- * instead of the keystore, so these tests exercise the real request and record formats.
+ * The OutLayer adapter against the module's own code (see local-enclave.ts), so these tests
+ * exercise the real request and record formats.
  */
-const crate = new URL('../../../enclave-wasi/', import.meta.url).pathname;
-const binary = `${crate}target/release/vsp-enclave-local`;
-const SEED = '11'.repeat(32);
+const SEED_A = '11'.repeat(32);
+const SEED_B = '22'.repeat(32);
 const QUOTE_SECRET = new Uint8Array(32).fill(3);
 const QUOTE_KEY = formatNearKey('ed25519', ed25519.getPublicKey(QUOTE_SECRET));
 const DAY = 86_400_000;
 
-type Run = { input: Record<string, unknown> };
-
-/** Runs the module locally the way OutLayer would: JSON on stdin, JSON on stdout. */
-function localClient(runs: Run[]) {
-  return {
-    async run<T>(input: object): Promise<RunResult<T>> {
-      runs.push({ input: input as Record<string, unknown> });
-      const inputData = JSON.stringify(input);
-      const out = spawnSync(binary, {
-        input: inputData,
-        env: { VSP_LOCAL_ENCLAVE_SEED_HEX: SEED, VSP_QUOTE_SIGNER_KEY: QUOTE_KEY },
-      });
-      const parsed = JSON.parse(out.stdout.toString()) as
-        | { ok: true; result: T }
-        | { ok: false; error: string };
-      if (!parsed.ok) throw new Error(parsed.error);
-      return { txHash: 'local', inputData, outputBytes: out.stdout, result: parsed.result };
-    },
-  };
-}
-
-function memoryStore(): OutLayerStore & { records: Map<number, string> } {
-  const records = new Map<number, string>();
+function memoryStore(): OutLayerStore & { records: Map<string, HeldRecord> } {
+  const records = new Map<string, HeldRecord>();
+  const key = (id: number, build: string | null) => `${id}:${build ?? 'legacy'}`;
   return {
     records,
-    load: async (id) => records.get(id) ?? null,
-    save: async (id, r) => void records.set(id, r),
+    load: async (id, build) => records.get(key(id, build)) ?? null,
+    save: async (id, build, held) => void records.set(key(id, build), held),
     symbol: async () => 'ACME',
     saleInFlight: async () => false,
   };
@@ -157,8 +145,11 @@ function quoteFor(request: Record<string, unknown>, nowMs: number): QuoteRespons
   return { ...response, signature: `ed25519:${base58Encode(signature)}` };
 }
 
+const deploymentOf = (current: LocalBuild, ...previous: LocalBuild[]) =>
+  localDeployment(QUOTE_KEY, current, ...previous);
+
 function harness() {
-  const runs: Run[] = [];
+  const runs: LocalRun[] = [];
   const store = memoryStore();
   let now = start - 60_000;
   const host: EnclaveHost = {
@@ -169,35 +160,48 @@ function harness() {
     quote: async (request) => quoteFor(request as unknown as Record<string, unknown>, now),
     evmFees: async () => ({ maxFeePerGas: 1n, maxPriorityFeePerGas: 1n }),
   };
-  const enclave = new OutLayerEnclave({
-    store,
-    client: localClient(runs),
-    deployment: {} as never,
-    host,
-    pollMs: 60_000,
-    log: () => {},
+  const a = localBuild(SEED_A, QUOTE_KEY);
+  const b = localBuild(SEED_B, QUOTE_KEY);
+  const local = localClient(runs, QUOTE_KEY);
+  /** Builds (by wasm hash) whose runs fail, as when OutLayer cannot run them. */
+  const down = new Set<string>();
+  /** The adapter as a server runs it with `deployment` as its record; all share one store. */
+  const enclaveFor = (deployment: OutLayerDeployment) =>
+    new OutLayerEnclave({
+      store,
+      client: {
+        run: <T>(build: OutLayerBuild, input: object) =>
+          down.has(build.wasm.sha256)
+            ? Promise.reject(new Error('The OutLayer run failed'))
+            : local.run<T>(build, input),
+      },
+      deployment,
+      host,
+      pollMs: 60_000,
+      log: () => {},
+    });
+  const sealFor = (build: LocalBuild, salt = newSaltHex()) => ({
+    salt,
+    commitment: planCommitment(sealed as never, salt),
+    box: sealTo(
+      build.encryptionKeyHex,
+      JSON.stringify({ plan: JSON.parse(canonicalJson(sealed)), salt }),
+    ),
   });
-  const keyProof = JSON.parse(
-    JSON.parse(
-      spawnSync(binary, {
-        input: '{"op":"key_proof"}',
-        env: { VSP_LOCAL_ENCLAVE_SEED_HEX: SEED, VSP_QUOTE_SIGNER_KEY: QUOTE_KEY },
-      }).stdout.toString(),
-    ).result.json,
-  ) as { signing_key: string; encryption_key_hex: string };
-  const salt = newSaltHex();
-  const commitment = planCommitment(sealed as never, salt);
-  const box = sealTo(
-    keyProof.encryption_key_hex,
-    JSON.stringify({ plan: JSON.parse(canonicalJson(sealed)), salt }),
-  );
+  const first = sealFor(a);
   return {
     runs,
     store,
-    enclave,
-    box,
-    commitment,
-    signingKey: keyProof.signing_key,
+    down,
+    a,
+    b,
+    enclaveFor,
+    sealFor,
+    /** Build A alone: the deployment before build B was published. */
+    enclave: enclaveFor(deploymentOf(a)),
+    box: first.box,
+    commitment: first.commitment,
+    signingKey: a.signingKey,
     advance: (ms: number) => {
       now += ms;
       return now;
@@ -205,20 +209,220 @@ function harness() {
   };
 }
 
+/** Ticks a minute apart until the enclave signs a sale. */
+async function untilSale(h: ReturnType<typeof harness>, enclave: OutLayerEnclave, plan: ChainPlan) {
+  for (let i = 0; i < 30; i++) {
+    const out = await enclave.tick(plan);
+    if (out.type === 'execute') return out;
+    h.advance(60_000);
+  }
+  throw new Error('No sale within 30 minutes of a 1–3 minute schedule');
+}
+
 describe('the OutLayer enclave adapter', () => {
-  beforeAll(() => {
-    execFileSync(
-      `${process.env.HOME}/.cargo/bin/cargo`,
-      ['build', '--release', '--bin', 'vsp-enclave-local'],
-      { cwd: crate, stdio: 'ignore' },
-    );
-  });
+  beforeAll(buildLocalModule);
 
   it('a plan it never accepted costs no OutLayer run', async () => {
     const h = harness();
     const out = await h.enclave.tick(chainPlan(h.commitment, 'active'));
     expect(out.type).toBe('idle');
     expect(h.runs).toHaveLength(0);
+  });
+
+  it('a plan another enclave key accepted costs no run, even with its record in the store', async () => {
+    const h = harness();
+    await h.enclave.acceptPlan(chainPlan(h.commitment, 'awaiting_ack'), h.box);
+    const before = h.runs.length;
+    h.advance(60_000);
+    const elsewhere = {
+      ...chainPlan(h.commitment, 'active'),
+      acked_by: 'ed25519:11111111111111111111111111111111',
+    };
+    expect(await h.enclave.tick(elsewhere)).toMatchObject({ type: 'idle' });
+    expect(h.runs).toHaveLength(before);
+  });
+
+  it('a plan an earlier build accepted keeps running on that build’s wasm and key', async () => {
+    const h = harness();
+    await h.enclave.acceptPlan(chainPlan(h.commitment, 'awaiting_ack'), h.box);
+    // Build B is published; A's plan stays with A.
+    const both = h.enclaveFor(deploymentOf(h.b, h.a));
+    const active = { ...chainPlan(h.commitment, 'active'), acked_by: h.a.signingKey };
+    h.advance(60_000);
+    const before = h.runs.length;
+    const sale = await untilSale(h, both, active);
+    expect(sale.request.enclaveKey).toBe(h.a.signingKey);
+    expect(new Set(h.runs.slice(before).map((r) => r.build))).toEqual(new Set([SEED_A]));
+  });
+
+  it('new plans go to the current build, and a build with no plans due costs nothing', async () => {
+    const h = harness();
+    const both = h.enclaveFor(deploymentOf(h.b, h.a));
+    const fresh = h.sealFor(h.b);
+    const accepted = await both.acceptPlan(chainPlan(fresh.commitment, 'awaiting_ack'), fresh.box);
+    expect(accepted.ok && accepted.ack.enclaveKey).toBe(h.b.signingKey);
+    expect(h.runs.map((r) => r.build)).toEqual([SEED_B]);
+    // Before the start, no sale can be due: neither build runs.
+    const active = { ...chainPlan(fresh.commitment, 'active'), acked_by: h.b.signingKey };
+    expect(await both.tick(active)).toMatchObject({ type: 'idle' });
+    expect(h.runs).toHaveLength(1);
+  });
+
+  it('a backup build holds its own copy and sells while the main build’s runs keep failing', async () => {
+    const h = harness();
+    const withBackup = h.enclaveFor(localDeploymentWithBackups(QUOTE_KEY, h.a, [h.b]));
+    const salt = newSaltHex();
+    const main = h.sealFor(h.a, salt);
+    const copy = h.sealFor(h.b, salt);
+    const accepted = await withBackup.acceptPlan(
+      chainPlan(main.commitment, 'awaiting_ack'),
+      main.box,
+      [{ signingKey: h.b.signingKey, box: copy.box }],
+    );
+    expect(accepted.ok && accepted.ack.enclaveKey).toBe(h.a.signingKey);
+    expect(accepted.ok && accepted.backups).toEqual([
+      { signingKey: h.b.signingKey, ok: true, reasons: [] },
+    ]);
+
+    const active = { ...chainPlan(main.commitment, 'active'), acked_by: h.a.signingKey };
+    h.down.add(SEED_A);
+    h.advance(60_000);
+    // One failed run is retried on the main build next time; a second in a row fails over.
+    await expect(withBackup.tick(active)).rejects.toThrow('The OutLayer run failed');
+    h.advance(60_000);
+    const sale = await untilSale(h, withBackup, active);
+    expect(sale.request.enclaveKey).toBe(h.b.signingKey);
+
+    // The main build is back: within the probe interval sales stay on the backup; after it, the
+    // main build runs the plan again.
+    h.down.delete(SEED_A);
+    h.advance(31 * 60_000);
+    const before = h.runs.length;
+    const back = await untilSale(h, withBackup, active);
+    expect(back.request.enclaveKey).toBe(h.a.signingKey);
+    expect(h.runs.slice(before).some((r) => r.build === SEED_A)).toBe(true);
+  });
+
+  it('a backup that does not follow the plan’s current commitment never stands in', async () => {
+    const h = harness();
+    const withBackup = h.enclaveFor(localDeploymentWithBackups(QUOTE_KEY, h.a, [h.b]));
+    const salt = newSaltHex();
+    const main = h.sealFor(h.a, salt);
+    const copy = h.sealFor(h.b, salt);
+    await withBackup.acceptPlan(chainPlan(main.commitment, 'awaiting_ack'), main.box, [
+      { signingKey: h.b.signingKey, box: copy.box },
+    ]);
+    // The plan has since changed, and the backup was not given the change.
+    const changed = {
+      ...chainPlan('ef'.repeat(32), 'active'),
+      acked_by: h.a.signingKey,
+    };
+    h.down.add(SEED_A);
+    for (let i = 0; i < 3; i++) {
+      h.advance(60_000);
+      await expect(withBackup.tick(changed)).rejects.toThrow('The OutLayer run failed');
+    }
+    expect(h.runs.some((r) => r.build === SEED_B && r.input.op === 'tick')).toBe(false);
+  });
+
+  it('a copy sealed for a key that is not one of this enclave’s backups is reported, not run', async () => {
+    const h = harness();
+    const withBackup = h.enclaveFor(localDeploymentWithBackups(QUOTE_KEY, h.a, [h.b]));
+    const main = h.sealFor(h.a);
+    const accepted = await withBackup.acceptPlan(
+      chainPlan(main.commitment, 'awaiting_ack'),
+      main.box,
+      [{ signingKey: 'ed25519:stranger', box: main.box }],
+    );
+    expect(accepted.ok && accepted.backups?.[0]).toMatchObject({ ok: false });
+    expect(h.runs.map((r) => r.build)).toEqual([SEED_A]);
+  });
+
+  it('a change the module cannot handle is refused once, not retried at a run each time', async () => {
+    const h = harness();
+    const both = h.enclaveFor(deploymentOf(h.b, h.a));
+    const base = { ...chainPlan(h.commitment, 'active'), acked_by: h.b.signingKey };
+    h.store.records.set(`7:${h.b.signingKey}`, { record: 'not a sealed record', staged: null });
+    const moved = h.sealFor(h.b);
+    const out = await both.stageChange(
+      {
+        ...base,
+        pending_change: {
+          kind: 'modify',
+          commitment: moved.commitment,
+          envelope: base.envelope,
+          requested_at_ms: start,
+          effective_at_ms: start + 600_000,
+        },
+      },
+      moved.box,
+    );
+    expect(out.ok).toBe(false);
+    expect(h.runs).toHaveLength(1);
+  });
+
+  it('reads a record saved before builds were told apart for the build holding the plan', async () => {
+    const h = harness();
+    await h.enclave.acceptPlan(chainPlan(h.commitment, 'awaiting_ack'), h.box);
+    const held = h.store.records.get(`7:${h.a.signingKey}`);
+    h.store.records.clear();
+    h.store.records.set('7:legacy', { record: held?.record ?? '' });
+    h.advance(60_000);
+    const sale = await untilSale(h, h.enclaveFor(deploymentOf(h.b, h.a)), {
+      ...chainPlan(h.commitment, 'active'),
+      acked_by: h.a.signingKey,
+    });
+    expect(sale.request.enclaveKey).toBe(h.a.signingKey);
+  });
+
+  it('an owner moves a plan to the current build with a change; the old build runs it until then', async () => {
+    const h = harness();
+    await h.enclave.acceptPlan(chainPlan(h.commitment, 'awaiting_ack'), h.box);
+    const both = h.enclaveFor(deploymentOf(h.b, h.a));
+    const now = h.advance(60_000);
+    // The same terms under a new salt, sealed to build B, which never held the plan.
+    const moved = h.sealFor(h.b);
+    const base = chainPlan(h.commitment, 'active');
+    const pending = {
+      ...base,
+      acked_by: h.a.signingKey,
+      pending_change: {
+        kind: 'modify' as const,
+        commitment: moved.commitment,
+        envelope: base.envelope,
+        requested_at_ms: now,
+        effective_at_ms: now + 3_600_000,
+      },
+    };
+    expect(await both.stageChange(pending, moved.box)).toEqual({ ok: true, reasons: [] });
+    expect(h.runs.at(-1)?.build).toBe(SEED_B);
+
+    // During the cooling-off, A keeps selling.
+    const during = await untilSale(h, both, pending);
+    expect(during.request.enclaveKey).toBe(h.a.signingKey);
+
+    // After it, B acks with its own key.
+    h.advance(3_600_000);
+    const acked = await both.tick(pending);
+    expect(acked).toMatchObject({ type: 'ack_change' });
+    expect(acked.type === 'ack_change' && acked.ack.enclaveKey).toBe(h.b.signingKey);
+
+    // Applied: the registry now names B, and B runs the plan from its counters.
+    const applied = {
+      ...base,
+      commitment: moved.commitment,
+      acked_by: h.b.signingKey,
+      next_seq: 1,
+      sold_in_period: during.amount.toString(),
+      sold_total: during.amount.toString(),
+      last_sale_ms: (JSON.parse(during.request.json) as { issued_at_ms: number }).issued_at_ms,
+    };
+    const before = h.runs.length;
+    h.advance(60_000);
+    const after = await untilSale(h, both, applied);
+    expect(after.request.enclaveKey).toBe(h.b.signingKey);
+    expect(after.seq).toBe(1);
+    expect(new Set(h.runs.slice(before).map((r) => r.build))).toEqual(new Set([SEED_B]));
   });
 
   it('acks a sealed plan without the plan ever appearing in a run input or output', async () => {
@@ -233,7 +437,7 @@ describe('the OutLayer enclave adapter', () => {
         parseNearKey(h.signingKey).bytes,
       ),
     ).toBe(true);
-    const record = h.store.records.get(7) ?? '';
+    const record = h.store.records.get(`7:${h.signingKey}`)?.record ?? '';
     const everything = JSON.stringify(h.runs) + record + accepted.ack.json;
     for (const secret of ['price_floor_usd', '0.50', 'max_sell_per_tx_bps', 'min_gap_minutes'])
       expect(everything).not.toContain(secret);

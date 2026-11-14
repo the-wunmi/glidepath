@@ -1,6 +1,8 @@
 import { signatureParts } from '@vsp/chainsig';
 import { maxBig, type SealedBox } from '@vsp/core';
-import { executions, plans, type Tx } from '@vsp/db';
+import { activity, executions, plans, type Tx } from '@vsp/db';
+import type { BackupBox, BackupOutcome } from '@vsp/enclave';
+import { SALE_GAS } from '@vsp/evm';
 import type { ChainEnclave, ChainPlan, ChainReceipt, KeyPairString } from '@vsp/near';
 import { and, eq, inArray, sql } from 'drizzle-orm';
 import {
@@ -110,6 +112,36 @@ async function loadExecution(e: Engine, planId: number, seq: number) {
   return { ...rest, createdAtMs: createdAt.getTime() };
 }
 
+/** Puts each backup build's answer on the plan's timeline: whether it can stand in. */
+async function recordBackups(planId: number, outcomes: BackupOutcome[] | undefined, what: string) {
+  for (const b of outcomes ?? [])
+    await inTx(`record backup ${b.signingKey}`, (db) =>
+      b.ok
+        ? record(
+            db,
+            planId,
+            'backup_ready',
+            `A backup enclave build holds its own sealed copy of ${what} and can stand in`,
+            { enclaveKey: b.signingKey },
+          )
+        : record(
+            db,
+            planId,
+            'backup_failed',
+            `A backup enclave build could not take ${what}: ${b.reasons.join('; ')}`,
+            { enclaveKey: b.signingKey },
+          ),
+    );
+}
+
+/** Backup copies as the API stored them (`signing_key`, `sealed_box`), for the enclave. */
+function backupBoxes(stored: unknown): BackupBox[] {
+  return ((stored ?? []) as { signing_key: string; sealed_box: SealedBox }[]).map((b) => ({
+    signingKey: b.signing_key,
+    box: b.sealed_box,
+  }));
+}
+
 /** The broadcastable transfer the receipt holds now: its unsigned transaction plus MPC signature. */
 function signedEvmTransfer(receipt: ChainReceipt): Hex | null {
   if (!receipt.evm_unsigned_tx || !receipt.evm_signature) return null;
@@ -213,7 +245,7 @@ async function deliverPlan(planId: number): Promise<string> {
     const [row] = await e.db.select().from(plans).where(eq(plans.id, planId));
     const chain = await e.registry.plan(planId);
     if (!row || !chain) return { ok: false as const, reasons: ['Plan not found'] };
-    return e.enclave.acceptPlan(chain, row.sealedBox as SealedBox);
+    return e.enclave.acceptPlan(chain, row.sealedBox as SealedBox, backupBoxes(row.backupBoxes));
   });
   if (!accepted.ok) {
     await inTx('record enclave refusal', (db) =>
@@ -226,6 +258,7 @@ async function deliverPlan(planId: number): Promise<string> {
     );
     return 'enclave refused';
   }
+  await recordBackups(planId, accepted.backups, 'the plan');
   const out = await relayAckUntilAnswered(planId, accepted.ack, (p) => p.status !== 'awaiting_ack');
   crashPoint('deliver:acked');
   await inTx('record ack', (db) =>
@@ -260,9 +293,14 @@ async function deliverChange(planId: number, commitment: string): Promise<string
     const [row] = await e.db.select().from(plans).where(eq(plans.id, planId));
     const chain = await e.registry.plan(planId);
     if (!row?.pendingSealedBox || !chain) return null;
-    return e.enclave.stageChange(chain, row.pendingSealedBox as SealedBox);
+    return e.enclave.stageChange(
+      chain,
+      row.pendingSealedBox as SealedBox,
+      backupBoxes(row.pendingBackupBoxes),
+    );
   });
   if (!staged) return 'nothing to stage';
+  if (staged.ok) await recordBackups(planId, staged.backups, 'the change');
   await inTx('record staged change', (db) =>
     staged.ok
       ? record(
@@ -503,13 +541,168 @@ async function broadcastEvm(planId: number, seq: number): Promise<string> {
 }
 export const broadcastEvmWorkflow = DBOS.registerWorkflow(broadcastEvm, { name: 'broadcast_evm' });
 
+// ── release_evm ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * After an ERC-20 plan ends, moves what its Chain Signatures address still holds to the
+ * beneficiary's EVM address: the owner asks the registry (`release_evm`) to have the MPC network
+ * sign one transfer of the whole balance, which is then broadcast and watched like a sale's. The
+ * plan's latest receipt says where a repeat stands: a release still being signed is waited for, a
+ * signed one is sent (a resend is the same bytes and hash), and only then is the balance read and
+ * a new release requested, so a crash never asks for two.
+ */
+async function releaseEvm(planId: number): Promise<string> {
+  const e = durableEngine();
+  for (;;) {
+    const plan = await readStep('read plan', () => e.registry.plan(planId));
+    if (plan?.asset.type !== 'evm_erc20' || !plan.evm_address) return 'not an EVM plan';
+    if (plan.status !== 'ended') return 'not ended';
+    const token = plan.asset.token_address as Hex;
+    const holder = plan.evm_address as Hex;
+    const last =
+      plan.next_seq > 0
+        ? await readStep('read last receipt', () => e.registry.receipt(planId, plan.next_seq - 1))
+        : null;
+    if (last?.kind === 'release' && last.status === 'pending') {
+      await sleep(TRANSIENT_WAIT_MS);
+      continue;
+    }
+    const signed = last?.kind === 'release' && last.status === 'done' && signedEvmTransfer(last);
+    if (signed) {
+      const hash = keccak256(signed);
+      const mined = await readStep('evm receipt', () => e.evm.receiptOf(hash));
+      if (!mined) {
+        const sentAt = await effect('evm send', async () => {
+          await e.evm.send(signed);
+          return e.evm.blockNumber();
+        });
+        for (;;) {
+          await sleep(EVM_POLL_MS);
+          if (await readStep('evm receipt', () => e.evm.receiptOf(hash))) break;
+          const block = await readStep('evm block', () => e.evm.blockNumber());
+          if (block - sentAt >= e.config.EVM_STUCK_BLOCKS) {
+            await resignStuck(e, planId, last.seq, last, `The release (#${last.seq})`);
+            break;
+          }
+        }
+        // Mined, or re-signed with higher fees: either way the next round reads the receipt again.
+        continue;
+      }
+      if (mined.status === 'success' && !(await releaseRecorded(e, planId, hash)))
+        await inTx('record release mined', (db) =>
+          record(
+            db,
+            planId,
+            'evm_released',
+            `The remaining tokens were transferred to the beneficiary on the EVM chain (release #${last.seq})`,
+            { evmTxHash: hash, seq: last.seq },
+          ),
+        );
+      if (mined.status === 'reverted') {
+        await inTx('record release revert', (db) =>
+          record(db, planId, 'evm_reverted', `The signed release (#${last.seq}) reverted`, {
+            evmTxHash: hash,
+          }),
+        );
+        return 'reverted';
+      }
+    }
+    const left = await readStep('plan token balance', async () =>
+      (await e.evm.tokenBalance(token, holder)).toString(),
+    );
+    if (left === '0') return 'released';
+    const fees = await readStep('evm fees', async () => {
+      const f = await e.evm.fees();
+      return { max: f.maxFeePerGas.toString(), tip: f.maxPriorityFeePerGas.toString() };
+    });
+    // Sales are funded for their own gas; the release may find the address short after many.
+    await effect('fund release gas', async () => {
+      const need = SALE_GAS * BigInt(fees.max);
+      await e.evm.ensureBalance(holder, need, await e.evm.gasCostWei(SALE_GAS));
+      return null;
+    });
+    const out = await effect('release_evm', async () => {
+      // Someone (the owner or beneficiary, or a repeat of this step) may already have asked.
+      const now = await e.registry.plan(planId);
+      if (now && now.next_seq !== plan.next_seq) return { ok: true as const, txHash: null };
+      return ownerCall(
+        e,
+        plan.owner,
+        e.world.registry,
+        'release_evm',
+        {
+          plan_id: planId,
+          amount: left,
+          nonce: plan.evm_nonce,
+          gas_limit: Number(SALE_GAS),
+          max_fee_per_gas: fees.max,
+          max_priority_fee_per_gas: fees.tip,
+        },
+        { gasTera: 300, deposit: EXECUTE_DEPOSIT },
+      );
+    });
+    if (!out.ok) {
+      if (TRANSIENT_REFUSALS.has(out.code)) {
+        await sleep(TRANSIENT_WAIT_MS);
+        continue;
+      }
+      await inTx('record release refusal', (db) =>
+        record(
+          db,
+          planId,
+          'release_refused',
+          `The registry refused to release the remaining tokens: ${out.code}`,
+          { txHash: out.txHash },
+        ),
+      );
+      return out.code;
+    }
+    if (out.txHash)
+      await inTx('record release request', (db) =>
+        record(
+          db,
+          planId,
+          'release_requested',
+          'The registry asked the MPC network to sign the release of the remaining tokens',
+          { txHash: out.txHash },
+        ),
+      );
+  }
+}
+export const releaseEvmWorkflow = DBOS.registerWorkflow(releaseEvm, { name: 'release_evm' });
+
+/** Whether a mined release is already on the timeline, so a repeated run of the workflow (a later
+ * finalize) does not record it twice. */
+async function releaseRecorded(e: Engine, planId: number, evmTxHash: string): Promise<boolean> {
+  return readStep('release recorded', async () => {
+    const rows = await e.db
+      .select({ id: activity.id })
+      .from(activity)
+      .where(
+        and(
+          eq(activity.planId, planId),
+          eq(activity.kind, 'evm_released'),
+          sql`${activity.data}->>'evmTxHash' = ${evmTxHash}`,
+        ),
+      );
+    return rows.length > 0;
+  });
+}
+
 /**
  * Asks the registry (as the plan's owner) to re-sign a stuck transfer: same recipient, amount and
  * nonce, fees at least 12.5% higher and at least what the network wants now, never above the caps.
- * A repeat after a crash is refused by the registry's 30-block spacing, so it never re-signs twice
- * in a row; the next loop sends whatever the receipt then holds.
+ * A repeat after a crash is skipped by the 30-block spacing, which the registry also enforces, so it
+ * never re-signs twice in a row; the next loop sends whatever the receipt then holds.
  */
-async function resignStuck(e: Engine, planId: number, seq: number, receipt: ChainReceipt) {
+async function resignStuck(
+  e: Engine,
+  planId: number,
+  seq: number,
+  receipt: ChainReceipt,
+  /** Subject of the activity messages; the release passes its own. */
+  what = `Sale #${seq}`,
+) {
   const head = await readStep(
     'near head',
     async () => (await e.near.provider.viewBlock({ finality: 'final' })).header.height,
@@ -533,7 +726,7 @@ async function resignStuck(e: Engine, planId: number, seq: number, receipt: Chai
         db,
         planId,
         'evm_stuck',
-        `Sale #${seq} is stuck and its fees cannot rise further within the registry's caps`,
+        `${what} is stuck and its fees cannot rise further within the registry's caps`,
       ),
     );
     return;
@@ -563,7 +756,7 @@ async function resignStuck(e: Engine, planId: number, seq: number, receipt: Chai
       db,
       planId,
       'evm_resigned',
-      `Sale #${seq} was not mined; the registry re-signed it with higher fees`,
+      `${what} was not mined; the registry re-signed it with higher fees`,
       { txHash: out.txHash, maxFeePerGas: maxFee.toString() },
     );
   });

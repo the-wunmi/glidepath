@@ -14,7 +14,12 @@ import {
 } from '@vsp/core';
 import { type ReactNode, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { api, errorMessage } from '@/lib/api';
-import { attestationFailure, isOutlayerQuote, useAttestation } from '@/lib/attestation';
+import {
+  attestationFailure,
+  isOutlayerQuote,
+  useAttestation,
+  useBackupAttestations,
+} from '@/lib/attestation';
 import {
   backupPlan,
   type PlanBackup,
@@ -321,6 +326,8 @@ export function PlanBuilder({
   const headingRef = useRef<HTMLHeadingElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const { result: attestation, error: attestationError } = useAttestation(meta);
+  // Backups that pass the same checks get their own sealed copy; the others are left out.
+  const backups = useBackupAttestations(meta).filter((b) => b.result.ok);
   const id = steps[step] as StepId;
 
   // Keep an unfinished new plan across reloads of this tab.
@@ -552,10 +559,12 @@ export function PlanBuilder({
     setSubmitError(null);
     try {
       // The plan leaves this browser only encrypted to the attested enclave key.
-      const box = sealTo(
-        meta.enclave.encryptionKeyHex,
-        JSON.stringify({ plan: JSON.parse(canonicalJson(plan)), salt }),
-      );
+      const payload = JSON.stringify({ plan: JSON.parse(canonicalJson(plan)), salt });
+      const box = sealTo(meta.enclave.encryptionKeyHex, payload);
+      const backupBoxes = backups.map((b) => ({
+        signing_key: b.identity.signingKey,
+        sealed_box: sealTo(b.identity.encryptionKeyHex, payload),
+      }));
       if (change) {
         const r = await api<{ txHash: string; effectiveAtMs: number | null }>(
           `/api/plans/${change.planId}/change`,
@@ -566,6 +575,7 @@ export function PlanBuilder({
               commitment,
               envelope: envelopeJson(envelope),
               sealed_box: box,
+              backup_boxes: backupBoxes,
             },
           },
         );
@@ -600,6 +610,7 @@ export function PlanBuilder({
           end_ms: Date.parse(plan.end),
           commitment,
           sealed_box: box,
+          backup_boxes: backupBoxes,
           proceeds_asset: proceedsAsset,
         },
       });
@@ -1349,6 +1360,16 @@ export function PlanBuilder({
                           }))}
                         />
                       </div>
+                    )}
+                    {attestation?.ok && backups.length > 0 && (
+                      <p className="mt-3 text-sm text-ink-2">
+                        Also sealed to{' '}
+                        {backups.length === 1
+                          ? 'a backup build'
+                          : `${backups.length} backup builds`}{' '}
+                        of the enclave, checked the same way. A backup holds its own copy and sells
+                        only if the main build cannot run.
+                      </p>
                     )}
                   </Panel>
                   <Panel

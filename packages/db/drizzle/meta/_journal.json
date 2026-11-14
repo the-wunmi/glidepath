@@ -29,6 +29,20 @@
       "when": 1794541746160,
       "tag": "0003_enroll_bounds",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794654410189,
+      "tag": "0004_backup_boxes",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794659972454,
+      "tag": "0005_trusts",
+      "breakpoints": true
     }
   ]
 }

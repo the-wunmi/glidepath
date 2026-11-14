@@ -162,6 +162,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "blind-trust"
+version = "0.1.0"
+dependencies = [
+ "ed25519-dalek",
+ "near-sdk",
+]
+
+[[package]]
 name = "block-buffer"
 version = "0.10.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -228,6 +236,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bf88ba1141d185c399bee5288d850d63b8369520c1eafc32a0430b5b6c287bf4"
 dependencies = [
  "tinyvec",
+]
+
+[[package]]
+name = "btc-vault"
+version = "0.1.0"
+dependencies = [
+ "hex",
+ "near-sdk",
 ]
 
 [[package]]
@@ -1455,6 +1471,7 @@ dependencies = [
  "hex",
  "k256",
  "near-workspaces",
+ "ripemd",
  "serde",
  "serde_json",
  "sha2 0.10.9",

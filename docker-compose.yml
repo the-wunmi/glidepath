@@ -114,7 +114,8 @@ services:
     stop_grace_period: 15s
 
 volumes:
-  # The volume the `salesplans` project created, kept by name so local data survives the rename.
+  # The volume the `salesplans` project created, kept by name so existing data survives the rename.
+  # A second copy of the repo sets DB_VOLUME (and COMPOSE_PROJECT_NAME) in its .env to keep its own.
   pgdata:
-    name: salesplans_pgdata
+    name: ${DB_VOLUME:-salesplans_pgdata}
   apidata:

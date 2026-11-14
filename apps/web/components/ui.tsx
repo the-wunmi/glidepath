@@ -111,7 +111,7 @@ export function Hash({
       {href ? (
         <a
           href={href}
-          className="mono link truncate text-[0.8125rem]"
+          className={`mono link text-[0.8125rem] ${full ? '[overflow-wrap:anywhere]' : 'truncate'}`}
           title={`${value} (opens an explorer)`}
           target="_blank"
           rel="noreferrer"
@@ -256,7 +256,9 @@ export function CheckList({
               <span>{c.label}</span>
               {c.extra}
             </div>
-            {c.detail && <div className="mt-0.5 text-xs break-all text-ink-3">{c.detail}</div>}
+            {c.detail && (
+              <div className="mt-0.5 text-xs [overflow-wrap:anywhere] text-ink-3">{c.detail}</div>
+            )}
           </div>
         </li>
       ))}

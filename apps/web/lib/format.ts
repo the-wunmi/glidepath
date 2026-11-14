@@ -2,14 +2,20 @@ import { formatAmount } from '@vsp/core';
 
 export const DAY_MS = 86_400_000;
 
-/** Base-unit string to a grouped decimal, e.g. "1,250,000.5". */
+/** Significant digits shown for an amount too small for the usual decimals. */
+const SMALL_DIGITS = 3;
+
+/**
+ * Base-unit string to a grouped decimal, e.g. "1,250,000.5". An amount below the usual decimals
+ * shows its first significant digits, rounded down ("0.0000411"), so it never reads as nothing.
+ */
 export function tokens(amount: string | bigint | null | undefined, decimals: number, max = 2) {
   if (amount === null || amount === undefined) return '—';
   const v = typeof amount === 'bigint' ? amount : BigInt(amount);
   const out = formatAmount(v, decimals, max);
-  // A dust amount must not read as nothing at all.
-  if (v > 0n && /^0(\.0*)?$/.test(out)) return max > 0 ? `< 0.${'0'.repeat(max - 1)}1` : '< 1';
-  return out;
+  if (v <= 0n || !/^0(\.0*)?$/.test(out)) return out;
+  const leadingZeros = decimals - v.toString().length;
+  return formatAmount(v, decimals, leadingZeros + SMALL_DIGITS);
 }
 
 /** USDC base units (6 decimals) with cents always shown: "32,404.50 USDC". */

@@ -846,6 +846,8 @@ pub(crate) fn check_quote(
         oneclick::cost_within_bound(usd(&quote.amount_in_usd), usd(&quote.amount_out_usd))
             .unwrap_or_else(|| env::panic_str("bad_quote"));
     require!(within_bound, "quote_fee_too_high");
+    // Not in the registry deployed on testnet (2026-11-12); its quotes all route on-chain.
+    require!(oneclick::routes_on_chain(&signed.payload), "quote_routing");
     deadline_ms
 }
 

@@ -1,0 +1,141 @@
+{
+  "about": "Shared by contracts/btc-vault (Rust unit tests) and packages/btc (Vitest). bip143_native_p2wpkh is the 'Native P2WPKH' example from BIP143 (sighash of input 1); addresses come from BIP173 and BIP350 (testnet), plus base58check for the key 0279be66\u20261798; vault_spend is a vault withdrawal built by packages/btc and checked by the contract code. Txids are in display order.",
+  "bip143_native_p2wpkh": {
+    "tx": {
+      "version": 1,
+      "locktime": 17,
+      "inputs": [
+        {
+          "txid": "9f96ade4b41d5433f4eda31e1738ec2b36f6e7d1420d94a6af99801a88f7f7ff",
+          "vout": 0,
+          "amount": "625000000",
+          "sequence": 4294967278
+        },
+        {
+          "txid": "8ac60eb9575db5b2d987e29f301b5b819ea83a5c6579d282d189cc04b8e151ef",
+          "vout": 1,
+          "amount": "600000000",
+          "sequence": 4294967295
+        }
+      ],
+      "outputs": [
+        {
+          "value": "112340000",
+          "script": "76a9148280b37df378db99f66f85c95a783a76ac7a6d5988ac"
+        },
+        {
+          "value": "223450000",
+          "script": "76a9143bde42dbee7e4dbe6a21b2d50ce2f0167faa815988ac"
+        }
+      ]
+    },
+    "unsigned_tx": "0100000002fff7f7881a8099afa6940d42d1e7f6362bec38171ea3edf433541db4e4ad969f0000000000eeffffffef51e1b804cc89d182d279655c3aa89e815b1b309fe287d9b2b55d57b90ec68a0100000000ffffffff02202cb206000000001976a9148280b37df378db99f66f85c95a783a76ac7a6d5988ac9093510d000000001976a9143bde42dbee7e4dbe6a21b2d50ce2f0167faa815988ac11000000",
+    "input_index": 1,
+    "pubkey_hash": "1d0f172a0ecb48aee1be1f2687d2963ae33f71a1",
+    "public_key": "025476c2e83188368da1ff3e292e7acafcdb3566bb0ad253f62fc70f07aeee6357",
+    "hash_prevouts": "96b827c8483d4e9b96712b6713a7b68d6e8003a781feba36c31143470b4efd37",
+    "hash_sequence": "52b0a642eea2fb7ae638c36f6252b6750293dbe574a806984b8e4d8548339a3b",
+    "hash_outputs": "863ef3e1a92afbfdb97f31ad0fc7683ee943e9abcf2501590ff8f6551f47e5e5",
+    "sighash": "c37af31116d1b27caf68aae9e3ac82f1477929014d5b917657d0eb49478cb670",
+    "signature": "304402203609e17b84f6a7d30c80bfa610b5b4542f32a8a0d5447a12fb1366d7f01cc44a0220573a954c4518331561406f90300e8f3358f51928d43c212a8caed02de67eebee01"
+  },
+  "addresses": [
+    {
+      "address": "tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx",
+      "script": "0014751e76e8199196d454941c45d1b3a323f1433bd6"
+    },
+    {
+      "address": "TB1QW508D6QEJXTDG4Y5R3ZARVARY0C5XW7KXPJZSX",
+      "script": "0014751e76e8199196d454941c45d1b3a323f1433bd6"
+    },
+    {
+      "address": "tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q0sl5k7",
+      "script": "00201863143c14c5166804bd19203356da136c985678cd4d27a1b8c6329604903262"
+    },
+    {
+      "address": "tb1qqqqqp399et2xygdj5xreqhjjvcmzhxw4aywxecjdzew6hylgvsesrxh6hy",
+      "script": "0020000000c4a5cad46221b2a187905e5266362b99d5e91c6ce24d165dab93e86433"
+    },
+    {
+      "address": "tb1pqqqqp399et2xygdj5xreqhjjvcmzhxw4aywxecjdzew6hylgvsesf3hn0c",
+      "script": "5120000000c4a5cad46221b2a187905e5266362b99d5e91c6ce24d165dab93e86433"
+    },
+    {
+      "address": "mrCDrCybB6J1vRfbwM5hemdJz73FwDBC8r",
+      "script": "76a914751e76e8199196d454941c45d1b3a323f1433bd688ac"
+    },
+    {
+      "address": "2N3vVYSK5XRgVSGWy21PnsRmBUywSQNdCsf",
+      "script": "a914751e76e8199196d454941c45d1b3a323f1433bd687"
+    },
+    {
+      "address": "tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q0sl5k6",
+      "script": null
+    },
+    {
+      "address": "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4",
+      "script": null
+    },
+    {
+      "address": "1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH",
+      "script": null
+    }
+  ],
+  "vault_spend": {
+    "public_key": "0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
+    "pubkey_hash": "751e76e8199196d454941c45d1b3a323f1433bd6",
+    "address": "tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx",
+    "spend": {
+      "destination": "tb1pqqqqp399et2xygdj5xreqhjjvcmzhxw4aywxecjdzew6hylgvsesf3hn0c",
+      "amount": "150000",
+      "change": "48870",
+      "fee": "1130",
+      "inputs": [
+        {
+          "txid": "9f96ade4b41d5433f4eda31e1738ec2b36f6e7d1420d94a6af99801a88f7f7ff",
+          "vout": 0,
+          "amount": "120000"
+        },
+        {
+          "txid": "8ac60eb9575db5b2d987e29f301b5b819ea83a5c6579d282d189cc04b8e151ef",
+          "vout": 3,
+          "amount": "80000"
+        }
+      ]
+    },
+    "tx": {
+      "version": 2,
+      "locktime": 0,
+      "inputs": [
+        {
+          "txid": "9f96ade4b41d5433f4eda31e1738ec2b36f6e7d1420d94a6af99801a88f7f7ff",
+          "vout": 0,
+          "amount": "120000",
+          "sequence": 4294967293
+        },
+        {
+          "txid": "8ac60eb9575db5b2d987e29f301b5b819ea83a5c6579d282d189cc04b8e151ef",
+          "vout": 3,
+          "amount": "80000",
+          "sequence": 4294967293
+        }
+      ],
+      "outputs": [
+        {
+          "value": "150000",
+          "script": "5120000000c4a5cad46221b2a187905e5266362b99d5e91c6ce24d165dab93e86433"
+        },
+        {
+          "value": "48870",
+          "script": "0014751e76e8199196d454941c45d1b3a323f1433bd6"
+        }
+      ]
+    },
+    "unsigned_tx": "0200000002fff7f7881a8099afa6940d42d1e7f6362bec38171ea3edf433541db4e4ad969f0000000000fdffffffef51e1b804cc89d182d279655c3aa89e815b1b309fe287d9b2b55d57b90ec68a0300000000fdffffff02f049020000000000225120000000c4a5cad46221b2a187905e5266362b99d5e91c6ce24d165dab93e86433e6be000000000000160014751e76e8199196d454941c45d1b3a323f1433bd600000000",
+    "sighashes": [
+      "ef489d6797cfa9348ff4416fd123e23a258f03bc66b1a67e0b81c41e12b71ec9",
+      "f57cd01ccd62dc5af9a3cc7ef7fb36e877be6e171bfd08412621b1174c33823a"
+    ],
+    "estimated_vsize": 221
+  }
+}

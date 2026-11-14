@@ -1,6 +1,8 @@
 import { DomainError, parseInput, toJson } from '@vsp/core';
 import type { Engine } from '@vsp/engine';
 import * as engine from '@vsp/engine';
+import { rpcUnavailable } from '@vsp/evm';
+import { nearRpcUnavailable } from '@vsp/near';
 import { type Context, Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import { cors } from 'hono/cors';
@@ -8,6 +10,9 @@ import { secureHeaders } from 'hono/secure-headers';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { z } from 'zod';
 import { clientKeyOf, RateLimit, TtlCache } from './limits.ts';
+import { ChainAnswers, evmAnswerIsFinal, nearAnswerIsFinal } from './rpc-cache.ts';
+import { trustRoutes } from './trust.ts';
+import { vaultRoutes } from './vault.ts';
 
 const STATUS: Record<DomainError['code'], ContentfulStatusCode> = {
   not_found: 404,
@@ -41,6 +46,10 @@ const READ_WINDOW_MS = 60_000;
 const READ_CACHE_MS = 3_000;
 /** A 1Click outage is remembered this long, so each page view does not wait on it again. */
 const REFERENCE_FAILURE_MS = 30_000;
+/** Sepolia finalizes about every 6.4 minutes; a stale value only delays when answers are kept. */
+const FINALIZED_CACHE_MS = 60_000;
+/** What a 503 from the chain proxies asks the browser to wait: an endpoint's first rest is 1 s. */
+const BUSY_RETRY_AFTER_S = 2;
 /** eth_getLogs ranges wider than this are refused: public nodes choke on them. */
 const MAX_LOG_BLOCKS = 5_000n;
 
@@ -251,6 +260,9 @@ export function createApp(e: Engine) {
     });
   });
 
+  app.route('/api/vault', vaultRoutes(e));
+  app.route('/api/trusts', trustRoutes(e, principal));
+
   /** The last red-team run (data/redteam/results.json, written by `pnpm redteam`); 404 before one. */
   app.get('/api/redteam', async () => {
     const { readFile } = await import('node:fs/promises');
@@ -379,14 +391,31 @@ export function createApp(e: Engine) {
 
   // ── Read-only chain proxies for the verifier page ──────────────────────────
   // Upstream error texts can name endpoints and internals: they go to the log, and the caller
-  // gets a generic JSON-RPC error.
+  // gets a generic JSON-RPC error. 503 means no node could answer (try again); 400 means the node
+  // answered with an error, which a retry would only repeat.
   const rpcError = (id: unknown, status: ContentfulStatusCode, message: string) =>
     json({ jsonrpc: '2.0', id, error: { code: -32000, message } }, status);
+  const busy = (id: unknown, chain: string) => {
+    const res = rpcError(id, 503, `The ${chain} RPC is busy; try again shortly`);
+    res.headers.set('retry-after', String(BUSY_RETRY_AFTER_S));
+    return res;
+  };
   const notAllowed = () =>
     json(
       { jsonrpc: '2.0', id: null, error: { code: -32601, message: 'Method not allowed here' } },
       403,
     );
+  const nearAnswers = new ChainAnswers();
+  const evmAnswers = new ChainAnswers();
+  const finalizedCache = new TtlCache<bigint | null>(FINALIZED_CACHE_MS);
+  /** Sepolia's finalized block, or null when the node does not say (a local node may not). */
+  const finalizedBlock = () =>
+    finalizedCache.get('finalized', async () => {
+      const block = await e.reads.evm
+        .request({ method: 'eth_getBlockByNumber', params: ['finalized', false] })
+        .catch(() => null);
+      return block?.number ? BigInt(block.number) : null;
+    });
 
   // NEAR reads go through the engine's read client, paced apart from the engine's own calls and
   // failing over on a 429: visitors' polling cannot use up the budget sales and relays need.
@@ -394,17 +423,28 @@ export function createApp(e: Engine) {
     const req = await body<{ id?: unknown; method?: string; params?: unknown }>(c);
     if (!req || typeof req.method !== 'string' || !NEAR_READ_METHODS.has(req.method))
       return notAllowed();
+    const { method, params } = req;
     const id = req.id ?? null;
     try {
-      const result = await e.reads.near.provider.sendJsonRpc(
-        req.method as never,
-        req.params as never,
+      const result = await nearAnswers.get(
+        method,
+        params,
+        () => e.reads.near.provider.sendJsonRpc(method as never, params as never),
+        (answer) => nearAnswerIsFinal(method, params, answer),
       );
       return json({ jsonrpc: '2.0', id, result });
     } catch (error) {
-      if (error instanceof DomainError) return rpcError(id, 503, error.message);
-      e.log('near rpc proxy failed', { method: req.method, error: String(error) });
-      return rpcError(id, 502, 'The NEAR node could not answer this request');
+      e.log('near rpc proxy failed', { method, error: String(error) });
+      if (error instanceof DomainError || nearRpcUnavailable(error)) return busy(id, 'NEAR');
+      // near-api-js names the node's answer by class (AccountDoesNotExistError, ...): safe to pass on.
+      const name = (error as Error)?.constructor?.name;
+      return rpcError(
+        id,
+        400,
+        name && /^[A-Z][A-Za-z]{2,63}Error$/.test(name) && name !== 'TypedError'
+          ? name
+          : 'The NEAR node refused this request',
+      );
     }
   });
 
@@ -413,27 +453,24 @@ export function createApp(e: Engine) {
     const req = await body<{ id?: unknown; method?: string; params?: unknown }>(c);
     if (!req || typeof req.method !== 'string' || !EVM_READ_METHODS.has(req.method))
       return notAllowed();
+    const { method, params } = req;
     const id = req.id ?? null;
-    const refused = await evmRequestProblem(req.method, req.params);
+    const refused = await evmRequestProblem(method, params);
     if (refused)
       return json({ jsonrpc: '2.0', id, error: { code: -32602, message: refused } }, 403);
-    const res = await fetch(e.reads.evmRpcUrl, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ jsonrpc: '2.0', id, method: req.method, params: req.params }),
-    }).catch((error: unknown) => {
-      e.log('evm rpc proxy failed', { method: req.method, error: String(error) });
-      return null;
-    });
-    const answer = (await res?.json().catch(() => null)) as {
-      result?: unknown;
-      error?: unknown;
-    } | null;
-    if (!res?.ok || !answer || answer.error !== undefined || !('result' in answer)) {
-      if (res) e.log('evm rpc refused', { method: req.method, status: res.status, answer });
-      return rpcError(id, 502, 'The EVM node could not answer this request');
+    try {
+      const result = await evmAnswers.get(
+        method,
+        params,
+        () => e.reads.evm.request({ method, params } as never),
+        async (answer) => evmAnswerIsFinal(method, params, answer, await finalizedBlock()),
+      );
+      return json({ jsonrpc: '2.0', id, result });
+    } catch (error) {
+      e.log('evm rpc proxy failed', { method, error: String(error) });
+      if (rpcUnavailable(error)) return busy(id, 'EVM');
+      return rpcError(id, 400, 'The EVM node refused this request');
     }
-    return json({ jsonrpc: '2.0', id, result: answer.result });
   });
 
   /**

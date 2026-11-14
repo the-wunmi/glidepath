@@ -8,7 +8,6 @@ import {
   createWalletClient,
   defineChain,
   erc20Abi,
-  fallback,
   type Hex,
   http,
   keccak256,
@@ -19,6 +18,15 @@ import {
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import artifact from './launch-token.json' with { type: 'json' };
+import { publicRpcTransport, type RpcPacing } from './transport.ts';
+
+export {
+  publicRpcClient,
+  publicRpcTransport,
+  RpcBusyError,
+  type RpcPacing,
+  rpcUnavailable,
+} from './transport.ts';
 
 export const LAUNCH_TOKEN_ABI = artifact.abi as Abi;
 
@@ -115,7 +123,7 @@ export async function startEvmNode(port: number): Promise<EvmNode> {
 export class EvmClient {
   readonly chain: Chain;
   readonly public: PublicClient;
-  /** The primary RPC, then any fallbacks: public Sepolia endpoints rate-limit bursts. */
+  /** The primary RPC, then any fallbacks, paced: public Sepolia endpoints rate-limit bursts. */
   readonly transport: Transport;
   readonly launchpadKey: Hex;
   /** Local ETH is free, so local amounts are generous; Sepolia's come from a faucet. */
@@ -126,13 +134,13 @@ export class EvmClient {
     readonly rpcUrl: string,
     chainId: number,
     private readonly funderKey: Hex,
-    options: { fallbackUrls?: string[]; launchpadKey?: Hex } = {},
+    options: { fallbackUrls?: string[]; launchpadKey?: Hex; pacing?: RpcPacing } = {},
   ) {
     this.chain = localChain(rpcUrl, chainId);
     const urls = [rpcUrl, ...(options.fallbackUrls ?? [])];
     this.transport =
-      urls.length > 1
-        ? fallback(urls.map((u) => http(u, { retryCount: 2 })))
+      urls.length > 1 || options.pacing
+        ? publicRpcTransport(urls, options.pacing)
         : http(rpcUrl, { retryCount: 2 });
     this.public = createPublicClient({ chain: this.chain, transport: this.transport });
     this.launchpadKey = options.launchpadKey ?? LOCAL_LAUNCHPAD_KEY;

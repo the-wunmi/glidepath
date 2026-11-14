@@ -98,7 +98,8 @@ impl Chain {
             "minAmountOut": min_out.to_string(),
             "originAsset": format!("nep141:sepolia-{EVM_TOKEN}.omft.near"),
             "recipient": "beneficiary.near", "refundTo": self.evm_address(),
-            "swapType": "EXACT_INPUT",
+            "swapType": "EXACT_INPUT", "depositType": "ORIGIN_CHAIN",
+            "recipientType": "DESTINATION_CHAIN", "refundType": "ORIGIN_CHAIN",
         }));
         let request = json!({
             "plan_id": PLAN_ID, "seq": plan.next_seq, "commitment": plan.commitment,

@@ -1,0 +1,18 @@
+[package]
+name = "btc-vault"
+description = "Coercion-safe Bitcoin vault prototype: a testnet4 address signed only through Chain Signatures, with a public withdrawal delay, guardian veto and claw-back to a fixed recovery address."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+# `unstable` exposes env::ecrecover, used to check each MPC signature against the vault's key.
+near-sdk = { workspace = true, features = ["unstable"] }
+hex.workspace = true
+
+[dev-dependencies]
+near-sdk = { workspace = true, features = ["unit-testing", "unstable"] }

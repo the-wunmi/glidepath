@@ -47,6 +47,10 @@ export const plans = pgTable(
     sealedBox: jsonb('sealed_box').notNull(),
     /** A change's ciphertext waits here until its cooling-off ends and the enclave picks it up. */
     pendingSealedBox: jsonb('pending_sealed_box'),
+    /** The same plan sealed to each backup enclave build (`[{ signingKey, box }]`). */
+    backupBoxes: jsonb('backup_boxes').notNull().default([]),
+    /** A pending change sealed to each backup build, staged with the main one. */
+    pendingBackupBoxes: jsonb('pending_backup_boxes').notNull().default([]),
     planAccount: text('plan_account').notNull(),
     createTx: text('create_tx').notNull(),
     /**
@@ -174,4 +178,49 @@ export const simOneClickQuotes = pgTable(
     updatedAt: updatedAt(),
   },
   (t) => [uniqueIndex('sim_oneclick_correlation').on(t.correlationId)],
+);
+
+/**
+ * Blind trusts (Labs prototype). Like plans, the server never sees a mandate: it keeps the box
+ * sealed to the enclave so it can hand it over, plus what is on-chain anyway.
+ */
+export const trusts = pgTable('trusts', {
+  id: bigint('id', { mode: 'number' }).primaryKey(),
+  owner: text('owner').notNull(),
+  label: text('label').notNull(),
+  commitment: text('commitment').notNull(),
+  sealedBox: jsonb('sealed_box').notNull(),
+  trustAccount: text('trust_account').notNull(),
+  /** The deposit the official makes into the trust: `[{ asset, amount }]`, base units. */
+  deposits: jsonb('deposits').notNull(),
+  createTx: text('create_tx').notNull(),
+  /** sha256 (hex) of the owner key handed out once at creation (cancel needs it). */
+  ownerKeyHash: text('owner_key_hash').notNull(),
+  /** Set once the chain shows the trust ended; the worker then stops waking it. */
+  endedAt: timestamp('ended_at', { withTimezone: true }),
+  createdAt: createdAt(),
+});
+
+/**
+ * One row per trade the trust enclave signed. Status only moves forward, through
+ * `trustTransition`; a swap with no final answer from 1Click is in_doubt, never failed.
+ */
+export const trustTrades = pgTable(
+  'trust_trades',
+  {
+    id: bigserial('id', { mode: 'number' }).primaryKey(),
+    trustId: bigint('trust_id', { mode: 'number' }).notNull(),
+    seq: integer('seq').notNull(),
+    depositAddress: text('deposit_address').notNull(),
+    requestJson: text('request_json').notNull(),
+    signature: text('signature').notNull(),
+    enclaveKey: text('enclave_key').notNull(),
+    status: text('status').notNull(),
+    chainTx: text('chain_tx'),
+    chainError: text('chain_error'),
+    settlementStatus: text('settlement_status'),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [uniqueIndex('trust_trades_trust_seq').on(t.trustId, t.seq)],
 );

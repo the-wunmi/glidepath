@@ -35,6 +35,28 @@ pub struct OneClickQuote {
     pub deadline: String,
 }
 
+/// Where a quote takes the deposit, sends the refund and pays out. Read separately from
+/// `OneClickQuote` so each contract states whether it checks it (`routes_on_chain`).
+#[derive(Deserialize)]
+#[serde(crate = "near_sdk::serde", rename_all = "camelCase")]
+struct QuoteRouting {
+    deposit_type: Option<String>,
+    refund_type: Option<String>,
+    recipient_type: Option<String>,
+}
+
+/// Whether quote `q` takes the deposit on the origin chain, refunds there and pays out on the
+/// destination chain, so the refund and the proceeds land in the named accounts themselves. With
+/// `INTENTS` types they would land as balances inside intents.near, which a keyless account that
+/// only sends `ft_transfer` can never withdraw. A missing field is not on-chain routing.
+pub fn routes_on_chain(q: &str) -> bool {
+    near_sdk::serde_json::from_str::<QuoteRouting>(q).is_ok_and(|r| {
+        r.deposit_type.as_deref() == Some("ORIGIN_CHAIN")
+            && r.refund_type.as_deref() == Some("ORIGIN_CHAIN")
+            && r.recipient_type.as_deref() == Some("DESTINATION_CHAIN")
+    })
+}
+
 /// `"ed25519:<base58 of 64 bytes>"` → raw signature, or `None` if it is anything else.
 pub fn parse_signature(value: &str) -> Option<[u8; 64]> {
     let encoded = value.strip_prefix("ed25519:")?;
@@ -335,6 +357,34 @@ mod tests {
         // Receiving more than was sent costs nothing.
         assert_eq!(cost_within_bound(dollar, 2 * dollar), Some(true));
         assert_eq!(cost_within_bound(u128::MAX, 0), None);
+    }
+
+    #[test]
+    fn only_on_chain_deposit_refund_and_payout_count_as_on_chain_routing() {
+        let on_chain = r#"{"depositType":"ORIGIN_CHAIN","recipientType":"DESTINATION_CHAIN","refundType":"ORIGIN_CHAIN"}"#;
+        assert!(routes_on_chain(on_chain));
+        for (field, value) in [
+            ("depositType", "INTENTS"),
+            ("recipientType", "INTENTS"),
+            ("refundType", "INTENTS"),
+        ] {
+            let q = on_chain.replace(
+                &format!(
+                    r#""{field}":"{}""#,
+                    if field == "recipientType" {
+                        "DESTINATION_CHAIN"
+                    } else {
+                        "ORIGIN_CHAIN"
+                    }
+                ),
+                &format!(r#""{field}":"{value}""#),
+            );
+            assert!(!routes_on_chain(&q), "{field}={value}");
+        }
+        assert!(
+            !routes_on_chain(r#"{"depositType":"ORIGIN_CHAIN"}"#),
+            "missing fields"
+        );
     }
 
     #[test]

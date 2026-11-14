@@ -10,8 +10,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@vsp/btc": "workspace:*",
     "@vsp/core": "workspace:*",
     "@vsp/near": "workspace:*",
+    "@vsp/trust": "workspace:*",
     "@vsp/verify": "workspace:*",
     "next": "16.4.6",
     "react": "19.3.1",

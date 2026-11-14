@@ -49,6 +49,10 @@ export interface Meta {
     quote: SimulatedQuote | OutlayerQuote;
     quoteHash: string;
   };
+  /** Earlier enclave builds, for receipts their keys signed. */
+  pastEnclaves?: Meta['enclave'][];
+  /** Builds new plans are also sealed to; each can stand in when the current build cannot run. */
+  backupEnclaves?: Meta['enclave'][];
   mpcRootPublicKey: string;
   evmChainId: number;
   sim: SimSettings;
@@ -65,7 +69,7 @@ export interface Meta {
 
 /**
  * A live OutLayer enclave's evidence (`enclave.quote` when `format` is 'outlayer-tdx-v1'). The
- * Intel TDX quote itself sits behind `attestation_url`; OutLayer's verifier checks its signatures.
+ * Intel TDX quote itself sits behind `attestation_url`; the browser fetches and checks it (`@vsp/verify/tdx`).
  */
 export interface OutlayerQuote {
   format: 'outlayer-tdx-v1';

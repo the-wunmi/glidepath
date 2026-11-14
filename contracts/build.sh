@@ -13,12 +13,12 @@ fi
 export CARGO_BUILD_JOBS="${CARGO_BUILD_JOBS:-2}"
 
 mkdir -p res
-for crate in plan-account mpc-signer-sim demo-token plan-registry; do
+for crate in plan-account mpc-signer-sim demo-token plan-registry btc-vault blind-trust; do
   echo "building ${crate}"
   cargo near build non-reproducible-wasm --no-abi \
     --manifest-path "${crate}/Cargo.toml" --out-dir res
 done
 
-(cd res && shasum -a 256 plan_registry.wasm plan_account.wasm mpc_signer_sim.wasm demo_token.wasm > SHA256SUMS)
+(cd res && shasum -a 256 plan_registry.wasm plan_account.wasm mpc_signer_sim.wasm demo_token.wasm btc_vault.wasm blind_trust.wasm > SHA256SUMS)
 cat res/SHA256SUMS
 ls -l res/*.wasm

@@ -84,6 +84,10 @@ fn chain_plan(status: &str, next_seq: u64) -> ChainPlan {
         "evm_nonce": 0,
         "next_seq": next_seq,
         "pending_change": null,
+        "period_index": 0,
+        "sold_in_period": "0",
+        "sold_total": "0",
+        "last_sale_ms": null,
     }))
     .unwrap()
 }
@@ -96,13 +100,18 @@ struct Harness {
 
 impl Harness {
     fn new() -> Self {
+        Self::with_seed([1u8; 32])
+    }
+
+    /// Another seed stands in for another build: its own keystore keys.
+    fn with_seed(seed: [u8; 32]) -> Self {
         let quote_key = SigningKey::from_bytes(&[3u8; 32]);
         let quote_key_text = format!(
             "ed25519:{}",
             bs58::encode(quote_key.verifying_key().as_bytes()).into_string()
         );
         Self {
-            keys: LocalKeys::from_seed([1u8; 32]),
+            keys: LocalKeys::from_seed(seed),
             quote_key,
             quote_key_text,
         }
@@ -120,7 +129,11 @@ impl Harness {
     }
 
     fn sealed_plan(&self) -> SealedBox {
-        let opened = json!({ "plan": plan_json(), "salt": SALT }).to_string();
+        self.sealed_with(SALT)
+    }
+
+    fn sealed_with(&self, salt: &str) -> SealedBox {
+        let opened = json!({ "plan": plan_json(), "salt": salt }).to_string();
         seal_to(&box_public_hex(&self.keys).unwrap(), &opened)
     }
 
@@ -184,6 +197,7 @@ fn chain_plan_json(status: &str, next_seq: u64) -> Value {
         "start_ms": p.start_ms, "end_ms": p.end_ms, "next_seq": next_seq, "evm_nonce": 0,
         "evm_address": null, "plan_account": p.plan_account, "pending_change": null,
         "disclosure": { "type": "end_reveal" },
+        "period_index": 0, "sold_in_period": "0", "sold_total": "0", "last_sale_ms": null,
     })
 }
 
@@ -393,4 +407,218 @@ fn iso_times_match_javascript() {
         parse_iso_ms(&iso_from_ms(1_951_234_567_890)).unwrap(),
         1_951_234_567_890
     );
+}
+
+const MOVED_SALT: &str = "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd";
+
+/// Plan 7 with the same terms re-committed under a new salt, pending on-chain since `requested`.
+fn moving_plan(requested: i64) -> Value {
+    let mut plan = chain_plan_json("active", 3);
+    plan["pending_change"] = json!({
+        "kind": "modify",
+        "commitment": commitment(&plan_json(), MOVED_SALT).unwrap(),
+        "envelope": plan["envelope"].clone(),
+        "requested_at_ms": requested,
+        "effective_at_ms": requested + 600_000,
+    });
+    plan
+}
+
+#[test]
+fn a_build_that_never_held_the_plan_takes_it_over_through_a_change() {
+    let old = Harness::new();
+    accept(&old);
+    let new = Harness::with_seed([2u8; 32]);
+    let requested = START + 2 * DAY;
+    let moving = moving_plan(requested);
+
+    let staged = new.run(json!({
+        "op": "stage", "plan": moving, "sealed": sealed_json(&new.sealed_with(MOVED_SALT)),
+    }));
+    assert_eq!(staged["ok"], true, "{staged}");
+    let record = staged["record"].as_str().unwrap();
+
+    // Once the cooling-off is over the new build acks the change with its own key.
+    let effective = requested + 600_000;
+    let acked = new.run(json!({
+        "op": "tick", "plan": moving, "record": record, "now_ms": effective,
+        "balance": "1000000000", "last_receipt": null,
+    }));
+    assert_eq!(acked["type"], "ack_change", "{acked}");
+    verify(&new, ACK_DOMAIN, &acked["ack"]);
+
+    // Applied: the old build's sales so far used this period's whole cap.
+    let mut applied = chain_plan_json("active", 3);
+    applied["commitment"] = moving["pending_change"]["commitment"].clone();
+    applied["period_index"] = json!(2);
+    applied["sold_in_period"] = json!("100000000");
+    applied["sold_total"] = json!("300000000");
+    applied["last_sale_ms"] = json!(requested - 60_000);
+    let tick_at = |record: &str, now: i64| {
+        new.run(json!({
+            "op": "tick", "plan": applied, "record": record, "now_ms": now,
+            "balance": "700000000", "last_receipt": { "seq": 2, "status": "done" },
+        }))
+    };
+    let first = tick_at(record, effective + 30_000);
+    assert_eq!(first["type"], "idle", "{first}");
+    let mut record = first["record"].as_str().unwrap().to_string();
+
+    // The previous build's last request may still land, so nothing is decided for a while, and
+    // after that the sealed per-period limit (10% a day) counts the old build's sales too.
+    let mut now = effective + 60_000;
+    let mut sold_this_period = false;
+    while now < START + 3 * DAY {
+        let out = tick_at(&record, now);
+        if out["type"] == "quote" {
+            sold_this_period = true;
+            break;
+        }
+        if let Some(r) = out["record"].as_str() {
+            record = r.to_string();
+        }
+        now += 600_000;
+    }
+    assert!(
+        !sold_this_period,
+        "the old build's sales count against the cap"
+    );
+    let (next, _) = until_quote_on(&new, &applied, record, START + 3 * DAY, 3);
+    assert_eq!(next["seq"], 3);
+}
+
+#[test]
+fn a_takeover_change_sealed_to_another_build_is_refused() {
+    let new = Harness::with_seed([2u8; 32]);
+    let elsewhere = Harness::with_seed([9u8; 32]);
+    let out = new.run(json!({
+        "op": "stage", "plan": moving_plan(START), "sealed": sealed_json(&elsewhere.sealed_with(MOVED_SALT)),
+    }));
+    assert_eq!(out["ok"], false);
+    assert_eq!(
+        out["reasons"][0],
+        "The sealed plan could not be opened or read"
+    );
+}
+
+/// `until_quote` for an arbitrary chain view.
+fn until_quote_on(
+    h: &Harness,
+    plan: &Value,
+    mut record: String,
+    mut now: i64,
+    seq: u64,
+) -> (Value, i64) {
+    for _ in 0..30 {
+        let out = h.run(json!({
+            "op": "tick", "plan": plan, "record": record, "now_ms": now,
+            "balance": "700000000", "last_receipt": { "seq": seq - 1, "status": "done" },
+        }));
+        if out["type"] == "quote" {
+            return (out, now);
+        }
+        assert_eq!(out["type"], "idle", "{out}");
+        if let Some(r) = out["record"].as_str() {
+            record = r.to_string();
+        }
+        now += 60_000;
+    }
+    panic!("no sale was decided within 30 minutes");
+}
+
+#[test]
+fn a_backup_build_counts_sales_another_build_made_from_the_registry() {
+    let primary = Harness::new();
+    let backup = Harness::with_seed([2u8; 32]);
+    let start = chain_plan("active", 0).start_ms;
+    // Both builds open the same sealed plan when it is created; only the primary's ack is sent.
+    let record = accept(&backup);
+
+    // The primary has since sold the sealed plan's whole first-day budget (10% of 1,000,000,000).
+    let mut plan = chain_plan_json("active", 10);
+    plan["period_index"] = json!(0);
+    plan["sold_in_period"] = json!("100000000");
+    plan["sold_total"] = json!("100000000");
+    plan["last_sale_ms"] = json!(start + 3_600_000);
+    let primary_key = primary.run(json!({ "op": "key_proof" }))["json"]
+        .as_str()
+        .map(|j| {
+            serde_json::from_str::<Value>(j).unwrap()["signing_key"]
+                .as_str()
+                .unwrap()
+                .to_string()
+        });
+    let receipt = json!({ "seq": 9, "status": "done", "enclave_key": primary_key });
+
+    let mut record = record;
+    let mut now = start + 4 * 3_600_000;
+    while now < start + DAY - 60_000 {
+        let out = backup.run(json!({
+            "op": "tick", "plan": plan, "record": record, "now_ms": now,
+            "balance": "900000000", "last_receipt": receipt,
+        }));
+        assert_eq!(
+            out["type"], "idle",
+            "the backup sold past the sealed budget: {out}"
+        );
+        if let Some(r) = out["record"].as_str() {
+            record = r.to_string();
+        }
+        now += 3_600_000;
+    }
+
+    // The next day the budget is fresh, and the backup's sale takes the registry's next seq.
+    let (decided, _) = until_quote_on(&backup, &plan, record, start + DAY, 10);
+    assert_eq!(decided["seq"], 10);
+}
+
+#[test]
+fn a_build_that_took_a_plan_over_counts_a_later_stand_in_build_s_sales() {
+    let new = Harness::with_seed([2u8; 32]);
+    let requested = START + 2 * DAY;
+    let moving = moving_plan(requested);
+    let staged = new.run(json!({
+        "op": "stage", "plan": moving, "sealed": sealed_json(&new.sealed_with(MOVED_SALT)),
+    }));
+    let effective = requested + 600_000;
+    let mut applied = chain_plan_json("active", 3);
+    applied["commitment"] = moving["pending_change"]["commitment"].clone();
+    applied["period_index"] = json!(2);
+    applied["sold_in_period"] = json!("100000000");
+    applied["sold_total"] = json!("300000000");
+    applied["last_sale_ms"] = json!(requested - 60_000);
+    // Through the handover wait, into the next period, without selling.
+    let mut record = staged["record"].as_str().unwrap().to_string();
+    let mut now = effective + 30_000;
+    while now < START + 3 * DAY - 600_000 {
+        let out = new.run(json!({
+            "op": "tick", "plan": applied, "record": record, "now_ms": now,
+            "balance": "700000000", "last_receipt": { "seq": 2, "status": "done" },
+        }));
+        if let Some(r) = out["record"].as_str() {
+            record = r.to_string();
+        }
+        now += 600_000;
+    }
+
+    // Another build stood in and sold the new period's whole sealed budget as seqs 3-5.
+    let mut later = applied.clone();
+    later["next_seq"] = json!(6);
+    later["period_index"] = json!(3);
+    later["sold_in_period"] = json!("100000000");
+    later["sold_total"] = json!("400000000");
+    later["last_sale_ms"] = json!(START + 3 * DAY + 3_600_000);
+    let receipt = json!({ "seq": 5, "status": "done", "enclave_key": "ed25519:another" });
+    let mut now = START + 3 * DAY + 2 * 3_600_000;
+    while now < START + 4 * DAY - 60_000 {
+        let out = new.run(json!({
+            "op": "tick", "plan": later, "record": record, "now_ms": now,
+            "balance": "600000000", "last_receipt": receipt,
+        }));
+        assert_eq!(out["type"], "idle", "it sold past the sealed budget: {out}");
+        if let Some(r) = out["record"].as_str() {
+            record = r.to_string();
+        }
+        now += 3_600_000;
+    }
 }

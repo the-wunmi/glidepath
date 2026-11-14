@@ -14,6 +14,8 @@ import {
 import { type Db, enclaveStore, executions, plans } from '@vsp/db';
 import type {
   AcceptResult,
+  BackupBox,
+  BackupOutcome,
   Enclave,
   EnclaveHost,
   EnclaveIdentity,
@@ -45,6 +47,28 @@ import type { WorldConfig } from './world.ts';
  * module (enclave-wasi/src/enclave.rs) puts nothing secret in either.
  */
 
+const Measurements = z.object({
+  mrtd: z.string(),
+  rtmr0: z.string(),
+  rtmr1: z.string(),
+  rtmr2: z.string(),
+  rtmr3: z.string(),
+});
+
+/** One published build of the module besides the current one: its keys and evidence. */
+const PublishedBuild = z.object({
+  wasm: z.object({ url: z.string().url(), sha256: z.string() }),
+  signingKey: z.string().startsWith('ed25519:'),
+  encryptionKeyHex: z.string(),
+  keyProof: z.object({ txHash: z.string(), json: z.string(), signature: z.string() }),
+  attestation: z.object({
+    url: z.string().url(),
+    measurements: Measurements,
+    quoteHash: z.string(),
+  }),
+  registerTx: z.string().nullable(),
+});
+
 /** What `scripts/outlayer-enclave.ts` recorded about the deployed module (no secrets). */
 export const OutLayerDeployment = z.object({
   network: z.literal('testnet'),
@@ -59,16 +83,20 @@ export const OutLayerDeployment = z.object({
   keyProof: z.object({ txHash: z.string(), json: z.string(), signature: z.string() }),
   attestation: z.object({
     url: z.string().url(),
-    measurements: z.object({
-      mrtd: z.string(),
-      rtmr0: z.string(),
-      rtmr1: z.string(),
-      rtmr2: z.string(),
-      rtmr3: z.string(),
-    }),
+    measurements: Measurements,
     quoteHash: z.string().regex(/^[0-9a-f]{64}$/),
   }),
   registerTx: z.string().nullable(),
+  /**
+   * Earlier builds' keys, newest first. Each build has its own key, and receipts signed by an old
+   * one stay checkable only if the server can still serve that build's evidence.
+   */
+  previous: z.array(PublishedBuild).default([]),
+  /**
+   * Backup builds of the current code (each its own wasm, so its own keystore keys). New plans and
+   * changes are sealed to them too, and one stands in when the current build's runs keep failing.
+   */
+  backups: z.array(PublishedBuild).default([]),
 });
 export type OutLayerDeployment = z.output<typeof OutLayerDeployment>;
 
@@ -94,7 +122,7 @@ const RESOURCE_LIMITS = {
   max_memory_mb: 128,
   max_execution_seconds: 30,
 };
-/** A run resolves within the 200-block yield window (~4 minutes); allow the chain some slack. */
+/** A run resolves within the 200-block yield window (a few minutes); allow the chain some slack. */
 const RUN_TIMEOUT_MS = 300_000;
 /** Another process signs with the same relayer key (the main API), so nonces can collide. */
 const NONCE_RETRIES = 6;
@@ -109,30 +137,50 @@ export interface RunResult<T> {
 
 type ModuleOutput<T> = { ok: true; result: T } | { ok: false; error: string };
 
-/** Sends `request_execution` transactions for one wasm build and reads the module's answer. */
-export class OutLayerClient {
+/**
+ * The module ran and answered with an error (a request it cannot handle, a record it cannot
+ * open). Running it again gives the same answer, so callers treat it as a refusal, not an outage.
+ */
+export class ModuleError extends DomainError {
+  constructor(error: string) {
+    super('unavailable', `The enclave refused: ${error}`);
+  }
+}
+
+/** One published build of the module: its wasm, and the key the keystore gave that build. */
+export interface OutLayerBuild {
+  wasm: { url: string; sha256: string };
+  signingKey: string;
+}
+
+/** Runs one operation on one build. */
+export interface OutLayerRunner {
+  run<T>(build: Pick<OutLayerBuild, 'wasm'>, input: object): Promise<RunResult<T>>;
+}
+
+/** Sends `request_execution` transactions and reads the module's answer. */
+export class OutLayerClient implements OutLayerRunner {
   private queue: Promise<unknown> = Promise.resolve();
 
   constructor(
     private readonly caller: Account,
     private readonly contract: string,
-    private readonly wasm: { url: string; sha256: string },
   ) {}
 
   /** One run; queued, so this process never signs two of them with the same nonce. */
-  run<T>(input: object): Promise<RunResult<T>> {
-    const next = this.queue.catch(() => undefined).then(() => this.runNow<T>(input));
+  run<T>(build: Pick<OutLayerBuild, 'wasm'>, input: object): Promise<RunResult<T>> {
+    const next = this.queue.catch(() => undefined).then(() => this.runNow<T>(build.wasm, input));
     this.queue = next;
     return next;
   }
 
-  private async runNow<T>(input: object): Promise<RunResult<T>> {
+  private async runNow<T>(wasm: OutLayerBuild['wasm'], input: object): Promise<RunResult<T>> {
     const inputData = JSON.stringify(input);
     const action = actions.functionCall(
       'request_execution',
       {
         source: {
-          WasmUrl: { url: this.wasm.url, hash: this.wasm.sha256, build_target: 'wasm32-wasip2' },
+          WasmUrl: { url: wasm.url, hash: wasm.sha256, build_target: 'wasm32-wasip2' },
         },
         resource_limits: RESOURCE_LIMITS,
         input_data: inputData,
@@ -176,7 +224,7 @@ export class OutLayerClient {
       throw new DomainError('unavailable', `OutLayer refused the run: ${outcome.error}`);
     const out = outcome.value;
     if (!out) throw new DomainError('unavailable', `The OutLayer run failed (tx ${txHash})`);
-    if (!out.ok) throw new DomainError('unavailable', `The enclave refused: ${out.error}`);
+    if (!out.ok) throw new ModuleError(out.error);
     return { txHash, outputBytes, inputData, result: out.result };
   }
 
@@ -360,34 +408,57 @@ type SellOutput =
 /** Exchange feeds the host offers; the sealed plan names which ones count. */
 const PRICE_FEEDS = ['binance', 'coinbase'];
 
-/** Where the host keeps each plan's sealed record, and the public facts it reads about a plan. */
+/**
+ * A build's sealed record of one plan, and the commitment of the change it staged (public: it is
+ * the pending change's commitment), so the host knows which build can ack that change.
+ */
+export interface HeldRecord {
+  record: string;
+  /**
+   * The commitment the record was accepted under (public), so the host knows which builds can run
+   * the plan as it stands. Undefined for records saved before backups.
+   */
+  commitment?: string;
+  /** Undefined for records saved before staged changes were noted. */
+  staged?: string | null;
+}
+
+/** Where the host keeps each build's sealed records, and the public facts it reads about a plan. */
 export interface OutLayerStore {
-  load(planId: number): Promise<string | null>;
-  save(planId: number, record: string): Promise<void>;
+  /** `build` null: the record stored before builds were told apart. */
+  load(planId: number, build: string | null): Promise<HeldRecord | null>;
+  save(planId: number, build: string, held: HeldRecord): Promise<void>;
   /** The token symbol the plan was created with (public), to ask the price feeds. */
   symbol(planId: number): Promise<string>;
   /** Whether a sale the enclave signed is still waiting to reach the registry. */
   saleInFlight(planId: number): Promise<boolean>;
 }
 
-/** Sealed records live beside the simulator's, under keys a new world clears (`plan:%`). */
-const recordKey = (planId: number) => `plan:${planId}:outlayer`;
+/**
+ * Sealed records live beside the simulator's, under keys a new world clears (`plan:%`). A record
+ * opens only in the build that sealed it, so each build has its own key.
+ */
+const recordKey = (planId: number, build: string | null) =>
+  build ? `plan:${planId}:outlayer:${build}` : `plan:${planId}:outlayer`;
 
 export function dbOutLayerStore(db: Db): OutLayerStore {
   return {
-    async load(planId) {
+    async load(planId, build) {
       const [row] = await db
         .select()
         .from(enclaveStore)
-        .where(eq(enclaveStore.key, recordKey(planId)));
-      return (row?.box as { record?: string } | undefined)?.record ?? null;
+        .where(eq(enclaveStore.key, recordKey(planId, build)));
+      const box = row?.box as HeldRecord | undefined;
+      return box?.record ? box : null;
     },
-    async save(planId, record) {
-      const box = { record };
+    async save(planId, build, held) {
       await db
         .insert(enclaveStore)
-        .values({ key: recordKey(planId), box })
-        .onConflictDoUpdate({ target: enclaveStore.key, set: { box, updatedAt: new Date() } });
+        .values({ key: recordKey(planId, build), box: held })
+        .onConflictDoUpdate({
+          target: enclaveStore.key,
+          set: { box: held, updatedAt: new Date() },
+        });
     },
     async symbol(planId) {
       const [row] = await db
@@ -429,7 +500,8 @@ export function noSalePossible(plan: ChainPlan, nowMs: number): string | null {
 
 export interface OutLayerEnclaveOptions {
   store: OutLayerStore;
-  client: Pick<OutLayerClient, 'run'>;
+  client: OutLayerRunner;
+  /** The current build, and in `previous` the earlier ones that still run their own plans. */
   deployment: OutLayerDeployment;
   host: EnclaveHost;
   /**
@@ -440,18 +512,72 @@ export interface OutLayerEnclaveOptions {
   log: (message: string, data?: Record<string, unknown>) => void;
 }
 
+/** Failed runs in a row after which a plan's sales go to a backup build. */
+const FAILOVER_AFTER_FAILURES = 2;
+/** While failed over, how often the main build is tried again. */
+const MAIN_PROBE_MS = 30 * 60_000;
+
+/** The module's answer when a change was sealed to another build's key. */
+const UNREADABLE_BOX = 'The sealed plan could not be opened or read';
+
+/**
+ * The enclave across every published build. The keystore gives each build its own keys, so a plan
+ * runs on the build that accepted it (the registry's `acked_by`) until its owner moves it with a
+ * change sealed to the current build; new plans and changes go to the current build. A build with
+ * no plans costs nothing: runs are paid per plan.
+ */
 export class OutLayerEnclave implements Enclave {
   readonly mode = 'live' as const;
   private readonly lastRun = new Map<number, number>();
+  /** Consecutive failed runs of each plan's main build, and when it was last tried while down. */
+  private readonly health = new Map<number, { failures: number; probedAt: number }>();
+  private readonly builds: OutLayerBuild[];
+  private readonly backupBuilds: OutLayerBuild[];
 
-  constructor(private readonly o: OutLayerEnclaveOptions) {}
+  constructor(private readonly o: OutLayerEnclaveOptions) {
+    const build = (d: { wasm: OutLayerBuild['wasm']; signingKey: string }) => ({
+      wasm: d.wasm,
+      signingKey: d.signingKey,
+    });
+    this.backupBuilds = o.deployment.backups.map(build);
+    this.builds = [o.deployment, ...o.deployment.backups, ...o.deployment.previous].map(build);
+  }
+
+  private get current(): OutLayerBuild {
+    return this.builds[0] as OutLayerBuild;
+  }
 
   /**
    * The keys from the attested key-proof run. `quote` is OutLayer's attestation, not a simulated
    * quote: the shared identity type predates live enclaves, and `format` tells them apart.
    */
   async identity(): Promise<EnclaveIdentity> {
-    const d = this.o.deployment;
+    return this.identityOf(this.o.deployment);
+  }
+
+  /** Earlier builds of this enclave, so receipts they signed can still be checked. */
+  async pastIdentities(): Promise<EnclaveIdentity[]> {
+    return this.o.deployment.previous.map((p) => this.identityOf(p));
+  }
+
+  /** The backup builds new plans are also sealed to; the browser checks their attestations too. */
+  async backupIdentities(): Promise<EnclaveIdentity[]> {
+    return this.o.deployment.backups.map((p) => this.identityOf(p));
+  }
+
+  private identityOf(
+    d: Omit<
+      OutLayerDeployment,
+      | 'previous'
+      | 'backups'
+      | 'network'
+      | 'contract'
+      | 'api'
+      | 'workerRegistry'
+      | 'caller'
+      | 'quoteSignerKey'
+    >,
+  ): EnclaveIdentity {
     const quote = {
       format: 'outlayer-tdx-v1',
       measurements: d.attestation.measurements,
@@ -459,7 +585,7 @@ export class OutLayerEnclave implements Enclave {
       key_proof_tx: d.keyProof.txHash,
       wasm_url: d.wasm.url,
       wasm_sha256: d.wasm.sha256,
-      worker_registry: d.workerRegistry,
+      worker_registry: this.o.deployment.workerRegistry,
     };
     return {
       mode: 'live',
@@ -470,90 +596,310 @@ export class OutLayerEnclave implements Enclave {
     };
   }
 
-  private load(planId: number): Promise<string | null> {
-    return this.o.store.load(planId);
+  /** The build that accepted the plan, or none when another enclave's key did. */
+  private holder(plan: ChainPlan): OutLayerBuild | null {
+    if (plan.acked_by === null) return this.current;
+    return this.builds.find((b) => b.signingKey === plan.acked_by) ?? null;
   }
 
-  private async save(planId: number, record: string | null): Promise<void> {
-    if (record) await this.o.store.save(planId, record);
+  private async held(plan: ChainPlan, build: OutLayerBuild): Promise<HeldRecord | null> {
+    const own = await this.o.store.load(plan.id, build.signingKey);
+    if (own) return own;
+    // A record stored before builds were told apart belongs to the build holding the plan.
+    return build.signingKey === plan.acked_by ? this.o.store.load(plan.id, null) : null;
   }
 
-  private async run<T>(op: string, planId: number, input: object): Promise<T> {
-    const out = await this.o.client.run<T>({ op, ...input });
-    this.o.log('outlayer run', { op, planId, txHash: out.txHash });
+  private async save(plan: ChainPlan, build: OutLayerBuild, held: HeldRecord): Promise<void> {
+    await this.o.store.save(plan.id, build.signingKey, held);
+  }
+
+  private async run<T>(op: string, build: OutLayerBuild, planId: number, input: object) {
+    const out = await this.o.client.run<T>(build, { op, ...input });
+    this.o.log('outlayer run', { op, planId, wasm: build.wasm.sha256, txHash: out.txHash });
     return out.result;
   }
 
-  async acceptPlan(plan: ChainPlan, box: SealedBox): Promise<AcceptResult> {
-    if (plan.status !== 'awaiting_ack')
-      return { ok: false, reasons: ['The plan is not awaiting an ack'] };
-    const out = await this.run<
-      { ok: true; ack: Signed; record: string } | { ok: false; reasons: string[] }
-    >('accept', plan.id, { plan, sealed: box, now_ms: await this.o.host.chainTimeMs() });
-    if (!out.ok) return out;
-    await this.save(plan.id, out.record);
-    return { ok: true, ack: toSigned(out.ack) };
+  /**
+   * A run whose module error is the answer: accept and stage run inside durable steps that retry
+   * what throws, and retrying a deterministic refusal would pay for a run every time.
+   */
+  private async decide<T>(
+    op: string,
+    build: OutLayerBuild,
+    planId: number,
+    input: object,
+  ): Promise<T | { ok: false; reasons: string[] }> {
+    try {
+      return await this.run<T>(op, build, planId, input);
+    } catch (error) {
+      if (error instanceof ModuleError) return { ok: false, reasons: [error.message] };
+      throw error;
+    }
   }
 
-  async stageChange(plan: ChainPlan, box: SealedBox): Promise<{ ok: boolean; reasons: string[] }> {
-    const record = await this.load(plan.id);
-    if (!record) return { ok: false, reasons: ['The enclave does not hold this plan'] };
-    const out = await this.run<{ ok: true; record: string } | { ok: false; reasons: string[] }>(
-      'stage',
+  async acceptPlan(
+    plan: ChainPlan,
+    box: SealedBox,
+    backups: BackupBox[] = [],
+  ): Promise<AcceptResult> {
+    if (plan.status !== 'awaiting_ack')
+      return { ok: false, reasons: ['The plan is not awaiting an ack'] };
+    const now = await this.o.host.chainTimeMs();
+    const build = this.current;
+    const out = await this.decide<{ ok: true; ack: Signed; record: string }>(
+      'accept',
+      build,
       plan.id,
-      { plan, sealed: box, record },
+      { plan, sealed: box, now_ms: now },
     );
     if (!out.ok) return out;
-    await this.save(plan.id, out.record);
-    return { ok: true, reasons: [] };
+    await this.save(plan, build, { record: out.record, staged: null, commitment: plan.commitment });
+    // Each backup opens its own copy while the plan still awaits the ack; only the main ack is sent.
+    const outcomes = await this.forBackups(plan, backups, async (b, sealed) => {
+      const opened = await this.decide<{ ok: true; record: string }>('accept', b, plan.id, {
+        plan,
+        sealed,
+        now_ms: now,
+      });
+      if (opened.ok)
+        await this.save(plan, b, {
+          record: opened.record,
+          staged: null,
+          commitment: plan.commitment,
+        });
+      return opened;
+    });
+    const ack = toSigned(out.ack);
+    return outcomes.length > 0 ? { ok: true, ack, backups: outcomes } : { ok: true, ack };
+  }
+
+  /**
+   * Runs `step` on each backup build a copy was sealed for. A backup that fails is reported, never
+   * fatal: the plan runs on its main build either way.
+   */
+  private async forBackups(
+    plan: ChainPlan,
+    backups: BackupBox[],
+    step: (build: OutLayerBuild, box: SealedBox) => Promise<{ ok: boolean; reasons?: string[] }>,
+  ): Promise<BackupOutcome[]> {
+    const outcomes: BackupOutcome[] = [];
+    for (const { signingKey, box } of backups) {
+      const build = this.backupBuilds.find((b) => b.signingKey === signingKey);
+      if (!build) {
+        outcomes.push({ signingKey, ok: false, reasons: ['Not a backup build of this enclave'] });
+        continue;
+      }
+      try {
+        const out = await step(build, box);
+        outcomes.push({ signingKey, ok: out.ok, reasons: out.reasons ?? [] });
+      } catch (error) {
+        this.o.log('outlayer backup failed', { planId: plan.id, error: String(error) });
+        outcomes.push({ signingKey, ok: false, reasons: ['The backup build could not be run'] });
+      }
+    }
+    return outcomes;
+  }
+
+  /**
+   * Changes are sealed to the current build, which takes the plan over if an earlier build holds
+   * it. A change sealed before the current build was published opens only in the plan's own build.
+   */
+  async stageChange(
+    plan: ChainPlan,
+    box: SealedBox,
+    backups: BackupBox[] = [],
+  ): Promise<{ ok: boolean; reasons: string[]; backups?: BackupOutcome[] }> {
+    const commitment = plan.pending_change?.kind === 'modify' && plan.pending_change.commitment;
+    if (!commitment) return { ok: false, reasons: ['No plan change is pending on-chain'] };
+    const staged = await this.stageMain(plan, box, commitment);
+    if (!staged.ok) return staged;
+    // Backups stage the change too, so after it applies one can still stand in.
+    const outcomes = await this.forBackups(plan, backups, async (b, sealed) => {
+      const held = await this.held(plan, b);
+      const out = await this.decide<
+        { ok: true; record: string } | { ok: false; reasons: string[] }
+      >('stage', b, plan.id, { plan, sealed, record: held?.record ?? null });
+      if (out.ok)
+        await this.save(plan, b, {
+          record: out.record,
+          staged: commitment,
+          commitment: held?.commitment,
+        });
+      return out;
+    });
+    return outcomes.length > 0 ? { ...staged, backups: outcomes } : staged;
+  }
+
+  private async stageMain(
+    plan: ChainPlan,
+    box: SealedBox,
+    commitment: string,
+  ): Promise<{ ok: boolean; reasons: string[] }> {
+    const holder = this.holder(plan);
+    const candidates = holder && holder !== this.current ? [this.current, holder] : [this.current];
+    let reasons: string[] = [];
+    for (const build of candidates) {
+      const held = await this.held(plan, build);
+      const out = await this.decide<
+        { ok: true; record: string } | { ok: false; reasons: string[] }
+      >('stage', build, plan.id, { plan, sealed: box, record: held?.record ?? null });
+      if (out.ok) {
+        await this.save(plan, build, {
+          record: out.record,
+          staged: commitment,
+          commitment: held?.commitment,
+        });
+        return { ok: true, reasons: [] };
+      }
+      reasons = out.reasons;
+      if (!reasons.includes(UNREADABLE_BOX)) break;
+    }
+    return { ok: false, reasons };
   }
 
   async revealPlan(plan: ChainPlan): Promise<RevealResult> {
     if (plan.status !== 'ended') return { ok: false, reason: 'The plan has not ended' };
     if (plan.disclosure.type !== 'end_reveal')
       return { ok: false, reason: 'The plan did not choose end_reveal' };
-    const record = await this.load(plan.id);
-    if (!record) return { ok: false, reason: 'The enclave does not hold this plan' };
+    const build = this.holder(plan);
+    const held = build && (await this.held(plan, build));
+    if (!build || !held) return { ok: false, reason: 'The enclave does not hold this plan' };
     const out = await this.run<
       { ok: true; plan_json: string; salt: string } | { ok: false; reason: string }
-    >('reveal', plan.id, { plan, record });
+    >('reveal', build, plan.id, { plan, record: held.record });
     return out.ok ? { ok: true, planJson: out.plan_json, salt: out.salt } : out;
   }
 
+  /**
+   * The build that should run the plan now: the one that staged a change whose cooling-off is
+   * over (only it can ack that change), otherwise the one holding the plan.
+   */
+  private async runner(
+    plan: ChainPlan,
+    now: number,
+  ): Promise<{ build: OutLayerBuild; held: HeldRecord; acking: boolean } | null> {
+    const change = plan.pending_change;
+    if (change?.kind === 'modify' && change.effective_at_ms <= now) {
+      for (const build of this.builds) {
+        const held = await this.held(plan, build);
+        if (held && held.staged === change.commitment) return { build, held, acking: true };
+      }
+    }
+    const build = this.holder(plan);
+    const held = build && (await this.held(plan, build));
+    if (!build || !held) return null;
+    // A record from before staged changes were noted may hold the change: only a run can tell.
+    const acking =
+      held.staged === undefined && change?.kind === 'modify' && change.effective_at_ms <= now;
+    return { build, held, acking };
+  }
+
   async tick(plan: ChainPlan): Promise<TickResult> {
-    const record = await this.load(plan.id);
-    // Plans this enclave never accepted (another enclave's) cost nothing to skip.
-    if (!record)
-      return { type: 'idle', reason: 'The enclave does not hold this plan', untilMs: null };
     if (plan.status !== 'active')
       return { type: 'idle', reason: `Plan is ${plan.status}`, untilMs: null };
     const now = await this.o.host.chainTimeMs();
+    const runner = await this.runner(plan, now);
+    // Plans no build of ours holds (another enclave's) cost nothing to skip.
+    if (!runner)
+      return { type: 'idle', reason: 'The enclave does not hold this plan', untilMs: null };
+    const { build, held, acking } = runner;
     if (now - (this.lastRun.get(plan.id) ?? 0) < this.o.pollMs)
       return { type: 'idle', reason: 'waiting', untilMs: null };
     this.lastRun.set(plan.id, now);
 
+    // When the main build's runs keep failing, a backup that follows the plan stands in: for a
+    // change's ack, one that staged the same change; for sales, one under the on-chain commitment.
+    const change = plan.pending_change;
+    const standIn = await this.standIn(
+      plan,
+      build,
+      acking && change?.kind === 'modify' ? change.commitment : null,
+    );
+    if (!standIn) return this.tickOn(plan, build, held, acking, now);
+    const health = this.health.get(plan.id) ?? { failures: 0, probedAt: 0 };
+    const down = health.failures >= FAILOVER_AFTER_FAILURES;
+    if (!down || now - health.probedAt >= MAIN_PROBE_MS) {
+      try {
+        if (down) health.probedAt = now;
+        const out = await this.tickOn(plan, build, held, acking, now);
+        this.health.delete(plan.id);
+        return out;
+      } catch (error) {
+        health.failures += 1;
+        this.health.set(plan.id, health);
+        if (health.failures < FAILOVER_AFTER_FAILURES) throw error;
+        this.o.log('outlayer failover', {
+          planId: plan.id,
+          from: build.signingKey,
+          to: standIn.build.signingKey,
+          error: String(error),
+        });
+      }
+    }
+    return this.tickOn(plan, standIn.build, standIn.held, acking, now);
+  }
+
+  /**
+   * A backup build holding its own sealed copy of the plan that can do what the main build would:
+   * ack the change it also staged (`acking` names that change's commitment), or sell under the
+   * commitment now on-chain. A backup that missed a change cannot follow the plan any more and is
+   * never picked.
+   */
+  private async standIn(
+    plan: ChainPlan,
+    main: OutLayerBuild,
+    acking: string | null | undefined,
+  ): Promise<{ build: OutLayerBuild; held: HeldRecord } | null> {
+    for (const build of this.backupBuilds) {
+      if (build === main) continue;
+      const held = await this.held(plan, build);
+      if (!held) continue;
+      const follows = acking
+        ? held.staged === acking
+        : held.commitment === plan.commitment || held.staged === plan.commitment;
+      if (follows) return { build, held };
+    }
+    return null;
+  }
+
+  private async tickOn(
+    plan: ChainPlan,
+    build: OutLayerBuild,
+    held: HeldRecord,
+    acking: boolean,
+    now: number,
+  ): Promise<TickResult> {
     const host = this.o.host;
     const balance = await host.planBalance(plan);
     // Each run is paid, so a plan that cannot sell now gets none, unless a change has taken
     // effect: only a run can ack it.
-    const change = plan.pending_change;
-    const changeDue = change?.kind === 'modify' && change.effective_at_ms <= now;
-    if (!changeDue) {
+    if (!acking) {
       const reason =
         noSalePossible(plan, now) ??
         (balance === 0n ? 'The plan holds no tokens (not launched, or sold out)' : null) ??
         ((await this.o.store.saleInFlight(plan.id)) ? 'A signed sale is still in flight' : null);
       if (reason) return { type: 'idle', reason, untilMs: null };
     }
+    const keep = async (record: string | null) => {
+      if (record)
+        await this.save(plan, build, {
+          record,
+          staged: held.staged,
+          commitment: held.commitment,
+        });
+    };
     const last = plan.next_seq > 0 ? await host.receipt(plan.id, plan.next_seq - 1) : null;
-    const decided = await this.run<TickOutput>('tick', plan.id, {
+    const decided = await this.run<TickOutput>('tick', build, plan.id, {
       plan,
-      record,
+      record: held.record,
       now_ms: now,
       balance: balance.toString(),
-      last_receipt: last ? { seq: last.seq, status: last.status } : null,
+      // Which key signed it tells the module whether the sale was its own or another build's.
+      last_receipt: last
+        ? { seq: last.seq, status: last.status, enclave_key: last.enclave_key }
+        : null,
     });
-    await this.save(plan.id, decided.record);
+    await keep(decided.record);
     if (decided.type === 'idle')
       return { type: 'idle', reason: decided.reason, untilMs: decided.until_ms };
     if (decided.type === 'ack_change') return { type: 'ack_change', ack: toSigned(decided.ack) };
@@ -565,7 +911,7 @@ export class OutLayerEnclave implements Enclave {
       host.prices(symbol, PRICE_FEEDS, Date.now()),
       plan.asset.type === 'nep141' ? null : host.evmFees(),
     ]);
-    const sold = await this.run<SellOutput>('sell', plan.id, {
+    const sold = await this.run<SellOutput>('sell', build, plan.id, {
       plan,
       record: decided.record,
       now_ms: await host.chainTimeMs(),
@@ -580,7 +926,7 @@ export class OutLayerEnclave implements Enclave {
         max_priority_fee_per_gas: fees.maxPriorityFeePerGas.toString(),
       },
     });
-    await this.save(plan.id, sold.record);
+    await keep(sold.record);
     if (sold.type === 'idle') return { type: 'idle', reason: sold.reason, untilMs: null };
     // Skip reasons stay inside the module: they would reveal the floor.
     if (sold.type === 'skipped') return { type: 'skipped', reasons: [] };
@@ -613,7 +959,7 @@ export function buildOutLayerEnclave(
   const caller = near.account(w.relayer, w.keys[w.relayer] as KeyPairString);
   return new OutLayerEnclave({
     store: dbOutLayerStore(db),
-    client: new OutLayerClient(caller, deployment.contract, deployment.wasm),
+    client: new OutLayerClient(caller, deployment.contract),
     deployment,
     host,
     pollMs: config.OUTLAYER_TICK_SECONDS * 1_000,

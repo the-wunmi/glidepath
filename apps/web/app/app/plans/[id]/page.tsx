@@ -13,8 +13,10 @@ import {
   FinalizeControl,
   finalizeReady,
   LaunchPanel,
+  MoveEnclavePanel,
   PendingChangePanel,
   RevealControl,
+  releaseOwed,
 } from '@/components/plan-actions';
 import { type ChangeContext, PlanBuilder } from '@/components/plan-builder';
 import { PlanKeyNeeded, PlanKeyPanel, SavePlanKeyNotice, usePlanKey } from '@/components/plan-key';
@@ -37,7 +39,7 @@ import {
   useHashTab,
 } from '@/components/ui';
 import { ApiError, api } from '@/lib/api';
-import { isOutlayerQuote } from '@/lib/attestation';
+import { isOutlayerQuote, onEarlierBuild, planEnclave } from '@/lib/attestation';
 import { backupPlan, loadBackup, type StoredPlanKey } from '@/lib/backup';
 import { plainTokens } from '@/lib/builder';
 import { useChainNow } from '@/lib/chain';
@@ -54,7 +56,7 @@ import {
   usdE6,
 } from '@/lib/format';
 import { failedAmount, soldAmount, tokenLaunched } from '@/lib/plan-state';
-import type { Execution, Meta, PlanDetail } from '@/lib/types';
+import type { Execution, Meta, OutlayerQuote, PlanDetail } from '@/lib/types';
 import { useResource } from '@/lib/use-resource';
 
 const TABS = ['overview', 'sales', 'changes', 'proof'] as const;
@@ -70,6 +72,30 @@ function revertedTxs(d: PlanDetail): Set<string> {
     d.activity
       .filter((a) => a.kind === 'evm_reverted' && typeof a.data?.evmTxHash === 'string')
       .map((a) => a.data?.evmTxHash as string),
+  );
+}
+
+/** Backup enclave builds that took their own sealed copy of this plan, from its timeline. */
+function BackupBuilds({ d }: { d: PlanDetail }) {
+  const ready = new Map<string, string>();
+  for (const a of [...d.activity].reverse())
+    if (a.kind === 'backup_ready' && typeof a.data?.enclaveKey === 'string')
+      ready.set(a.data.enclaveKey, a.at);
+  if (ready.size === 0) return null;
+  return (
+    <Panel
+      title="Backup enclave"
+      description="Holds its own sealed copy and sells only if the main build cannot run. Its sales count against the same limits."
+    >
+      <ul className="space-y-1.5 text-sm">
+        {[...ready].map(([key, at]) => (
+          <li key={key} className="flex flex-wrap items-center gap-2">
+            <Hash value={key} label="backup enclave key" head={14} />
+            <span className="text-ink-3">since {fmtDateTime(Date.parse(at))}</span>
+          </li>
+        ))}
+      </ul>
+    </Panel>
   );
 }
 
@@ -99,9 +125,11 @@ function StatusTimeline({ d, chainNow }: { d: PlanDetail; chainNow: number | nul
       title: p.status === 'ended' ? 'Ended' : 'Selling',
       done: !!firstSale || p.status === 'ended',
       at: ended
-        ? launched
-          ? 'Remainder released to the beneficiary'
-          : 'Closed before launch'
+        ? !launched
+          ? 'Closed before launch'
+          : releaseOwed(d)
+            ? 'Releasing the remainder to the beneficiary'
+            : 'Remainder released to the beneficiary'
         : firstSale
           ? `First sale signed ${fmtDateTime(firstSale.created_at_ms)}`
           : chainNow && chainNow < p.start_ms
@@ -599,11 +627,15 @@ function ProofTab({
           ]}
         />
       </Panel>
-      {meta && isOutlayerQuote(meta.enclave.quote) && (
+      {meta && isOutlayerQuote(planEnclave(meta, p.acked_by)?.quote) && (
         <Panel title="Enclave" actions={<Badge tone="accent">{OUTLAYER_LABEL}</Badge>}>
-          <OutlayerEvidence quote={meta.enclave.quote} meta={meta} />
+          <OutlayerEvidence
+            quote={planEnclave(meta, p.acked_by)?.quote as OutlayerQuote}
+            meta={meta}
+          />
         </Panel>
       )}
+      <BackupBuilds d={d} />
       {canManage && (
         <BypassPanel d={d} daoOwned={meta?.accounts.dao === p.owner} onDone={() => undefined} />
       )}
@@ -731,9 +763,25 @@ export default function PlanPage() {
               </div>
             </section>
           ))}
-        {!needsLaunch && finalizeReady(d, chainNow) && (
+        {!needsLaunch && (finalizeReady(d, chainNow) || releaseOwed(d)) && (
           <FinalizeControl d={d} chainNow={chainNow} onDone={reload} prominent />
         )}
+        {!needsLaunch &&
+          meta.data &&
+          canChange &&
+          !finalizeReady(d, chainNow) &&
+          onEarlierBuild(meta.data, p.acked_by) && (
+            <MoveEnclavePanel
+              d={d}
+              meta={meta.data}
+              canManage={canManage}
+              onDone={reload}
+              onWriteTerms={() => {
+                setTab('changes');
+                setChanging(true);
+              }}
+            />
+          )}
       </div>
 
       <div className="mt-6">
@@ -841,7 +889,7 @@ export default function PlanPage() {
                 ) : (
                   <PlanKeyNeeded planId={p.id} />
                 )}
-                {!finalizeReady(d, chainNow) && (
+                {!finalizeReady(d, chainNow) && !releaseOwed(d) && (
                   <FinalizeControl d={d} chainNow={chainNow} onDone={reload} />
                 )}
               </div>
@@ -883,7 +931,7 @@ export default function PlanPage() {
                     </p>
                   </div>
                 )}
-                {!finalizeReady(d, chainNow) && (
+                {!finalizeReady(d, chainNow) && !releaseOwed(d) && (
                   <FinalizeControl d={d} chainNow={chainNow} onDone={reload} />
                 )}
               </div>

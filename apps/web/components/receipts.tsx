@@ -2,7 +2,12 @@
 
 import { type ReceiptVerification, verifyReceipt } from '@vsp/verify';
 import { useState } from 'react';
-import { attestationFailure, isOutlayerQuote, outlayerChecks } from '@/lib/attestation';
+import {
+  attestationFailure,
+  fetchTdxQuote,
+  isOutlayerQuote,
+  outlayerChecks,
+} from '@/lib/attestation';
 import { evmTransactionStatus, type QuoteSignerEntry } from '@/lib/chain';
 import { saleLabel } from '@/lib/copy';
 import type { Explorer } from '@/lib/env';
@@ -42,7 +47,10 @@ export function useReceiptVerifier(
     setResults((x) => ({ ...x, [r.seq]: 'running' }));
     try {
       // The quote is served by the operator; it is checked against the key's on-chain entry.
-      const served = meta && meta.enclave.signingKey === r.enclave_key ? meta.enclave : null;
+      const served =
+        [meta?.enclave, ...(meta?.backupEnclaves ?? []), ...(meta?.pastEnclaves ?? [])].find(
+          (x) => x?.signingKey === r.enclave_key,
+        ) ?? null;
       const live = served && isOutlayerQuote(served.quote) ? served.quote : null;
       const out = await verifyReceipt(
         r,
@@ -54,10 +62,11 @@ export function useReceiptVerifier(
         quoteSigner,
       );
       const enclave = enclaves.find((x) => x.public_key === r.enclave_key);
-      if (live && served && enclave) {
+      if (live && enclave) {
+        const quoteBytes = await fetchTdxQuote(live.attestation_url);
         const checks = out.checks.flatMap((c) =>
           c.id === 'attestation'
-            ? outlayerChecks(live, served.quoteHash, enclave).map((x, i) => ({
+            ? outlayerChecks(enclave, quoteBytes).map((x, i) => ({
                 id: `attestation-outlayer-${i}`,
                 label: x.label,
                 status: x.ok ? ('pass' as const) : ('fail' as const),
@@ -112,6 +121,7 @@ export function ReceiptCard({
   const release = r.kind === 'release';
   const st = RECEIPT_STATUS[r.status];
   const done = result && result !== 'running' && !('error' in result) ? result : null;
+  const errored = result && result !== 'running' && 'error' in result ? result.error : null;
   const reverted = revertedTx(result);
   return (
     <li id={`receipt-${r.seq}`} className="well scroll-mt-28 p-4">
@@ -148,7 +158,8 @@ export function ReceiptCard({
             {r.commitment !== plan.commitment ? ', under an earlier commitment' : ''}
           </p>
         </div>
-        <div className="text-right">
+        {/* Below the title on a phone, so the amount and venue align left like the lines above. */}
+        <div className="w-full sm:w-auto sm:text-right">
           {shown.visible ? (
             <p
               className={`num font-semibold ${reverted !== null ? 'text-ink-3 line-through' : ''}`}
@@ -181,7 +192,7 @@ export function ReceiptCard({
             {r.enclave_key ? (
               <Hash value={r.enclave_key} label="enclave key" head={14} />
             ) : (
-              'Nobody (release)'
+              'No enclave (release)'
             )}
           </dd>
         </div>
@@ -209,8 +220,7 @@ export function ReceiptCard({
               .filter((c) => c.id.startsWith('attestation'))
               .map((c) => ({ label: c.label, ok: c.status !== 'fail' })),
           )}{' '}
-          The attestation this server serves now for the signing key does not match the key’s
-          registration; the other checks below are judged on their own.
+          The other checks below are judged on their own.
         </p>
       )}
       {reverted !== null && (
@@ -225,67 +235,73 @@ export function ReceiptCard({
           )}
         </p>
       )}
-      {release ? (
+      {release && (
         <p className="mt-3 text-sm text-ink-2">
-          Releases need no enclave signature: the registry pays the remainder to the beneficiary on
-          its own once the plan has ended.
+          {plan.asset.type === 'evm_erc20'
+            ? 'Releases need no enclave signature: once the plan has ended, the registry has the MPC network sign one transfer of what is left, and only to the beneficiary’s address.'
+            : 'Releases need no enclave signature: the registry pays the remainder to the beneficiary on its own once the plan has ended.'}
         </p>
-      ) : (
-        <div className="mt-3">
-          <button
-            type="button"
-            className="btn btn-secondary btn-sm"
-            onClick={onVerify}
-            disabled={result === 'running'}
-            aria-controls={`receipt-${r.seq}-checks`}
-          >
-            {result === 'running' ? 'Verifying…' : done ? 'Verify again' : 'Verify in browser'}
-          </button>
-          <div id={`receipt-${r.seq}-checks`} aria-live="polite">
-            {result && typeof result === 'object' && 'error' in result && (
-              <p className="mt-2 text-sm text-fail">Could not verify: {result.error}</p>
-            )}
-            {done && (
-              <details
-                className="mt-3 rounded-md border border-rule-2 bg-surface px-3"
-                // A reverted transfer is explained above; open only for other failures.
-                open={done.checks.some((c) => c.status === 'fail' && c.id !== 'broadcast')}
-              >
-                <summary className="cursor-pointer py-2 text-sm">
-                  {done.ok && !done.complete ? (
-                    <span className="text-wait">
-                      {done.checks.filter((c) => c.status === 'pass').length} checks passed so far;
-                      some cannot be checked yet
-                    </span>
-                  ) : done.ok ? (
-                    <span className="text-pass">
-                      All {done.checks.filter((c) => c.status === 'pass').length} checks passed
-                    </span>
-                  ) : (
-                    <span className="text-fail">
-                      {done.checks.filter((c) => c.status === 'fail').length} check(s) failed
-                    </span>
-                  )}
-                  {done.checks.some((c) => c.status === 'skip') && (
-                    <span className="text-ink-3">
-                      , {done.checks.filter((c) => c.status === 'skip').length} not applicable
-                    </span>
-                  )}
-                  <span className="text-ink-3">. Show each check</span>
-                </summary>
-                <CheckList
-                  checks={done.checks.map((c) => ({
-                    // The page says once, above the receipts, that the TDX quote is simulated.
-                    label: c.label.replace(' (simulated TDX)', ''),
-                    state: c.status,
-                    detail: c.detail,
-                  }))}
-                />
-              </details>
-            )}
-          </div>
-        </div>
       )}
+      <div className="mt-3">
+        <button
+          type="button"
+          className="btn btn-secondary btn-sm"
+          onClick={onVerify}
+          disabled={result === 'running'}
+          aria-controls={`receipt-${r.seq}-checks`}
+        >
+          {result === 'running'
+            ? 'Verifying…'
+            : done
+              ? 'Verify again'
+              : errored
+                ? 'Try again'
+                : 'Verify in browser'}
+        </button>
+        <div id={`receipt-${r.seq}-checks`} aria-live="polite">
+          {errored && (
+            <p className="mt-2 text-sm text-fail">Could not finish the checks: {errored}</p>
+          )}
+          {done && (
+            <details
+              className="mt-3 rounded-md border border-rule-2 bg-surface px-3"
+              // A reverted transfer is explained above; open only for other failures.
+              open={done.checks.some((c) => c.status === 'fail' && c.id !== 'broadcast')}
+            >
+              <summary className="cursor-pointer py-2 text-sm">
+                {done.ok && !done.complete ? (
+                  <span className="text-wait">
+                    {done.checks.filter((c) => c.status === 'pass').length} checks passed so far;
+                    some cannot be checked yet
+                  </span>
+                ) : done.ok ? (
+                  <span className="text-pass">
+                    All {done.checks.filter((c) => c.status === 'pass').length} checks passed
+                  </span>
+                ) : (
+                  <span className="text-fail">
+                    {done.checks.filter((c) => c.status === 'fail').length} check(s) failed
+                  </span>
+                )}
+                {done.checks.some((c) => c.status === 'skip') && (
+                  <span className="text-ink-3">
+                    , {done.checks.filter((c) => c.status === 'skip').length} not applicable
+                  </span>
+                )}
+                <span className="text-ink-3">. Show each check</span>
+              </summary>
+              <CheckList
+                checks={done.checks.map((c) => ({
+                  // The page says once, above the receipts, that the TDX quote is simulated.
+                  label: c.label.replace(' (simulated TDX)', ''),
+                  state: c.status,
+                  detail: c.detail,
+                }))}
+              />
+            </details>
+          )}
+        </div>
+      </div>
     </li>
   );
 }

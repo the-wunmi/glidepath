@@ -16,6 +16,7 @@ use sha2::{Digest, Sha256};
 
 pub mod enclave;
 pub mod local_keys;
+pub mod trust;
 
 #[allow(clippy::manual_div_ceil, clippy::assign_op_pattern)]
 mod u256 {
@@ -507,13 +508,22 @@ pub fn propose_sale(
             Some(l.start_ms + (period_index + 1) * l.period_ms),
         );
     }
-    let tx_cap = l.per_tx.min(amount(&e.max_amount_per_tx)?).min(left);
-    let lo = (tx_cap / U256::from(2u8)).max(U256::one());
-    let amount = random_between(lo, tx_cap, rng)?;
+    let sale_cap = l.per_tx.min(amount(&e.max_amount_per_tx)?);
     Ok(Proposal::Sell {
-        amount: amount.to_string(),
+        amount: sale_size(sale_cap, left, rng)?.to_string(),
         period_index,
     })
+}
+
+/// `saleSize`: a random size in [cap/2, cap] that never leaves less than cap/2 behind in `left`,
+/// so a period's last sales do not shrink into dust.
+pub fn sale_size(cap: U256, left: U256, rng: &mut dyn RandomBytes) -> Result<U256> {
+    let smallest = (cap / U256::from(2u8)).max(U256::one());
+    let drawn = random_between(smallest, cap, rng)?;
+    if left >= drawn && left - drawn >= smallest {
+        return Ok(drawn);
+    }
+    Ok(if left <= cap { left } else { left - smallest })
 }
 
 /// `scheduleAfter`: the next sale time, between the plan's shortest and longest gap.
@@ -525,6 +535,37 @@ pub fn schedule_after(plan: &Plan, now: i64, rng: &mut dyn RandomBytes) -> Resul
         rng,
     )?;
     Ok(now + gap.as_u64() as i64)
+}
+
+/// The registry's public sale counters for a plan, as `get_plan` returns them.
+#[derive(Deserialize, Clone, Debug)]
+pub struct ChainCounters {
+    pub period_index: i64,
+    pub sold_in_period: String,
+    pub sold_total: String,
+    pub last_sale_ms: Option<i64>,
+}
+
+/// `handoverState`: the state of a plan this build takes over from another build. The counters
+/// come from the registry, which counts every build's sales; the next sale time is drawn afresh.
+pub fn handover_state(plan: &Plan, c: &ChainCounters, rng: &mut dyn RandomBytes) -> Result<State> {
+    let l = limits(plan)?;
+    amount(&c.sold_in_period)?;
+    amount(&c.sold_total)?;
+    let next_sale_at_ms = match c.last_sale_ms {
+        Some(last) => schedule_after(plan, last, rng)?,
+        None => {
+            let offset = random_between(U256::zero(), U256::from(l.max_gap_ms as u64), rng)?;
+            l.start_ms + offset.as_u64() as i64
+        }
+    };
+    Ok(State {
+        period_index: c.period_index,
+        sold_in_period: c.sold_in_period.clone(),
+        sold_total: c.sold_total.clone(),
+        last_sale_ms: c.last_sale_ms,
+        next_sale_at_ms,
+    })
 }
 
 // ── Market check ───────────────────────────────────────────────────────────────────────────────

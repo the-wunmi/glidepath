@@ -7,6 +7,7 @@ import {
   type RandomBytes,
   randomBelow,
   recordSale,
+  saleSize,
 } from '../src/index.ts';
 
 const T0 = Date.parse('2026-12-01T00:00:00Z');
@@ -95,6 +96,40 @@ describe('randomised schedule', () => {
       reason: 'period_budget_used',
       untilMs: T0 + 30 * 86_400_000,
     });
+  });
+
+  it('sells a period out in whole sales, never a tail of shrinking dust sales', () => {
+    // Plan 3 on testnet sold 611, then 32, 8.6, 2.5, 1.4, 0.17, 0.006 GLDE: each draw took half
+    // or more of what the period had left. Every sale but the last must now be at least half the cap.
+    for (const seed of [1, 2, 3, 4, 5, 6, 7, 8]) {
+      const random = seeded(seed);
+      let state = { ...initialState(plan, random), nextSaleAtMs: T0 };
+      let now = T0;
+      const sales: bigint[] = [];
+      for (let i = 0; i < 40; i++) {
+        const p = proposeSale(plan, envelope, state, now, tokens('1000000'), random);
+        if (p.type !== 'sell') break;
+        sales.push(p.amount);
+        state = recordSale(plan, state, p.amount, p.periodIndex, now, random);
+        now = state.nextSaleAtMs;
+      }
+      expect(sales.reduce((a, b) => a + b, 0n)).toBe(tokens('20000'));
+      for (const amount of sales) {
+        expect(amount).toBeGreaterThanOrEqual(tokens('2500'));
+        expect(amount).toBeLessThanOrEqual(tokens('5000'));
+      }
+    }
+  });
+
+  it('sells a remainder smaller than one sale in one go', () => {
+    expect(saleSize(tokens('5000'), tokens('1'), seeded(1))).toBe(tokens('1'));
+    expect(saleSize(tokens('5000'), tokens('4000'), seeded(1))).toBe(tokens('4000'));
+    // Just over one sale: leave exactly the smallest sale, so the next one is not dust.
+    for (const seed of [1, 2, 3, 4]) {
+      const amount = saleSize(tokens('5000'), tokens('6000'), seeded(seed));
+      expect(tokens('6000') - amount).toBeGreaterThanOrEqual(tokens('2500'));
+      expect(amount).toBeLessThanOrEqual(tokens('5000'));
+    }
   });
 
   it('draws uniformly without modulo bias in range', () => {

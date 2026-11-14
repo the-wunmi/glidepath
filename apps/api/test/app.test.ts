@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import { createServer, type Server } from 'node:http';
+import type { AddressInfo } from 'node:net';
 import { createDb, createPool, plans } from '@vsp/db';
 import { runMigrations } from '@vsp/db/migrate';
 import type { Engine } from '@vsp/engine';
@@ -6,19 +9,24 @@ import {
   chargeDaily,
   loadConfig,
   newOwnerKey,
+  REPO_DATA_DIR,
   serverLimits,
   spendRelayer,
 } from '@vsp/engine';
+import { publicRpcClient } from '@vsp/evm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from '../src/app.ts';
 import { clientKeyOf } from '../src/limits.ts';
+import { evmAnswerIsFinal, nearAnswerIsFinal } from '../src/rpc-cache.ts';
 
 const pool = createPool(process.env.DATABASE_URL);
 const db = createDb(pool);
 const OPERATOR_TOKEN = 'operator-token-for-tests-0123456789';
 const owned = newOwnerKey();
-/** Plan 3's ERC-20: the one contract the EVM proxy may read. */
+/** ERC-20 of plan 3, which has a database row; the proxy may read it. */
 const TOKEN = '0x00000000000000000000000000000000000000aa';
+/** An ERC-20 of a plan on the registry this server's database has no row for. */
+const CHAIN_ONLY_TOKEN = '0x00000000000000000000000000000000000000cc';
 
 beforeAll(async () => {
   await runMigrations(process.env.DATABASE_URL);
@@ -47,7 +55,11 @@ beforeAll(async () => {
 afterAll(() => pool.end());
 
 /** Enough of an engine for routes that never reach the chain: config, world and database. */
-function engineStub(network: 'local' | 'testnet' = 'local', env: Record<string, string> = {}) {
+function engineStub(
+  network: 'local' | 'testnet' = 'local',
+  env: Record<string, string> = {},
+  evmUrls = ['http://127.0.0.1:1'],
+) {
   const config = loadConfig({
     OPERATOR_TOKEN,
     ...env,
@@ -60,7 +72,10 @@ function engineStub(network: 'local' | 'testnet' = 'local', env: Record<string, 
     config,
     db,
     world: { network, nearRpcUrl: 'http://127.0.0.1:1', evmRpcUrl: 'http://127.0.0.1:1' },
-    reads: { evmRpcUrl: 'http://127.0.0.1:1' },
+    reads: { evm: publicRpcClient(evmUrls) },
+    registry: {
+      plans: async () => [{ asset: { type: 'evm_erc20', token_address: CHAIN_ONLY_TOKEN } }],
+    },
     oneclickSim: null,
     log: () => {},
   } as unknown as Engine;
@@ -91,6 +106,48 @@ describe('read-only chain proxies', () => {
   it('refuse a body that is not a JSON-RPC request', async () => {
     const res = await app().request('/rpc/near', { method: 'POST', body: 'not json' });
     expect(res.status).toBe(403);
+  });
+});
+
+describe('a fresh .env copied from .env.example', () => {
+  /** .env.example as `cp .env.example .env` gives it: KEY=value lines, comments skipped. */
+  const example = Object.fromEntries(
+    readFileSync(new URL('../../../.env.example', import.meta.url), 'utf8')
+      .split('\n')
+      .filter((l) => /^[A-Z0-9_]+=/.test(l))
+      .map((l) => [l.slice(0, l.indexOf('=')), l.slice(l.indexOf('=') + 1)]),
+  );
+
+  it('runs the local world with nothing filled in', () => {
+    const c = loadConfig({ ...example, NEAR_NETWORK: 'local', EVM_NETWORK: 'local' });
+    expect(c.EVM_FUNDER_PRIVATE_KEY).toBeUndefined();
+    expect(c.RELAYER_ACCOUNT_ID).toBeUndefined();
+  });
+
+  it('keeps the enclave secret in the repo’s .data whichever folder a process runs from', () => {
+    const c = loadConfig({ ...example, NEAR_NETWORK: 'local', EVM_NETWORK: 'local' });
+    expect(c.DATA_DIR).toBe(REPO_DATA_DIR);
+  });
+});
+
+describe('the enclave a public server runs', () => {
+  const env = {
+    NODE_ENV: 'production',
+    NEAR_NETWORK: 'testnet',
+    RELAYER_ACCOUNT_ID: 'r',
+    RELAYER_PRIVATE_KEY: 'k',
+  };
+
+  it('is the real OutLayer enclave when its deployment record exists', () => {
+    expect(loadConfig(env).ENCLAVE_BACKEND).toBe('outlayer');
+  });
+
+  it('never falls back to the simulator unnoticed: without the record it refuses to start', () => {
+    expect(() => loadConfig({ ...env, DEPLOYMENTS_DIR: '/nonexistent' })).toThrow(
+      /outlayer-testnet\.json/,
+    );
+    const chosen = { ...env, DEPLOYMENTS_DIR: '/nonexistent', ENCLAVE_BACKEND: 'simulated' };
+    expect(loadConfig(chosen).ENCLAVE_BACKEND).toBe('simulated');
   });
 });
 
@@ -355,8 +412,8 @@ describe('the EVM read proxy', () => {
       403,
     );
     expect((await logs({ address: TOKEN, fromBlock: '0x0', toBlock: '0x1388' })).status).toBe(403);
-    // Within bounds it reaches the node (none listens in this test, hence 502).
-    expect((await logs({ address: TOKEN, fromBlock: '0x0', toBlock: '0x10' })).status).toBe(502);
+    // Within bounds it reaches the node (none listens in this test, hence 503).
+    expect((await logs({ address: TOKEN, fromBlock: '0x0', toBlock: '0x10' })).status).toBe(503);
   });
 
   it('calls only plan tokens', async () => {
@@ -367,10 +424,132 @@ describe('the EVM read proxy', () => {
     expect(res.status).toBe(403);
   });
 
+  it('reads the token of a plan the registry holds but this database does not', async () => {
+    const res = await call('eth_call', [{ to: CHAIN_ONLY_TOKEN, data: '0x95d89b41' }, 'latest']);
+    // Allowed through to the node (none listens in this test, hence 503, not 403).
+    expect(res.status).toBe(503);
+  });
+
   it('does not pass on what the node said when it fails', async () => {
     const res = await call('eth_blockNumber', []);
-    expect(res.status).toBe(502);
+    expect(res.status).toBe(503);
+    expect(res.headers.get('retry-after')).toBe('2');
     expect(JSON.stringify(await res.json())).not.toContain('127.0.0.1');
+  });
+});
+
+describe('the EVM read proxy against public nodes', () => {
+  const FINAL_TX = `0x${'aa'.repeat(32)}`;
+  const RECENT_TX = `0x${'bb'.repeat(32)}`;
+  const servers: Server[] = [];
+  afterAll(() => Promise.all(servers.map((x) => new Promise((r) => x.close(r)))));
+
+  /**
+   * A Sepolia node whose finalized block is 0x100: FINAL_TX was mined in 0x50, RECENT_TX in 0x200.
+   * `limited` makes it answer every request with 429, as publicnode did under a burst.
+   */
+  async function node(limited = false) {
+    const hits: string[] = [];
+    const server = createServer((req, res) => {
+      let raw = '';
+      req.on('data', (d) => {
+        raw += d;
+      });
+      req.on('end', () => {
+        const { id, method, params } = JSON.parse(raw) as {
+          id: number;
+          method: string;
+          params: unknown[];
+        };
+        hits.push(method);
+        if (limited) return void res.writeHead(429).end('Rate limit exceeded');
+        const result =
+          method === 'eth_getBlockByNumber'
+            ? { number: '0x100' }
+            : method === 'eth_getTransactionReceipt'
+              ? { status: '0x1', blockNumber: params[0] === FINAL_TX ? '0x50' : '0x200' }
+              : '0x1';
+        res
+          .writeHead(200, { 'content-type': 'application/json' })
+          .end(JSON.stringify({ jsonrpc: '2.0', id, result }));
+      });
+    });
+    servers.push(server);
+    await new Promise<void>((r) => server.listen(0, '127.0.0.1', r));
+    return { url: `http://127.0.0.1:${(server.address() as AddressInfo).port}`, hits };
+  }
+  const receipt = (a: ReturnType<typeof createApp>, hash: string) =>
+    a.request('/rpc/evm', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 7,
+        method: 'eth_getTransactionReceipt',
+        params: [hash],
+      }),
+    });
+
+  it('keeps a finalized receipt, so a repeat never reaches the node', async () => {
+    const n = await node();
+    const a = createApp(engineStub('local', {}, [n.url]));
+    const first = await receipt(a, FINAL_TX);
+    expect(await first.json()).toMatchObject({ id: 7, result: { status: '0x1' } });
+    // Well past the burst window, so only the kept answer can serve it.
+    await new Promise((r) => setTimeout(r, 2_100));
+    expect((await receipt(a, FINAL_TX)).status).toBe(200);
+    expect(n.hits.filter((m) => m === 'eth_getTransactionReceipt')).toHaveLength(1);
+  });
+
+  it('asks again for a receipt that is not final yet, but shares one call within a burst', async () => {
+    const n = await node();
+    const a = createApp(engineStub('local', {}, [n.url]));
+    await Promise.all([receipt(a, RECENT_TX), receipt(a, RECENT_TX), receipt(a, RECENT_TX)]);
+    expect(n.hits.filter((m) => m === 'eth_getTransactionReceipt')).toHaveLength(1);
+    await new Promise((r) => setTimeout(r, 2_100));
+    await receipt(a, RECENT_TX);
+    expect(n.hits.filter((m) => m === 'eth_getTransactionReceipt')).toHaveLength(2);
+  });
+
+  it('fails over from a rate-limited node to the next', async () => {
+    const limited = await node(true);
+    const healthy = await node();
+    const a = createApp(engineStub('local', {}, [limited.url, healthy.url]));
+    const res = await receipt(a, FINAL_TX);
+    expect(res.status).toBe(200);
+    expect(limited.hits.length).toBeGreaterThan(0);
+  });
+
+  it('answers 503 with a retry hint when every node is rate-limited', async () => {
+    const limited = await node(true);
+    const res = await receipt(createApp(engineStub('local', {}, [limited.url])), FINAL_TX);
+    expect(res.status).toBe(503);
+    expect(res.headers.get('retry-after')).toBe('2');
+  });
+});
+
+describe('which chain answers are kept', () => {
+  it('keeps EVM answers about finalized blocks only', () => {
+    const at = (block: string) => ({ status: '0x1', blockNumber: block });
+    expect(evmAnswerIsFinal('eth_getTransactionReceipt', [], at('0x10'), 0x10n)).toBe(true);
+    expect(evmAnswerIsFinal('eth_getTransactionReceipt', [], at('0x11'), 0x10n)).toBe(false);
+    expect(evmAnswerIsFinal('eth_getTransactionReceipt', [], null, 0x10n)).toBe(false);
+    expect(evmAnswerIsFinal('eth_getTransactionReceipt', [], at('0x1'), null)).toBe(false);
+    expect(evmAnswerIsFinal('eth_getLogs', [{ toBlock: '0x8' }], [], 0x10n)).toBe(true);
+    expect(evmAnswerIsFinal('eth_call', [{}, 'latest'], '0x', 0x10n)).toBe(false);
+    expect(evmAnswerIsFinal('eth_call', [{}, '0x9'], '0x', 0x10n)).toBe(true);
+    // No block given: the node read `latest`, even if the address looks like a small number.
+    expect(evmAnswerIsFinal('eth_getBalance', ['0x1'], '0x0', 0x10n)).toBe(false);
+    expect(evmAnswerIsFinal('eth_blockNumber', [], '0x9', 0x10n)).toBe(false);
+  });
+
+  it('keeps NEAR answers pinned to a block hash, or a final transaction', () => {
+    const hash = 'FFgwLG3qNaqQdH7U139DscDCQYg4gadQWqJe7FgvR2GC';
+    expect(nearAnswerIsFinal('query', { finality: 'final' }, {})).toBe(false);
+    expect(nearAnswerIsFinal('query', { block_id: hash }, {})).toBe(true);
+    expect(nearAnswerIsFinal('block', { block_id: 1234 }, {})).toBe(false);
+    expect(nearAnswerIsFinal('tx', {}, { final_execution_status: 'FINAL' })).toBe(true);
+    expect(nearAnswerIsFinal('tx', {}, { final_execution_status: 'EXECUTED' })).toBe(false);
   });
 });
 
