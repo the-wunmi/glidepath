@@ -410,7 +410,9 @@ export async function readWalletTx<T = unknown>(e: Engine, txHash: string, signe
   try {
     return await e.near.signedTransaction<T>(txHash, signer);
   } catch (err) {
-    e.log('wallet tx lookup failed', { txHash, error: String(err) });
+    // Endpoint URLs can carry an API key; the log keeps only their hosts.
+    const error = String(err).replace(/https?:\/\/([^/\s?#]+)\S*/g, '$1');
+    e.log('wallet tx lookup failed', { txHash, error });
     throw new DomainError('unavailable', 'NEAR testnet is busy; try again in a few seconds');
   }
 }

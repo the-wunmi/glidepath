@@ -58,6 +58,14 @@ export function parseNear(text: string): bigint | null {
 const isWalletCall = (e: unknown): e is ApiError =>
   e instanceof ApiError && e.status === 409 && e.code === 'wallet_signature_needed';
 
+/**
+ * Whether a sent transaction can never count for this request: the API checked it and refused it
+ * (not this call, or the registry refused it). Anything else (a server fault, a network error) keeps
+ * it, so trying again sends the same hash instead of asking the wallet twice.
+ */
+const txRejected = (e: unknown) =>
+  e instanceof ApiError && e.status >= 400 && e.status < 500 && !notFinal(e);
+
 /** Worth asking again: the transaction is not final yet, or NEAR's public RPC is busy. */
 const notFinal = (e: unknown) =>
   e instanceof ApiError &&
@@ -116,8 +124,8 @@ export async function ownerWrite<T>(
       sessionStorage.removeItem(key);
       return out;
     } catch (e) {
-      if (notFinal(e)) throw new WalletSentNotRecorded(earlier, (e as Error).message);
-      // Anything else means that transaction cannot count (refused, or not this call): start over.
+      if (!txRejected(e)) throw new WalletSentNotRecorded(earlier, (e as Error).message);
+      // The API refused that transaction for this request (refused, or not this call): start over.
       sessionStorage.removeItem(key);
     }
   }
@@ -147,7 +155,7 @@ export async function ownerWrite<T>(
     sessionStorage.removeItem(key);
     return out;
   } catch (e) {
-    if (notFinal(e)) throw new WalletSentNotRecorded(sent.txHash, (e as Error).message);
+    if (!txRejected(e)) throw new WalletSentNotRecorded(sent.txHash, (e as Error).message);
     sessionStorage.removeItem(key);
     throw e;
   }
