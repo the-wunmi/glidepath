@@ -16,14 +16,18 @@ const NEAR_EXPLORERS: Record<Meta['network'], string | null> = {
   local: null,
 };
 
-/** "Sepolia", or "the local EVM chain" when the server runs its own node. */
+/**
+ * "Sepolia", or "the local EVM chain" when the server runs its own node. Until the server's meta
+ * has loaded, chains are named without guessing which network it runs (here and in nearChainName).
+ */
 export function evmChainName(meta: Meta | null): string {
-  if (meta?.modes.evm !== 'live') return 'the local EVM chain';
+  if (!meta) return 'its EVM chain';
+  if (meta.modes.evm !== 'live') return 'the local EVM chain';
   return EVM_EXPLORERS[meta.evmChainId]?.name ?? `EVM chain ${meta.evmChainId}`;
 }
 
 export const nearChainName = (meta: Meta | null) =>
-  meta?.network === 'testnet' ? 'NEAR testnet' : 'the local NEAR chain';
+  !meta ? 'NEAR' : meta.network === 'testnet' ? 'NEAR testnet' : 'the local NEAR chain';
 
 export interface Explorer {
   nearTx: (hash: string) => string | undefined;
