@@ -58,11 +58,11 @@ export function parseNear(text: string): bigint | null {
 const isWalletCall = (e: unknown): e is ApiError =>
   e instanceof ApiError && e.status === 409 && e.code === 'wallet_signature_needed';
 
+/** Worth asking again: the transaction is not final yet, or NEAR's public RPC is busy. */
 const notFinal = (e: unknown) =>
   e instanceof ApiError &&
-  e.status === 409 &&
-  e.code === 'conflict' &&
-  /not final/i.test(e.message);
+  ((e.status === 409 && e.code === 'conflict' && /not final/i.test(e.message)) ||
+    (e.status === 503 && e.code === 'unavailable'));
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 

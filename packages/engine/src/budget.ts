@@ -3,6 +3,7 @@ import { type Db, planBudget, plans, type Tx } from '@vsp/db';
 import { eq, sql } from 'drizzle-orm';
 import type { Engine } from './context.ts';
 import { authorizePlan, type PlanPrincipal } from './guards.ts';
+import { readWalletTx } from './plans.ts';
 
 const MILLI_NEAR = 10n ** 21n;
 
@@ -104,7 +105,7 @@ export async function fundPlan(
   authorizePlan(row, principal);
   if (!/^[1-9A-HJ-NP-Za-km-z]{43,44}$/.test(txHash))
     throw new DomainError('invalid', 'Not a transaction hash');
-  const tx = await e.near.signedTransaction(txHash, row.owner);
+  const tx = await readWalletTx(e, txHash, row.owner);
   if (!tx)
     throw new DomainError('conflict', 'That transfer is not final yet; try again in a few seconds');
   const [action] = tx.actions;

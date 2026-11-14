@@ -386,7 +386,7 @@ async function walletCall<T>(
     });
   if (!/^[1-9A-HJ-NP-Za-km-z]{43,44}$/.test(principal.walletTx))
     throw new DomainError('invalid', 'Not a transaction hash');
-  const tx = await e.near.signedTransaction<T>(principal.walletTx, actor);
+  const tx = await readWalletTx<T>(e, principal.walletTx, actor);
   if (!tx)
     throw new DomainError(
       'conflict',
@@ -403,6 +403,16 @@ async function walletCall<T>(
     sameArgs(action.args ?? '', args);
   if (!same) throw new DomainError('invalid', 'That transaction is not the call this needs');
   return tx.outcome;
+}
+
+/** A wallet's transaction from the chain; a busy RPC is "try again", not a server fault. */
+export async function readWalletTx<T = unknown>(e: Engine, txHash: string, signer: string) {
+  try {
+    return await e.near.signedTransaction<T>(txHash, signer);
+  } catch (err) {
+    e.log('wallet tx lookup failed', { txHash, error: String(err) });
+    throw new DomainError('unavailable', 'NEAR testnet is busy; try again in a few seconds');
+  }
 }
 
 /** Whether a call's sent arguments are these, whatever the key order or spacing. */

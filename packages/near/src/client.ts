@@ -360,35 +360,36 @@ export class NearClient {
     outcome: TxOutcome<T>;
     innerFailure: string | null;
   } | null> {
-    const res = await fetch(this.rpcUrl, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        id: 'tx',
-        method: 'tx',
-        params: { tx_hash: txHash, sender_account_id: signerId, wait_until: 'FINAL' },
-      }),
-      signal: AbortSignal.timeout(30_000),
-    });
-    const body = (await res.json()) as {
-      result?: RawOutcome & {
-        transaction: {
-          hash: string;
-          signer_id: string;
-          receiver_id: string;
-          actions: (string | Record<string, Record<string, unknown>>)[];
-        };
+    // Through the paced provider: public endpoints rate-limit, so it spaces calls and fails over.
+    type TxResult = RawOutcome & {
+      transaction: {
+        hash: string;
+        signer_id: string;
+        receiver_id: string;
+        actions: (string | Record<string, Record<string, unknown>>)[];
       };
-      error?: { cause?: { name?: string } };
     };
-    if (!body.result) {
+    let result: TxResult;
+    try {
+      result = (await this.provider.sendJsonRpc(
+        'tx' as never,
+        {
+          tx_hash: txHash,
+          sender_account_id: signerId,
+          wait_until: 'FINAL',
+        } as never,
+      )) as unknown as TxResult;
+    } catch (err) {
+      // Not known yet (or not final within the wait): the caller asks again later.
       if (
-        /UNKNOWN_TRANSACTION|TIMEOUT_ERROR|INVALID_TRANSACTION/.test(body.error?.cause?.name ?? '')
+        /UNKNOWN_TRANSACTION|TIMEOUT_ERROR|doesn't exist|does not exist|Transaction .* not found/i.test(
+          String(err),
+        )
       )
         return null;
-      throw new Error(`tx lookup failed: ${JSON.stringify(body.error).slice(0, 300)}`);
+      throw err;
     }
+    const body = { result };
     const tx = body.result.transaction;
     const actions: WalletAction[] = tx.actions.map((a) => {
       if (typeof a === 'string') return { type: a };
