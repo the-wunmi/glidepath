@@ -3,6 +3,13 @@ import { TtlCache } from './limits.ts';
 /** Answers kept per chain; a plan's receipt checks are a few dozen, so this is many plans' worth. */
 const MAX_FINAL_ANSWERS = 5_000;
 /**
+ * Bytes of kept answers per chain. Answers vary in size (a receipt is a few KB, a block or a wide log
+ * query far more), so the count alone would not bound memory.
+ */
+const MAX_FINAL_BYTES = 32 * 1024 * 1024;
+/** An answer bigger than this is served and shared briefly, but never kept. */
+const MAX_KEPT_ANSWER_BYTES = 256 * 1024;
+/**
  * Identical reads within this window share one upstream call: a burst of visitors (or one page's
  * polling) costs one request, and a few seconds' staleness is invisible on a 12 s block chain.
  */
@@ -54,13 +61,22 @@ export function nearAnswerIsFinal(method: string, params: unknown, result: unkno
 }
 
 /**
- * The proxies' memory of chain answers. Final answers are kept (the oldest dropped past
- * MAX_FINAL_ANSWERS), so repeats never reach a public node; anything else is shared for
- * RECENT_MS. Failures are never kept.
+ * The proxies' memory of chain answers. Final answers up to MAX_KEPT_ANSWER_BYTES are kept (the
+ * oldest dropped past MAX_FINAL_ANSWERS or MAX_FINAL_BYTES), so repeats never reach a public node;
+ * anything else is shared for RECENT_MS. Failures are never kept.
  */
 export class ChainAnswers {
-  private readonly final = new Map<string, unknown>();
+  private readonly final = new Map<string, { result: unknown; bytes: number }>();
   private readonly recent = new TtlCache<unknown>(RECENT_MS);
+  private bytes = 0;
+
+  constructor(
+    private readonly limits = {
+      answers: MAX_FINAL_ANSWERS,
+      bytes: MAX_FINAL_BYTES,
+      perAnswer: MAX_KEPT_ANSWER_BYTES,
+    },
+  ) {}
 
   async get(
     method: string,
@@ -69,19 +85,31 @@ export class ChainAnswers {
     isFinal: (result: unknown) => boolean | Promise<boolean>,
   ): Promise<unknown> {
     const key = JSON.stringify([method, params ?? null]);
-    if (this.final.has(key)) return this.final.get(key);
+    const kept = this.final.get(key);
+    if (kept) return kept.result;
     const result = await this.recent.get(key, load);
-    if (!this.final.has(key) && (await isFinal(result))) {
-      if (this.final.size >= MAX_FINAL_ANSWERS) {
-        const oldest = this.final.keys().next();
-        if (!oldest.done) this.final.delete(oldest.value);
-      }
-      this.final.set(key, result);
+    if (this.final.has(key) || !(await isFinal(result))) return result;
+    const bytes = key.length + (JSON.stringify(result) ?? '').length;
+    if (bytes > this.limits.perAnswer) return result;
+    while (
+      this.final.size > 0 &&
+      (this.final.size >= this.limits.answers || this.bytes + bytes > this.limits.bytes)
+    ) {
+      const [oldest, entry] = this.final.entries().next().value as [string, { bytes: number }];
+      this.final.delete(oldest);
+      this.bytes -= entry.bytes;
     }
+    this.final.set(key, { result, bytes });
+    this.bytes += bytes;
     return result;
   }
 
   get size(): number {
     return this.final.size;
+  }
+
+  /** Bytes of kept answers (their JSON), as counted against the limit. */
+  get keptBytes(): number {
+    return this.bytes;
   }
 }

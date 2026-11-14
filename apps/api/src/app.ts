@@ -261,7 +261,13 @@ export function createApp(e: Engine) {
   });
 
   app.route('/api/vault', vaultRoutes(e));
-  app.route('/api/trusts', trustRoutes(e, principal));
+  // A trust is created like a plan, so it shares each client's hourly creation allowance.
+  app.route(
+    '/api/trusts',
+    trustRoutes(e, principal, (c) =>
+      !behindProxy || planCreations.take(clientKey(c)) ? null : tooMany(),
+    ),
+  );
 
   /** The last red-team run (data/redteam/results.json, written by `pnpm redteam`); 404 before one. */
   app.get('/api/redteam', async () => {

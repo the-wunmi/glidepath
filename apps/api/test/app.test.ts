@@ -17,7 +17,7 @@ import { publicRpcClient } from '@vsp/evm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from '../src/app.ts';
 import { clientKeyOf } from '../src/limits.ts';
-import { evmAnswerIsFinal, nearAnswerIsFinal } from '../src/rpc-cache.ts';
+import { ChainAnswers, evmAnswerIsFinal, nearAnswerIsFinal } from '../src/rpc-cache.ts';
 
 const pool = createPool(process.env.DATABASE_URL);
 const db = createDb(pool);
@@ -224,6 +224,21 @@ describe('behind the public proxy', () => {
       });
       expect(res.status).toBe(422);
     }
+  });
+
+  it('limits how many trusts one client can create, like plans', async () => {
+    const a = app('testnet', { PUBLIC_ORIGIN: 'https://glidepath.example/' });
+    const statuses: number[] = [];
+    for (let i = 0; i < 5; i++) {
+      const res = await write(a, '/api/trusts', {
+        origin: 'https://glidepath.example',
+        'x-forwarded-for': `7.7.7.7, 1.1.1.1`,
+      });
+      statuses.push(res.status);
+    }
+    // Three an hour per client, as for plans; then 429 before any work is done.
+    expect(statuses.slice(3)).toEqual([429, 429]);
+    expect(statuses.slice(0, 3)).not.toContain(429);
   });
 
   it('refuses an API write with no Origin unless it carries the operator token', async () => {
@@ -435,6 +450,33 @@ describe('the EVM read proxy', () => {
     expect(res.status).toBe(503);
     expect(res.headers.get('retry-after')).toBe('2');
     expect(JSON.stringify(await res.json())).not.toContain('127.0.0.1');
+  });
+});
+
+describe('the read proxies’ memory of final answers', () => {
+  const final = () => true;
+
+  it('never keeps an answer bigger than the per-answer limit, so huge reads cannot pile up', async () => {
+    const answers = new ChainAnswers({ answers: 100, bytes: 10_000, perAnswer: 1_000 });
+    let calls = 0;
+    const big = async () => {
+      calls += 1;
+      return 'x'.repeat(5_000);
+    };
+    await answers.get('block', { block_id: 'a' }, big, final);
+    expect(answers.size).toBe(0);
+    await new Promise((r) => setTimeout(r, 2_100));
+    await answers.get('block', { block_id: 'a' }, big, final);
+    expect(calls).toBe(2);
+  });
+
+  it('drops the oldest answers to stay within its byte budget', async () => {
+    const answers = new ChainAnswers({ answers: 100, bytes: 2_000, perAnswer: 1_000 });
+    for (let i = 0; i < 10; i++)
+      await answers.get('tx', { tx_hash: `h${i}` }, async () => 'y'.repeat(500), final);
+    expect(answers.keptBytes).toBeLessThanOrEqual(2_000);
+    expect(answers.size).toBeLessThan(10);
+    expect(answers.size).toBeGreaterThan(0);
   });
 });
 

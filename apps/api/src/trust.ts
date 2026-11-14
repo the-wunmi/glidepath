@@ -9,7 +9,12 @@ import { z } from 'zod';
  * the trust is worth; the receipts, envelope and allowlist the page reads from the chain itself.
  * Writes act for the official persona, like the founder's plan actions.
  */
-export function trustRoutes(e: Engine, principal: (c: Context) => engine.PlanPrincipal) {
+export function trustRoutes(
+  e: Engine,
+  principal: (c: Context) => engine.PlanPrincipal,
+  /** The server's per-client creation limit: a refusal to send back, or null to go ahead. */
+  creationLimit: (c: Context) => Response | null,
+) {
   const app = new Hono();
   const json = (value: unknown, status: 200 | 201 = 200) =>
     new Response(toJson(value), { status, headers: { 'content-type': 'application/json' } });
@@ -50,6 +55,8 @@ export function trustRoutes(e: Engine, principal: (c: Context) => engine.PlanPri
   app.get('/', async () => json(e.world.trust ? await engine.listTrusts(e) : []));
   app.get('/:id', async (c) => json(await engine.trustSummary(e, trustId(c))));
   app.post('/', async (c) => {
+    const refused = creationLimit(c);
+    if (refused) return refused;
     const body = await c.req.json().catch(() => undefined);
     return json(await engine.createTrust(e, body), 201);
   });
