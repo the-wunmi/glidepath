@@ -1,5 +1,5 @@
+import { createHash } from 'node:crypto';
 import { ed25519 } from '@noble/curves/ed25519.js';
-import { sha256 } from '@noble/hashes/sha2.js';
 
 /**
  * NEP-413 (sign a message with a NEAR account's key, used by wallets for "sign in with NEAR").
@@ -27,6 +27,7 @@ export interface Nep413Signed {
 }
 
 const utf8 = new TextEncoder();
+const sha256 = (bytes: Uint8Array) => new Uint8Array(createHash('sha256').update(bytes).digest());
 
 function u32(n: number): Uint8Array {
   const out = new Uint8Array(4);

@@ -299,7 +299,9 @@ export async function createPlan(
   // Started before the chain call: if this process dies after the plan is created, the workflow
   // finds it on-chain, records it (with the key's hash, never the key) and hands it to the
   // enclave. If the call is refused, it ends.
-  await startOnce(planCreatedWorkflow, `created:${p.commitment}`, input, owner?.hash);
+  // A wallet's plan is already on chain when its transaction arrives, so its workflow starts only
+  // once that transaction checks out (below); nothing is started for an unverified request.
+  if (!wallet) await startOnce(planCreatedWorkflow, `created:${p.commitment}`, input, owner?.hash);
   const asset =
     p.token.chain === 'near'
       ? { type: 'nep141', token_id: p.token.address }
@@ -334,6 +336,7 @@ export async function createPlan(
       code: out.code,
       txHash: out.txHash,
     });
+  if (wallet) await startOnce(planCreatedWorkflow, `created:${p.commitment}`, input, owner?.hash);
   const recorded = await recordPlan(e, p, out.value, out.txHash, owner?.hash);
   await recordProposal(e, out.value, out, 'create the plan');
   return { ...recorded, ownerKey: owner?.key ?? null };

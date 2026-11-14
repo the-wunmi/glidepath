@@ -977,12 +977,14 @@ export async function ownerReleaseEvm(e: Engine, principal: PlanPrincipal, planI
   await authorizeOwner(e, principal, planId);
   if (plan.status !== 'ended' || plan.asset.type !== 'evm_erc20' || !plan.evm_address)
     throw new DomainError('conflict', 'Only an ended ERC-20 plan releases its remainder');
+  if (isServerAccount(personasOf(e), plan.owner))
+    throw new DomainError('conflict', 'This plan’s release runs by itself');
   const token = plan.asset.token_address as Hex;
   const holder = plan.evm_address as Hex;
   const left = await e.evm.tokenBalance(token, holder);
   if (left === 0n) throw new DomainError('conflict', 'Nothing is left to release');
+  // The plan address's gas is topped up by the release workflow before it sends the transfer.
   const fees = await e.evm.fees();
-  await e.evm.ensureBalance(holder, SALE_GAS * fees.maxFeePerGas, await e.evm.gasCostWei(SALE_GAS));
   const out = await ownerCall(
     e,
     plan.owner,
@@ -1023,6 +1025,8 @@ export async function ownerResignEvm(e: Engine, principal: PlanPrincipal, planId
   const plan = await e.registry.plan(planId);
   if (!plan) throw new DomainError('not_found', 'Plan not found');
   await authorizeOwner(e, principal, planId);
+  if (isServerAccount(personasOf(e), plan.owner))
+    throw new DomainError('conflict', 'This plan’s transfers are re-signed by themselves');
   const seq = plan.next_seq - 1;
   const receipt = seq >= 0 ? await e.registry.receipt(planId, seq) : null;
   if (!receipt?.evm_signature)
