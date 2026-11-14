@@ -10,7 +10,7 @@
  * distribution point). TCB matching follows Intel's quote verification library (QVL) for TDX.
  */
 
-import { bytesToHex, hexToBytes } from '@vsp/core';
+import { bytesToHex, hexToBytes } from '@glidepath/core';
 import {
   type Certificate,
   children,

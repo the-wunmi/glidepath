@@ -1,6 +1,6 @@
 import { DBOS, Error as DBOSErrors } from '@dbos-inc/dbos-sdk';
 import { DrizzleDataSource } from '@dbos-inc/drizzle-datasource';
-import { type createPool, type Db, type Schema, schema, type Tx } from '@vsp/db';
+import { type createPool, type Db, type Schema, schema, type Tx } from '@glidepath/db';
 import pg from 'pg';
 import type { Engine } from './context.ts';
 
@@ -19,7 +19,7 @@ import type { Engine } from './context.ts';
  * Recorded with every workflow; recovery resumes only workflows of the same version. Bump it when a
  * workflow's steps change order or meaning, after finishing or cancelling old pending workflows.
  */
-export const WORKFLOW_VERSION = 'vsp-1';
+export const WORKFLOW_VERSION = 'glidepath-1';
 
 let current: { engine: Engine; ds: DrizzleDataSource<Db>; prefix: string } | undefined;
 
@@ -33,7 +33,7 @@ export function durableEngine(): Engine {
 export function systemDatabaseUrl(databaseUrl: string, override?: string): string {
   if (override) return override;
   const url = new URL(databaseUrl);
-  url.pathname = `/${url.pathname.slice(1) || 'salesplans'}_dbos`;
+  url.pathname = `/${url.pathname.slice(1) || 'glidepath'}_dbos`;
   return url.toString();
 }
 
@@ -82,7 +82,7 @@ export async function launchDurable(
       : (await engine.near.genesisHash()).slice(0, 10);
   current = { engine, ds, prefix };
   DBOS.setConfig({
-    name: 'salesplans',
+    name: 'glidepath',
     systemDatabaseUrl: opts.systemUrl,
     applicationVersion: WORKFLOW_VERSION,
     logLevel: opts.logLevel ?? 'warn',
@@ -180,7 +180,7 @@ export function isWorkflowControl(err: unknown): boolean {
  * named `effect:<name>` fire right after an effect and before its checkpoint, the worst place.
  */
 export function crashPoint(name: string): void {
-  const at = process.env.VSP_CRASH_AT;
+  const at = process.env.GLIDEPATH_CRASH_AT;
   if (!at || at !== name) return;
   process.kill(process.pid, 'SIGKILL');
 }

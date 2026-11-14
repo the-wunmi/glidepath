@@ -497,8 +497,8 @@ export default function EvidencePage() {
             </ul>
             <p className="mt-3 text-xs text-ink-3">
               The study is rebuilt offline and deterministically from these files with{' '}
-              <span className="mono">pnpm --filter @vsp/replay build:results</span>; the method is
-              also in <span className="mono">data/replay/METHOD.md</span>.
+              <span className="mono">pnpm --filter @glidepath/replay build:results</span>; the
+              method is also in <span className="mono">data/replay/METHOD.md</span>.
             </p>
           </Panel>
         </>

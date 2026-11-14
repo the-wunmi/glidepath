@@ -10,8 +10,8 @@ import {
   type SimulatedQuote,
   sha256Hex,
   utf8ToBytes,
-} from '@vsp/core';
-import { type Db, enclaveStore, executions, plans } from '@vsp/db';
+} from '@glidepath/core';
+import { type Db, enclaveStore, executions, plans } from '@glidepath/db';
 import type {
   AcceptResult,
   BackupBox,
@@ -22,7 +22,7 @@ import type {
   RevealResult,
   SignedMessage,
   TickResult,
-} from '@vsp/enclave';
+} from '@glidepath/enclave';
 import {
   type Account,
   actions,
@@ -31,8 +31,8 @@ import {
   type NearClient,
   readOutcome,
   teraToGas,
-} from '@vsp/near';
-import type { QuoteRequest } from '@vsp/oneclick';
+} from '@glidepath/near';
+import type { QuoteRequest } from '@glidepath/oneclick';
 import { and, eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { chargePlan } from './budget.ts';

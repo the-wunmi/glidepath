@@ -1,7 +1,4 @@
 import { readdirSync, readFileSync } from 'node:fs';
-import { ed25519, x25519 } from '@noble/curves/ed25519.js';
-import { hkdf } from '@noble/hashes/hkdf.js';
-import { sha256, sha384 } from '@noble/hashes/sha2.js';
 import {
   ACK_DOMAIN,
   type AckMessage,
@@ -37,9 +34,9 @@ import {
   toBase64,
   toJson,
   utf8ToBytes,
-} from '@vsp/core';
-import type { ChainPlan } from '@vsp/near';
-import type { QuoteRequest, QuoteResponse } from '@vsp/oneclick';
+} from '@glidepath/core';
+import type { ChainPlan } from '@glidepath/near';
+import type { QuoteRequest, QuoteResponse } from '@glidepath/oneclick';
 import {
   checkMarket,
   deferSale,
@@ -49,7 +46,10 @@ import {
   proposeSale,
   type RandomBytes,
   recordSale,
-} from '@vsp/planner';
+} from '@glidepath/planner';
+import { ed25519, x25519 } from '@noble/curves/ed25519.js';
+import { hkdf } from '@noble/hashes/hkdf.js';
+import { sha256, sha384 } from '@noble/hashes/sha2.js';
 import { z } from 'zod';
 import type {
   AcceptResult,
@@ -154,9 +154,9 @@ export function measureSources(dirs: string[]): string {
 export function deriveEnclaveKeys(hardwareSecret: Uint8Array) {
   const derive = (info: string) => hkdf(sha256, hardwareSecret, undefined, utf8ToBytes(info), 32);
   return {
-    signing: derive('vsp/enclave/signing'),
-    encryption: derive('vsp/enclave/encryption'),
-    sealing: derive('vsp/enclave/sealing'),
+    signing: derive('glidepath/enclave/signing'),
+    encryption: derive('glidepath/enclave/encryption'),
+    sealing: derive('glidepath/enclave/sealing'),
   };
 }
 
@@ -218,7 +218,7 @@ export class SimulatedEnclave implements Enclave {
       rtmr0: label384('simulated-tdx/firmware/v1'),
       rtmr1: label384('simulated-tdx/kernel/v1'),
       rtmr2: label384(`simulated-tdx/runtime/node-${process.versions.node}`),
-      rtmr3: label384('verified-sales-plans/executor/v1'),
+      rtmr3: label384('verified-glidepath/executor/v1'),
     };
     const reportData = reportDataFor(signingKey, encryptionKeyHex);
     const stored = await this.options.store.get('identity');

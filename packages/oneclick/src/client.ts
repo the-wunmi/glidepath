@@ -1,4 +1,4 @@
-import { DomainError } from '@vsp/core';
+import { DomainError } from '@glidepath/core';
 import type { z } from 'zod';
 import {
   type QuoteRequest,

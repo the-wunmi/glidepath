@@ -81,7 +81,7 @@ impl Chain {
             "within_envelope": true, "issued_at_ms": self.now,
         })
         .to_string();
-        let signature = self.sign(&self.enclave, "vsp/ack/v1\n", &ack);
+        let signature = self.sign(&self.enclave, "glidepath/ack/v1\n", &ack);
         self.as_caller("relayer.near", NearToken::from_near(1));
         self.registry
             .ack_plan(PLAN_ID, ack, signature, enclave_key(&self.enclave));
@@ -125,7 +125,7 @@ impl Chain {
             "issued_at_ms": self.now, "expires_at_ms": self.now + 60_000,
         })
         .to_string();
-        let signature = self.sign(&self.enclave, "vsp/execute/v1\n", &request);
+        let signature = self.sign(&self.enclave, "glidepath/execute/v1\n", &request);
         self.as_caller(caller, NearToken::from_near(1));
         let _ = self
             .registry
@@ -429,7 +429,7 @@ fn an_ack_signed_before_the_change_took_effect_cannot_apply_it() {
         "within_envelope": true, "issued_at_ms": change.effective_at_ms - 1,
     })
     .to_string();
-    let signature = chain.sign(&chain.enclave, "vsp/ack/v1\n", &ack);
+    let signature = chain.sign(&chain.enclave, "glidepath/ack/v1\n", &ack);
     chain.now = change.effective_at_ms + 10;
     chain.as_caller("relayer.near", NearToken::from_near(1));
     chain

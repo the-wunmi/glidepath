@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises';
-import type { Engine } from '@vsp/engine';
+import type { Engine } from '@glidepath/engine';
 import { Hono } from 'hono';
 
 /**

@@ -13,7 +13,7 @@ export class ApiError extends Error {
   }
 }
 
-const OPERATOR_KEY = 'vsp-operator-token';
+const OPERATOR_KEY = 'glidepath-operator-token';
 
 /** The operator token this browser signed in with; sent as the bearer on every API call. */
 export const operatorToken = (): string | null => localStorage.getItem(OPERATOR_KEY);

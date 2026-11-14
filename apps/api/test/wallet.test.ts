@@ -1,7 +1,6 @@
-import { ed25519 } from '@noble/curves/ed25519.js';
-import { createDb, createPool, executions, planBudget, plans } from '@vsp/db';
-import { runMigrations } from '@vsp/db/migrate';
-import type { Engine } from '@vsp/engine';
+import { createDb, createPool, executions, planBudget, plans } from '@glidepath/db';
+import { runMigrations } from '@glidepath/db/migrate';
+import type { Engine } from '@glidepath/engine';
 import {
   base58Encode,
   budgetBalance,
@@ -11,8 +10,9 @@ import {
   loadConfig,
   nep413Digest,
   personasOf,
-} from '@vsp/engine';
-import type { WalletAction } from '@vsp/near';
+} from '@glidepath/engine';
+import type { WalletAction } from '@glidepath/near';
+import { ed25519 } from '@noble/curves/ed25519.js';
 import { eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from '../src/app.ts';

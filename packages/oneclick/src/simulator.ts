@@ -1,13 +1,13 @@
-import { ed25519 } from '@noble/curves/ed25519.js';
 import {
   formatNearKey,
   fromBaseUnits,
   oneclickQuoteMessage,
   oneclickSignedBytes,
   quoteValueDown,
-} from '@vsp/core';
-import { type Db, simOneClickQuotes } from '@vsp/db';
-import { type MarketSettings, marketKey, marketPriceE6 } from '@vsp/prices';
+} from '@glidepath/core';
+import { type Db, simOneClickQuotes } from '@glidepath/db';
+import { type MarketSettings, marketKey, marketPriceE6 } from '@glidepath/prices';
+import { ed25519 } from '@noble/curves/ed25519.js';
 import { and, eq, notInArray } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { z } from 'zod';

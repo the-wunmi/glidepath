@@ -1,52 +1,39 @@
 'use client';
 
-import { type AttestationCheck, fromBase64, SimulatedQuote, verifySimulatedQuote } from '@vsp/core';
+import { type AttestationCheck, SimulatedQuote, verifySimulatedQuote } from '@glidepath/core';
 import {
   collateralRequest,
-  collateralUnavailable,
   type PcsCollateral,
   REVOCATION_LABEL,
   TCB_LABEL_PREFIX,
-  verifyCollateral,
-} from '@vsp/verify/collateral';
-import { type OutlayerAttestationRecord, verifyKeyProof } from '@vsp/verify/keyproof';
-import { parseTdxQuote, TDX_CHECK_LABELS, verifyTdxQuote } from '@vsp/verify/tdx';
+} from '@glidepath/verify/collateral';
+import {
+  type CollateralResult,
+  checkOutlayerEnclave,
+  type EnclaveCheck,
+  isOutlayerQuote,
+  type OutlayerEvidence,
+  readOutlayerRun,
+  readPcsCollateral,
+} from '@glidepath/verify/outlayer';
+import { parseTdxQuote, TDX_CHECK_LABELS } from '@glidepath/verify/tdx';
 import { useEffect, useState } from 'react';
 import { nearTxSuccessValue, registry } from './chain';
-import type { ChainEnclave, Meta, OutlayerQuote } from './types';
+import type { ChainEnclave, Meta } from './types';
 
-export const isOutlayerQuote = (q: unknown): q is OutlayerQuote =>
-  !!q && typeof q === 'object' && (q as { format?: unknown }).format === 'outlayer-tdx-v1';
-
-/**
- * One row of an enclave's checks. `warn` marks a row that did not fail but is not a pass either
- * (Intel rates the machine's patch level below UpToDate, or its collateral could not be read).
- */
-export interface EnclaveCheck extends AttestationCheck {
-  warn?: boolean;
-  detail?: string;
-}
-
-/** Intel's collateral for a quote, or why it could not be read. */
-export type CollateralResult = PcsCollateral | { error: string };
+export {
+  type CollateralResult,
+  checkState,
+  type EnclaveCheck,
+  isOutlayerQuote,
+  outlayerChecks,
+} from '@glidepath/verify/outlayer';
 
 /** A key-proof run's evidence: OutLayer's record of it, its quote, and what the chain returned. */
-export interface OutlayerEvidenceData {
-  quote: Uint8Array;
-  record: OutlayerAttestationRecord & { transaction_hash?: string | null };
-  /** The run's NEAR transaction return value (base64); null if the chain could not be read. */
-  keyProofOutput: string | null;
-  collateral: CollateralResult;
-}
+export type OutlayerEvidenceData = OutlayerEvidence;
 
 const evidence = new Map<string, Promise<Omit<OutlayerEvidenceData, 'collateral'>>>();
 const collaterals = new Map<string, Promise<PcsCollateral>>();
-
-async function pcs(path: string): Promise<Response> {
-  const res = await fetch(`/api/pcs/${path}`);
-  if (!res.ok) throw new Error(`Intel’s collateral could not be read (HTTP ${res.status})`);
-  return res;
-}
 
 /**
  * Intel's PCS collateral for the machine that made a quote, through the API's pass-through (Intel
@@ -55,29 +42,11 @@ async function pcs(path: string): Promise<Response> {
  */
 async function fetchCollateral(quoteBytes: Uint8Array): Promise<CollateralResult> {
   try {
-    const { fmspc, ca } = collateralRequest(parseTdxQuote(quoteBytes));
-    const key = `${fmspc}:${ca}`;
+    const req = collateralRequest(parseTdxQuote(quoteBytes));
+    const key = `${req.fmspc}:${req.ca}`;
     let p = collaterals.get(key);
     if (!p) {
-      p = Promise.all([
-        pcs(`tdx/tcb?fmspc=${fmspc}`),
-        pcs('tdx/qe-identity'),
-        pcs(`pckcrl?ca=${ca}`),
-        pcs('rootcacrl'),
-      ]).then(async ([tcb, qe, pck, root]) => ({
-        tcbInfo: {
-          body: await tcb.text(),
-          issuerChain: decodeURIComponent(tcb.headers.get('tcb-info-issuer-chain') ?? ''),
-        },
-        qeIdentity: {
-          body: await qe.text(),
-          issuerChain: decodeURIComponent(
-            qe.headers.get('sgx-enclave-identity-issuer-chain') ?? '',
-          ),
-        },
-        pckCrl: new Uint8Array(await pck.arrayBuffer()),
-        rootCaCrl: new Uint8Array(await root.arrayBuffer()),
-      }));
+      p = readPcsCollateral(req, (path) => fetch(`/api/pcs/${path}`));
       p.catch(() => collaterals.delete(key));
       collaterals.set(key, p);
     }
@@ -104,88 +73,12 @@ export function fetchOutlayerEvidence(url: string): Promise<OutlayerEvidenceData
 function baseEvidence(url: string): Promise<Omit<OutlayerEvidenceData, 'collateral'>> {
   let p = evidence.get(url);
   if (!p) {
-    p = fetch(url).then(async (res) => {
-      if (!res.ok)
-        throw new Error(`OutLayer’s attestation record could not be read (HTTP ${res.status})`);
-      const record = (await res.json()) as OutlayerEvidenceData['record'] & { tdx_quote?: unknown };
-      if (typeof record.tdx_quote !== 'string')
-        throw new Error('OutLayer’s attestation record has no quote');
-      const keyProofOutput =
-        record.transaction_hash && record.caller_account_id
-          ? await nearTxSuccessValue(record.transaction_hash, record.caller_account_id)
-          : null;
-      return { quote: fromBase64(record.tdx_quote), record, keyProofOutput };
-    });
+    p = readOutlayerRun(url, { fetch: (u) => fetch(u), txSuccessValue: nearTxSuccessValue });
     p.catch(() => evidence.delete(url));
     evidence.set(url, p);
   }
   return p;
 }
-
-/**
- * Whether the encryption key a plan would be sealed to is the one the attested module proved it
- * holds: the quote commits to the key-proof run, whose output on-chain is that proof, signed by the
- * registered key. Without it a server could serve its own key while every quote check passed.
- */
-function keyProofChecks(
-  enclave: ChainEnclave,
-  identity: Meta['enclave'],
-  quote: OutlayerQuote,
-  ev: OutlayerEvidenceData,
-): AttestationCheck[] {
-  let reportData = '';
-  try {
-    reportData = parseTdxQuote(ev.quote).body.reportData;
-  } catch {
-    reportData = '';
-  }
-  return verifyKeyProof({
-    record: ev.record,
-    quoteReportData: reportData,
-    txSuccessValue: ev.keyProofOutput ?? '',
-    registeredKey: enclave.public_key,
-    encryptionKeyHex: identity.encryptionKeyHex,
-    wasmSha256: quote.wasm_sha256,
-  }).checks;
-}
-
-/**
- * What this browser checks of a live OutLayer enclave, all over the raw quote bytes: they hash to
- * the quote hash the registry pinned for the key, carry the pinned measurements, and are signed by
- * an attestation key that Intel's certificate chain vouches for, up to Intel's pinned root. Then
- * Intel's collateral: no certificate in that chain is revoked, and the machine's TCB status. A
- * status below UpToDate is a warning, Revoked a failure; unreadable collateral is a warning that
- * says it was not checked.
- */
-export function outlayerChecks(
-  enclave: ChainEnclave,
-  quoteBytes: Uint8Array,
-  collateral: CollateralResult,
-): EnclaveCheck[] {
-  const v = verifyTdxQuote(
-    { measurements: enclave.measurements, quoteHash: enclave.quote_hash },
-    quoteBytes,
-  );
-  const rows: EnclaveCheck[] = v.checks.map(({ label, ok }) => ({ label, ok }));
-  if (!v.quote) return rows;
-  const extra =
-    'error' in collateral
-      ? collateralUnavailable(collateral.error)
-      : verifyCollateral(v.quote, collateral).checks;
-  return [
-    ...rows,
-    ...extra.map(({ label, ok, warn, detail }) => ({
-      label,
-      ok,
-      ...(warn ? { warn } : {}),
-      ...(detail ? { detail } : {}),
-    })),
-  ];
-}
-
-/** How a row shows in a checks list. */
-export const checkState = (c: EnclaveCheck): 'pass' | 'fail' | 'warn' =>
-  !c.ok ? 'fail' : c.warn ? 'warn' : 'pass';
 
 /** The one-line summary of a passing list: warnings are counted apart, never as passes. */
 export function passedSummary(checks: EnclaveCheck[]): string {
@@ -248,15 +141,7 @@ export function checkAttestation(
   ];
   // A live enclave's quote is not a simulated one: never run the simulated verifier on it.
   if (isOutlayerQuote(quote)) {
-    const checks = [
-      ...keyChecks,
-      ...(enclave && ev
-        ? [
-            ...outlayerChecks(enclave, ev.quote, ev.collateral),
-            ...keyProofChecks(enclave, identity, quote, ev),
-          ]
-        : [{ label: 'OutLayer’s attestation evidence could be read', ok: false }]),
-    ];
+    const checks = [...keyChecks, ...checkOutlayerEnclave(enclave, { ...identity, quote }, ev)];
     return {
       ok: !!enclave && checks.every((c) => c.ok),
       kind: 'outlayer',

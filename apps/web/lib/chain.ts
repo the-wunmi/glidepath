@@ -1,14 +1,14 @@
 'use client';
 
-import type { ChainEnclave, ChainPlan, ChainReceipt, RegistryConfig } from '@vsp/near';
-import type { ChainReveal } from '@vsp/verify';
+import type { ChainEnclave, ChainPlan, ChainReceipt, RegistryConfig } from '@glidepath/near';
+import type { ChainReveal } from '@glidepath/verify';
 import {
   concurrencyLimit,
   retryAfterMs,
   TransientReadError,
   transientStatus,
   withRetry,
-} from '@vsp/verify/reads';
+} from '@glidepath/verify/reads';
 import { useEffect, useState } from 'react';
 
 /**
@@ -20,7 +20,7 @@ let rpcId = 0;
 
 export class RpcError extends Error {}
 
-const RPC_KEY = 'vsp-near-rpc';
+const RPC_KEY = 'glidepath-near-rpc';
 export const DEFAULT_NEAR_RPC = '/rpc/near';
 /** A slow or dead endpoint fails within this long, so the page can say so and retry. */
 const RPC_TIMEOUT_MS = 10_000;
@@ -297,16 +297,16 @@ export function useChainNow(): number | null {
     const poll = setInterval(read, 10_000);
     const tick = setInterval(() => setTick((n) => n + 1), 1_000);
     const onAdvance = () => void read();
-    window.addEventListener('vsp:chain-advanced', onAdvance);
+    window.addEventListener('glidepath:chain-advanced', onAdvance);
     return () => {
       stop = true;
       clearInterval(poll);
       clearInterval(tick);
-      window.removeEventListener('vsp:chain-advanced', onAdvance);
+      window.removeEventListener('glidepath:chain-advanced', onAdvance);
     };
   }, []);
   return anchor ? anchor.chain + (Date.now() - anchor.wall) : null;
 }
 
 /** Tells every open view that the simulation moved chain time or changed the world. */
-export const announceSimChange = () => window.dispatchEvent(new Event('vsp:chain-advanced'));
+export const announceSimChange = () => window.dispatchEvent(new Event('glidepath:chain-advanced'));

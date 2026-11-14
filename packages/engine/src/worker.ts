@@ -4,8 +4,8 @@
  * MPC network and 1Click. Everything a tick decides to do outside (relay a sale, relay an ack) is
  * started as a DBOS workflow under its own key (workflows.ts).
  */
-import { sha256Hex } from '@vsp/core';
-import { activity, executions } from '@vsp/db';
+import { sha256Hex } from '@glidepath/core';
+import { activity, executions } from '@glidepath/db';
 import { and, desc, eq } from 'drizzle-orm';
 import { canAfford, personasOf, SALE_RESERVE } from './budget.ts';
 import type { Engine } from './context.ts';

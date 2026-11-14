@@ -1,5 +1,5 @@
 {
-  "name": "@vsp/enclave",
+  "name": "@glidepath/enclave",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -13,10 +13,10 @@
   "dependencies": {
     "@noble/curves": "^2.4.0",
     "@noble/hashes": "^2.4.0",
-    "@vsp/core": "workspace:*",
-    "@vsp/near": "workspace:*",
-    "@vsp/oneclick": "workspace:*",
-    "@vsp/planner": "workspace:*",
+    "@glidepath/core": "workspace:*",
+    "@glidepath/near": "workspace:*",
+    "@glidepath/oneclick": "workspace:*",
+    "@glidepath/planner": "workspace:*",
     "zod": "^4.6.7"
   }
 }

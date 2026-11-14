@@ -2,7 +2,7 @@
  * One EVM plan on Sepolia sold by the OutLayer enclave, end to end, against an API started with
  * ENCLAVE_BACKEND=outlayer:
  *
- *   VSP_API=http://127.0.0.1:4410 pnpm outlayer:demo
+ *   GLIDEPATH_API=http://127.0.0.1:4410 pnpm outlayer:demo
  *
  * Before sealing it checks what the browser would: the API's enclave key is the one the attested
  * key-proof run named (deployments/outlayer-testnet.json, signature checked), and the registry
@@ -11,7 +11,6 @@
  * a sale the registry accepted.
  */
 import { readFileSync } from 'node:fs';
-import { ed25519 } from '@noble/curves/ed25519.js';
 import {
   canonicalJson,
   type Envelope,
@@ -24,8 +23,9 @@ import {
   type SealedPlanInput,
   sealTo,
   utf8ToBytes,
-} from '@vsp/core';
-import { OutLayerDeployment } from '@vsp/engine';
+} from '@glidepath/core';
+import { OutLayerDeployment } from '@glidepath/engine';
+import { ed25519 } from '@noble/curves/ed25519.js';
 import { api, envelopeBody, type Meta, tokens, waitFor } from './lib/api.ts';
 
 const DAY = 86_400_000;
@@ -47,7 +47,7 @@ function checkEnclave(meta: Meta): OutLayerDeployment {
   const proof = JSON.parse(d.keyProof.json) as { signing_key: string; encryption_key_hex: string };
   const signed = ed25519.verify(
     fromBase64(d.keyProof.signature),
-    utf8ToBytes(`vsp/key-proof/v1\n${d.keyProof.json}`),
+    utf8ToBytes(`glidepath/key-proof/v1\n${d.keyProof.json}`),
     parseNearKey(proof.signing_key).bytes,
   );
   const onchain = meta.registry.enclaves.find((x) => x.public_key === d.signingKey);

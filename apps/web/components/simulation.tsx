@@ -1,6 +1,6 @@
 'use client';
 
-import { e6ToUsd, usdToE6 } from '@vsp/core';
+import { e6ToUsd, usdToE6 } from '@glidepath/core';
 import { useEffect, useId, useRef, useState } from 'react';
 import { ApiError, api, errorMessage } from '@/lib/api';
 import { announceSimChange, nearChainTimeMs, useChainNow } from '@/lib/chain';

@@ -24,7 +24,7 @@ RUN --mount=type=cache,id=glidepath-pnpm-store,target=/pnpm/store pnpm fetch --f
 # install below can't pull in the web app's dependencies.
 FROM fetch AS api-prune
 COPY . .
-RUN pnpm dlx turbo@2.11.10 prune @vsp/api --docker
+RUN pnpm dlx turbo@2.11.10 prune @glidepath/api --docker
 
 FROM fetch AS api-deps
 COPY --from=api-prune /app/out/json/ ./
@@ -67,11 +67,11 @@ CMD ["tsx", "src/server.ts"]
 FROM fetch AS web-build
 COPY . .
 RUN --mount=type=cache,id=glidepath-pnpm-store,target=/pnpm/store \
-    pnpm install --frozen-lockfile --offline --filter "@vsp/web..." --filter verified-sales-plans
+    pnpm install --frozen-lockfile --offline --filter "@glidepath/web..." --filter verified-glidepath
 # The API's address from the web container; Next fixes its rewrites at build time. Not secret.
-ARG VSP_API_ORIGIN=http://api:4400
-ENV VSP_API_ORIGIN=$VSP_API_ORIGIN
-RUN pnpm exec turbo run build --filter=@vsp/web
+ARG GLIDEPATH_API_ORIGIN=http://api:4400
+ENV GLIDEPATH_API_ORIGIN=$GLIDEPATH_API_ORIGIN
+RUN pnpm exec turbo run build --filter=@glidepath/web
 
 FROM ${NODE_IMAGE} AS web
 ENV NODE_ENV=production \

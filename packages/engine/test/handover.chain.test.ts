@@ -6,9 +6,9 @@ import {
   planCommitment,
   SealedPlan,
   sealTo,
-} from '@vsp/core';
-import type { ChainEnclave, KeyPairString } from '@vsp/near';
-import { verifyReceipt } from '@vsp/verify';
+} from '@glidepath/core';
+import type { ChainEnclave, KeyPairString } from '@glidepath/near';
+import { verifyReceipt } from '@glidepath/verify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { oneclickQuoteKey } from '../src/context.ts';
 import { dbOutLayerStore, type OutLayerDeployment, OutLayerEnclave } from '../src/outlayer.ts';

@@ -7,7 +7,7 @@ import {
   mempoolTxUrl,
   type SpendView,
   type VaultView,
-} from '@vsp/btc';
+} from '@glidepath/btc';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { useMeta } from '@/components/meta';

@@ -5,9 +5,8 @@
  */
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { hexToBytes } from '@noble/hashes/utils.js';
-import type { SpendView, VaultConfig, VaultView } from '@vsp/btc';
-import { deriveSecretKey, signPayload } from '@vsp/chainsig';
+import type { SpendView, VaultConfig, VaultView } from '@glidepath/btc';
+import { deriveSecretKey, signPayload } from '@glidepath/chainsig';
 import {
   type Account,
   actions,
@@ -15,7 +14,8 @@ import {
   type KeyPairString,
   type NearClient,
   teraToGas,
-} from '@vsp/near';
+} from '@glidepath/near';
+import { hexToBytes } from '@noble/hashes/utils.js';
 
 export const NEAR = 10n ** 24n;
 export const near3 = (y: bigint) => (Number(y / (NEAR / 1000n)) / 1000).toFixed(3);

@@ -1,7 +1,8 @@
-import type { SealedBox } from '@vsp/core';
-import { enclaveStore } from '@vsp/db';
-import type { SealedStore, SignedMessage } from '@vsp/enclave';
-import type { ChainTrust } from '@vsp/trust';
+import type { SealedBox } from '@glidepath/core';
+import { enclaveStore } from '@glidepath/db';
+import type { SealedStore, SignedMessage } from '@glidepath/enclave';
+import type { KeyPairString } from '@glidepath/near';
+import type { ChainTrust } from '@glidepath/trust';
 import {
   SimulatedTrustEnclave,
   type TrustAcceptResult,
@@ -10,11 +11,17 @@ import {
   type TrustQuote,
   type TrustTickResult,
   type TrustTradeResult,
-} from '@vsp/trust/enclave';
+} from '@glidepath/trust/enclave';
 import { eq } from 'drizzle-orm';
 import type { Engine } from '../context.ts';
 import { oneclickQuoteKey } from '../context.ts';
-import { ModuleError, type OutLayerBuild, type OutLayerRunner } from '../outlayer.ts';
+import {
+  loadOutLayerDeployment,
+  ModuleError,
+  type OutLayerBuild,
+  OutLayerClient,
+  type OutLayerRunner,
+} from '../outlayer.ts';
 import { enclaveHardwareSecret } from '../world.ts';
 
 /** The host's untrusted storage for enclave boxes and records (the `enclave_store` table). */
@@ -36,20 +43,36 @@ function storeOf(e: Engine): SealedStore {
 const enclaves = new WeakMap<Engine, TrustEnclave>();
 
 /**
- * The trust executor this engine uses: the in-process simulator by default (the simulated plan
- * enclave's keys, so the same attested key signs), or the enclave-wasi module set by `useTrustEnclave`.
+ * The trust executor this engine uses: with ENCLAVE_BACKEND=outlayer the current OutLayer build
+ * (the one the plan enclave attests, so the page seals to its key); otherwise the in-process
+ * simulator (the simulated plan enclave's keys, so the same attested key signs). Tests set the
+ * enclave-wasi module with `useTrustEnclave`.
  */
 export function trustEnclaveOf(e: Engine): TrustEnclave {
   let enclave = enclaves.get(e);
   if (!enclave) {
-    enclave = new SimulatedTrustEnclave(
-      enclaveHardwareSecret(e.config.DATA_DIR),
-      storeOf(e) as SealedStore,
-      oneclickQuoteKey(e.config, e.world),
-    );
+    enclave =
+      e.config.ENCLAVE_BACKEND === 'outlayer'
+        ? outlayerTrustEnclave(e)
+        : new SimulatedTrustEnclave(
+            enclaveHardwareSecret(e.config.DATA_DIR),
+            storeOf(e) as SealedStore,
+            oneclickQuoteKey(e.config, e.world),
+          );
     enclaves.set(e, enclave);
   }
   return enclave;
+}
+
+/** The trust operations on the current OutLayer build, run by the relayer its keystore binds to. */
+function outlayerTrustEnclave(e: Engine): ModuleTrustEnclave {
+  const deployment = loadOutLayerDeployment(e.config.DEPLOYMENTS_DIR);
+  if (deployment.caller !== e.world.relayer)
+    throw new Error(`The OutLayer key belongs to ${deployment.caller}, not ${e.world.relayer}`);
+  if (deployment.quoteSignerKey !== oneclickQuoteKey(e.config, e.world))
+    throw new Error('The OutLayer module was built for another 1Click quote key');
+  const caller = e.near.account(e.world.relayer, e.world.keys[e.world.relayer] as KeyPairString);
+  return new ModuleTrustEnclave(e, new OutLayerClient(caller, deployment.contract), deployment);
 }
 
 export function useTrustEnclave(e: Engine, enclave: TrustEnclave): void {
@@ -71,7 +94,7 @@ const signedMessage = (m: ModuleSigned): SignedMessage => ({
 /**
  * The enclave-wasi module's trust operations (`trust_accept`, `trust_tick`, `trust_trade`), run
  * the way OutLayer runs a module: one JSON request in, one answer out, the sealed record carried
- * between runs and kept by the host. Locally the runner is `vsp-enclave-local`; an OutLayer build
+ * between runs and kept by the host. Locally the runner is `glidepath-enclave-local`; an OutLayer build
  * of this code would plug in the same way.
  */
 export class ModuleTrustEnclave implements TrustEnclave {

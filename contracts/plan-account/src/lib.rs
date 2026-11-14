@@ -151,7 +151,7 @@ impl PlanAccount {
                     json_bytes(&FtTransferArgs {
                         receiver_id: &receiver_id,
                         amount,
-                        memo: Some("vsp/release"),
+                        memo: Some("glidepath/release"),
                     }),
                     ONE_YOCTO,
                     GAS_FT_TRANSFER,

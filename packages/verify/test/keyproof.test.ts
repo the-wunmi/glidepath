@@ -1,30 +1,22 @@
-import { readFileSync } from 'node:fs';
-import { fromBase64, toBase64 } from '@vsp/core';
+import { fromBase64, toBase64 } from '@glidepath/core';
 import { describe, expect, it } from 'vitest';
 import { type KeyProofInput, verifyKeyProof } from '../src/keyproof.ts';
 import { parseTdxQuote } from '../src/tdx.ts';
+import { build, record, SIGNATURE_ROWS, signedUnderCurrentDomain, tx } from './outlayer-fixture.ts';
 
-const data = (path: string) =>
-  JSON.parse(readFileSync(new URL(`../../../${path}`, import.meta.url), 'utf8'));
-
-/** The current build's key-proof run: OutLayer's attestation record and the NEAR transaction's output. */
-const record = data('data/outlayer/attestation-cxmt7H2q7p83PWaJzR1RWQij8VyhjbjGkkf3ZyZGnVo.json');
-const tx = data('data/outlayer/keyproof-tx-cxmt7H2q7p83PWaJzR1RWQij8VyhjbjGkkf3ZyZGnVo.json');
-/** The build the fixture belongs to: the record keeps earlier builds in `previous`. */
-const record_ = data('deployments/outlayer-testnet.json');
-const deployment = [record_, ...record_.previous, ...(record_.backups ?? [])].find(
-  (b: { keyProof: { txHash: string } }) =>
-    b.keyProof.txHash === 'cxmt7H2q7p83PWaJzR1RWQij8VyhjbjGkkf3ZyZGnVo',
-);
-
+/** The key-proof run on file (outlayer-fixture.ts) and the build it proved. */
 const input: KeyProofInput = {
   record,
   quoteReportData: parseTdxQuote(fromBase64(record.tdx_quote)).body.reportData,
   txSuccessValue: tx.success_value,
-  registeredKey: deployment.signingKey,
-  encryptionKeyHex: deployment.encryptionKeyHex,
-  wasmSha256: deployment.wasm.sha256,
+  registeredKey: build.signingKey,
+  encryptionKeyHex: build.encryptionKeyHex,
+  wasmSha256: build.wasm.sha256,
 };
+
+/** Rows other than the proof's signature, for a run on file signed under another domain. */
+const unsigned = (labels: string[]) =>
+  signedUnderCurrentDomain ? labels : labels.filter((l) => !SIGNATURE_ROWS.includes(l));
 
 const failing = (i: KeyProofInput) =>
   verifyKeyProof(i)
@@ -32,17 +24,23 @@ const failing = (i: KeyProofInput) =>
     .map((c) => c.label);
 
 describe('the enclave key proof', () => {
-  it('ties the live enclave’s encryption key to its quote, through the run and the chain', () => {
-    const r = verifyKeyProof(input);
-    expect(r.checks.filter((c) => !c.ok)).toEqual([]);
-    expect(r.ok).toBe(true);
-  });
+  it.runIf(signedUnderCurrentDomain)(
+    'ties the live enclave’s encryption key to its quote, through the run and the chain',
+    () => {
+      const r = verifyKeyProof(input);
+      expect(r.checks.filter((c) => !c.ok)).toEqual([]);
+      expect(r.ok).toBe(true);
+    },
+  );
 
-  it('refuses an encryption key the proof does not name, as a hostile server would serve', () => {
-    expect(failing({ ...input, encryptionKeyHex: 'ab'.repeat(32) })).toEqual([
-      'Plans are sealed to the encryption key that proof names',
-    ]);
-  });
+  it.runIf(signedUnderCurrentDomain)(
+    'refuses an encryption key the proof does not name, as a hostile server would serve',
+    () => {
+      expect(failing({ ...input, encryptionKeyHex: 'ab'.repeat(32) })).toEqual([
+        'Plans are sealed to the encryption key that proof names',
+      ]);
+    },
+  );
 
   it('refuses a proof the registered key did not sign', () => {
     const other = 'ed25519:5HrfcRs5fLyx3MGib9UoQqbrZGVqivQsvEKCCg5BbEY9';
@@ -61,10 +59,10 @@ describe('the enclave key proof', () => {
   });
 
   it('refuses a quote from another run, and a run of another module', () => {
-    expect(failing({ ...input, quoteReportData: '00'.repeat(64) })).toEqual([
+    expect(unsigned(failing({ ...input, quoteReportData: '00'.repeat(64) }))).toEqual([
       'The quote commits to the run that proved the enclave’s keys',
     ]);
-    expect(failing({ ...input, wasmSha256: '11'.repeat(32) })).toEqual([
+    expect(unsigned(failing({ ...input, wasmSha256: '11'.repeat(32) }))).toEqual([
       'That run executed the published module',
     ]);
   });

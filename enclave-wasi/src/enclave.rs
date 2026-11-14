@@ -15,7 +15,7 @@ use base64::{engine::general_purpose::STANDARD as B64, Engine};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
-pub const KEY_PROOF_DOMAIN: &str = "vsp/key-proof/v1\n";
+pub const KEY_PROOF_DOMAIN: &str = "glidepath/key-proof/v1\n";
 /// A signed request is good for five minutes: an OutLayer run and the relay take tens of seconds.
 const REQUEST_TTL_MS: i64 = 300_000;
 /// 1Click quotes are asked to settle within ten minutes of the sale.
@@ -181,7 +181,7 @@ impl Record {
 
 /// The record is bound to its plan id, so the host cannot hand one plan's record to another.
 fn record_aad(plan_id: u64) -> Vec<u8> {
-    format!("vsp/record/v1:{plan_id}").into_bytes()
+    format!("glidepath/record/v1:{plan_id}").into_bytes()
 }
 
 fn seal_record(keys: &dyn Keys, plan_id: u64, r: &Record) -> Result<String> {

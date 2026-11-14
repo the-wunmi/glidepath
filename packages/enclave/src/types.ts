@@ -1,7 +1,7 @@
-import type { SealedBox, SimulatedQuote } from '@vsp/core';
-import type { ChainPlan, ChainReceipt } from '@vsp/near';
-import type { QuoteRequest, QuoteResponse } from '@vsp/oneclick';
-import type { PriceObservation } from '@vsp/planner';
+import type { SealedBox, SimulatedQuote } from '@glidepath/core';
+import type { ChainPlan, ChainReceipt } from '@glidepath/near';
+import type { QuoteRequest, QuoteResponse } from '@glidepath/oneclick';
+import type { PriceObservation } from '@glidepath/planner';
 
 /** What the enclave publishes about itself; the verifier checks all of it. */
 export interface EnclaveIdentity {

@@ -6,7 +6,7 @@
  * 1. Builds enclave-wasi twice for wasm32-wasip1: the production module and the `vectors` test
  *    build (which also accepts a fixed random seed and exposes `sign`).
  * 2. Computes every expected answer with the TypeScript code the simulated enclave runs today
- *    (@vsp/core, @vsp/planner) and writes them to enclave-wasi/vectors.json.
+ *    (@glidepath/core, @glidepath/planner) and writes them to enclave-wasi/vectors.json.
  * 3. Runs each case through wasmtime and compares the JSON answers.
  * 4. Checks the production module refuses a host-chosen random seed and the `sign` operation, and
  *    answers the other cases (commitment, open_plan, check_market, verify_quote) as the test build does.
@@ -16,8 +16,6 @@
 import { execFileSync, spawnSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { isDeepStrictEqual } from 'node:util';
-import { x25519 } from '@noble/curves/ed25519.js';
-import { sha256 } from '@noble/hashes/sha2.js';
 import {
   bytesToHex,
   canonicalJson,
@@ -31,7 +29,7 @@ import {
   SealedPlan as SealedPlanSchema,
   sealTo,
   toBaseUnits,
-} from '@vsp/core';
+} from '@glidepath/core';
 import {
   checkMarket,
   handoverState,
@@ -40,15 +38,17 @@ import {
   proposeSale,
   type RandomBytes,
   scheduleAfter,
-} from '@vsp/planner';
+} from '@glidepath/planner';
+import { x25519 } from '@noble/curves/ed25519.js';
+import { sha256 } from '@noble/hashes/sha2.js';
 import { trustCases } from './lib/trust-vectors.ts';
 
 const root = new URL('../enclave-wasi/', import.meta.url);
 const path = (p: string) => new URL(p, root).pathname;
 const cargo = `${process.env.HOME}/.cargo/bin/cargo`;
 const MODULES = {
-  production: path('target/production/wasm32-wasip1/release/vsp-enclave.wasm'),
-  vectors: path('target/vectors/wasm32-wasip1/release/vsp-enclave.wasm'),
+  production: path('target/production/wasm32-wasip1/release/glidepath-enclave.wasm'),
+  vectors: path('target/vectors/wasm32-wasip1/release/glidepath-enclave.wasm'),
 };
 
 /** sha256(seed ‖ u64 counter big-endian) blocks, concatenated; mirrors SeededRandom in lib.rs. */
@@ -170,9 +170,9 @@ PLANS.forEach((p, i) => {
 });
 
 // Opening a sealed plan the way the browser seals it, then the commitment and envelope checks.
-const enclaveSecret = sha256(new TextEncoder().encode('vsp test enclave'));
+const enclaveSecret = sha256(new TextEncoder().encode('glidepath test enclave'));
 const enclavePublicHex = bytesToHex(x25519.getPublicKey(enclaveSecret));
-const secretEnv = { VSP_ENCLAVE_SECRET_HEX: bytesToHex(enclaveSecret) };
+const secretEnv = { GLIDEPATH_ENCLAVE_SECRET_HEX: bytesToHex(enclaveSecret) };
 PLANS.forEach((p, i) => {
   const salt = bytesToHex(sha256(new TextEncoder().encode(`salt ${i}`)));
   const sealed = sealTo(
@@ -201,7 +201,7 @@ PLANS.forEach((p, i) => {
     { op: 'open_plan', sealed, commitment: '', envelope: envelopeJson(envelopeFor(p)) },
     null,
     {
-      env: { VSP_ENCLAVE_SECRET_HEX: '07'.repeat(32) },
+      env: { GLIDEPATH_ENCLAVE_SECRET_HEX: '07'.repeat(32) },
       expected: { ok: false, error: 'the box does not open with this key' },
     },
   );

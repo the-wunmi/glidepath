@@ -2,11 +2,11 @@
 //! are issued only to a direct run of this exact build called by the account that registered it
 //! (`bind: "wasm"`, `caller: "predecessor"`); the module names them and the host signs and seals.
 //!
-//! Build: `VSP_QUOTE_SIGNER_KEY=ed25519:… cargo build --release --target wasm32-wasip2
-//! --features outlayer --bin vsp-enclave-outlayer` (scripts/outlayer-enclave.ts does this).
+//! Build: `GLIDEPATH_QUOTE_SIGNER_KEY=ed25519:… cargo build --release --target wasm32-wasip2
+//! --features outlayer --bin glidepath-enclave-outlayer` (scripts/outlayer-enclave.ts does this).
 
-use vsp_enclave_wasi::enclave::{run_stdio, Context, Keys};
-use vsp_enclave_wasi::{OsRandom, Result};
+use glidepath_enclave_wasi::enclave::{run_stdio, Context, Keys};
+use glidepath_enclave_wasi::{OsRandom, Result};
 
 /// The keys this build asks the keystore for. The section must be in the artefact, or the worker
 /// issues no keys and every call is refused.
@@ -26,13 +26,13 @@ static OUTLAYER_MANIFEST: [u8; MANIFEST.len()] = {
 
 /// 1Click's quote key (on testnet, the 1Click simulator's key the registry pins). Fixed at build
 /// time, so the host cannot substitute quotes of its own and the key is part of the wasm hash.
-const QUOTE_SIGNER_KEY: &str = env!("VSP_QUOTE_SIGNER_KEY");
+const QUOTE_SIGNER_KEY: &str = env!("GLIDEPATH_QUOTE_SIGNER_KEY");
 
 /// Which build of the same code this is: the main one, or a backup that holds its own sealed copy
 /// of each plan and stands in when the main one cannot run. A different slot is a different wasm,
 /// so the keystore gives it its own keys.
 #[used]
-#[link_section = "vsp.build_slot"]
+#[link_section = "glidepath.build_slot"]
 static BUILD_SLOT: [u8; SLOT.len()] = {
     let mut out = [0u8; SLOT.len()];
     let mut i = 0;
@@ -42,7 +42,7 @@ static BUILD_SLOT: [u8; SLOT.len()] = {
     }
     out
 };
-const SLOT: &[u8] = match option_env!("VSP_BUILD_SLOT") {
+const SLOT: &[u8] = match option_env!("GLIDEPATH_BUILD_SLOT") {
     Some(s) => s.as_bytes(),
     None => b"main",
 };
@@ -60,7 +60,7 @@ const SIGNING_PATH: &str = "enclave";
 const SEAL_PATH: &str = "seal";
 /// The X25519 secret is a MAC under the seal key: deterministic for this build and caller, and
 /// computable only inside the keystore.
-const BOX_SECRET_LABEL: &[u8] = b"vsp/box-secret/v1";
+const BOX_SECRET_LABEL: &[u8] = b"glidepath/box-secret/v1";
 
 struct KeystoreKeys;
 

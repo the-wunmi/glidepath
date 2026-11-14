@@ -15,7 +15,7 @@ use near_sdk::serde_json::{self, json};
 use near_sdk::{env, near, require, AccountId, Gas, Promise};
 
 /// Domain prefix of every enclave trade signature (distinct from the registry's sales).
-pub const TRADE_DOMAIN: &[u8] = b"vsp/trust-trade/v1\n";
+pub const TRADE_DOMAIN: &[u8] = b"glidepath/trust-trade/v1\n";
 /// A quote may be valid for at most 7 days; used quotes are remembered until their deadline.
 pub const MAX_QUOTE_TTL_MS: u64 = 7 * 24 * 60 * 60 * 1000;
 /// Bound on one `prune_used_quotes` call, so it always fits in a transaction's gas.
@@ -81,7 +81,7 @@ struct CheckedQuote {
 #[near]
 impl BlindTrust {
     /// Anyone can relay an enclave-signed trade. `signature` is standard base64 of the ed25519
-    /// signature over `"vsp/trust-trade/v1\n" || request_json`. The deposit pays the receipt's
+    /// signature over `"glidepath/trust-trade/v1\n" || request_json`. The deposit pays the receipt's
     /// storage plus what the trust account forwards (registering 1Click's deposit address and
     /// one yocto); the rest is refunded.
     #[payable]
@@ -184,7 +184,7 @@ impl BlindTrust {
         trust.turnover_in_period_usd_e6 = U128(turnover);
         trust.last_trade_ms = Some(now);
 
-        let memo = format!("vsp/trust/{trust_id}/{seq}");
+        let memo = format!("glidepath/trust/{trust_id}/{seq}");
         let ft_args = serde_json::to_vec(&FtTransferArgs {
             receiver_id: &deposit,
             amount: U128(amount),
@@ -313,7 +313,7 @@ fn send_trade(trust_account: &AccountId, receipt: &Receipt) -> Promise {
                 "token": receipt.token,
                 "receiver_id": receipt.receiver,
                 "amount": receipt.amount,
-                "memo": format!("vsp/trust/{}/{}", receipt.trust_id, receipt.seq),
+                "memo": format!("glidepath/trust/{}/{}", receipt.trust_id, receipt.seq),
                 "register_receiver": true,
             })),
             STORAGE_REGISTRATION_DEPOSIT.saturating_add(ONE_YOCTO),

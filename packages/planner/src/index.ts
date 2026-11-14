@@ -10,7 +10,7 @@ import {
   type PriceSourceName,
   planLimits,
   type SealedPlan,
-} from '@vsp/core';
+} from '@glidepath/core';
 
 /**
  * The enclave's private bookkeeping for one plan. It is sealed with the plan and never published;

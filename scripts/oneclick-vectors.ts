@@ -10,7 +10,6 @@
  *   can bind: one ordinary, one whose cost is above the fee bound.
  */
 import { readFileSync, writeFileSync } from 'node:fs';
-import { ed25519 } from '@noble/curves/ed25519.js';
 import {
   base58Decode,
   formatNearKey,
@@ -22,7 +21,8 @@ import {
   parseNearKey,
   parseQuoteTerms,
   quoteCostWithinBound,
-} from '@vsp/core';
+} from '@glidepath/core';
+import { ed25519 } from '@noble/curves/ed25519.js';
 
 const root = new URL('../', import.meta.url);
 const live = JSON.parse(

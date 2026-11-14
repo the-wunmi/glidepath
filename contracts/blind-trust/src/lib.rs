@@ -69,7 +69,7 @@ const GAS_ON_ACCOUNT_CREATED: Gas = Gas::from_tgas(10);
 /// trust_account.release: ft_balance_of (5) + on_balance (25) + storage_deposit and ft_transfer.
 const GAS_RELEASE: Gas = Gas::from_tgas(60);
 /// Domain prefix of an enclave's trust acknowledgement.
-pub const TRUST_ACK_DOMAIN: &[u8] = b"vsp/trust-ack/v1\n";
+pub const TRUST_ACK_DOMAIN: &[u8] = b"glidepath/trust-ack/v1\n";
 
 #[derive(BorshStorageKey)]
 #[near]
@@ -391,7 +391,7 @@ impl BlindTrust {
 
     /// Anyone can relay. Activates a trust once a registered enclave signs that the sealed mandate
     /// matches the commitment and sits inside the public envelope. `signature` is standard base64
-    /// of the ed25519 signature over `"vsp/trust-ack/v1\n" || ack_json`.
+    /// of the ed25519 signature over `"glidepath/trust-ack/v1\n" || ack_json`.
     pub fn ack_trust(
         &mut self,
         trust_id: u64,

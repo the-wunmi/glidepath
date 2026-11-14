@@ -1,10 +1,15 @@
 import { createServer } from 'node:net';
-import { ed25519 } from '@noble/curves/ed25519.js';
-import { formatNearKey, oneclickQuoteMessage, sealTo, signingBytes, toBase64 } from '@vsp/core';
-import { createDb, createPool, trustTrades } from '@vsp/db';
-import { runMigrations } from '@vsp/db/migrate';
-import { deriveEnclaveKeys } from '@vsp/enclave';
-import { type KeyPairString, NearClient } from '@vsp/near';
+import {
+  formatNearKey,
+  oneclickQuoteMessage,
+  sealTo,
+  signingBytes,
+  toBase64,
+} from '@glidepath/core';
+import { createDb, createPool, trustTrades } from '@glidepath/db';
+import { runMigrations } from '@glidepath/db/migrate';
+import { deriveEnclaveKeys } from '@glidepath/enclave';
+import { type KeyPairString, NearClient } from '@glidepath/near';
 import {
   type ChainTrust,
   mandateCommitment,
@@ -15,7 +20,8 @@ import {
   type TradeRequest,
   type TrustEnvelope,
   verifyTrustReceipt,
-} from '@vsp/trust';
+} from '@glidepath/trust';
+import { ed25519 } from '@noble/curves/ed25519.js';
 import { and, eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
@@ -34,7 +40,7 @@ import {
   useTrustEnclave,
 } from '../src/index.ts';
 import { createTrust } from '../src/trusts/service.ts';
-import { attachEngine, testEnv, type World } from './harness.ts';
+import { attachEngine, resetWorkerDatabase, testEnv, type World } from './harness.ts';
 import { buildLocalModule, type LocalRun, localBuild, localClient } from './local-enclave.ts';
 
 /**
@@ -64,6 +70,7 @@ let stopChains: () => Promise<void>;
 beforeAll(async () => {
   const ports = { api: await freePort(), near: await freePort(), evm: await freePort() };
   const config = loadConfig({ ...process.env, ...testEnv(ports) });
+  await resetWorkerDatabase(config.DATABASE_URL);
   await runMigrations(config.DATABASE_URL);
   const pool = createPool(config.DATABASE_URL);
   const db = createDb(pool);

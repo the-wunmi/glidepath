@@ -1,0 +1,58 @@
+{
+  "network": "testnet",
+  "deployed_at": "2026-11-14T19:10:53.448Z",
+  "rpc": "https://test.rpc.fastnear.com",
+  "contract": "glidepath-trust.zyx-dev.testnet",
+  "governance": "zyx-dev.testnet",
+  "min_cooling_off_ms": 600000,
+  "account_code_hash": "3k9qJcztWrcBYvKKJiaueoNJbWEc9vfBPuka457MaCRc",
+  "enclave_key": "ed25519:49ewWYsETFRvQXCjYS9t6JNwFj74iKSwMiqKU7yFJQBU",
+  "backup_enclave_keys": [
+    "ed25519:Gg1ckTi8yQKjtCs2d5hPzVCnvwr4DVS4E9j19SVhiEX5"
+  ],
+  "quote_signer": "ed25519:B96gpqFD7DTxGLMSn7eWr6XTaVFg3Y9wdXWhZwqzQUB3",
+  "blind_trust_wasm_sha256": "3bfb9aa88bf8e842d3c6ddfef9f0d7ef9d2ae7e8d4accc8d1d4bcffd098abd58",
+  "tokens": [
+    {
+      "symbol": "IDX",
+      "name": "Broad market index",
+      "sector": "broad",
+      "basePriceE6": "25000000",
+      "account": "glidepath-labs-idx.zyx-dev.testnet",
+      "decimals": 18
+    },
+    {
+      "symbol": "BOND",
+      "name": "Treasury bond fund",
+      "sector": "bonds",
+      "basePriceE6": "100000000",
+      "account": "glidepath-labs-bond.zyx-dev.testnet",
+      "decimals": 18
+    },
+    {
+      "symbol": "GOLD",
+      "name": "Gold",
+      "sector": "commodities",
+      "basePriceE6": "40000000",
+      "account": "glidepath-labs-gold.zyx-dev.testnet",
+      "decimals": 18
+    },
+    {
+      "symbol": "NRG",
+      "name": "Energy sector",
+      "sector": "energy",
+      "basePriceE6": "75000000",
+      "account": "glidepath-labs-nrg.zyx-dev.testnet",
+      "decimals": 18
+    },
+    {
+      "symbol": "DEFI",
+      "name": "DeFi sector",
+      "sector": "defi",
+      "basePriceE6": "12000000",
+      "account": "glidepath-labs-defi.zyx-dev.testnet",
+      "decimals": 18
+    }
+  ],
+  "near_spent": "2.536"
+}

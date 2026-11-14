@@ -1,5 +1,5 @@
-import { runMigrations } from '@vsp/db/migrate';
-import { freshTestDatabase } from '@vsp/db/test-databases';
+import { runMigrations } from '@glidepath/db/migrate';
+import { freshTestDatabase } from '@glidepath/db/test-databases';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig(async () => {

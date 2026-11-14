@@ -1,23 +1,28 @@
 import { fileURLToPath } from 'node:url';
-import type { SealedBox } from '@vsp/core';
-import { ONECLICK_LIVE_QUOTE_KEY } from '@vsp/core';
-import { type Db, enclaveStore, plans } from '@vsp/db';
-import { type Enclave, type EnclaveHost, type SealedStore, SimulatedEnclave } from '@vsp/enclave';
+import type { SealedBox } from '@glidepath/core';
+import { ONECLICK_LIVE_QUOTE_KEY } from '@glidepath/core';
+import { type Db, enclaveStore, plans } from '@glidepath/db';
+import {
+  type Enclave,
+  type EnclaveHost,
+  type SealedStore,
+  SimulatedEnclave,
+} from '@glidepath/enclave';
 import {
   EvmClient,
   LOCAL_FUNDER_KEY,
   launchpadKeyFor,
   publicRpcClient,
   SEPOLIA_CHAIN_ID,
-} from '@vsp/evm';
-import { type ChainPlan, type ChainReceipt, type KeyPairString, NearClient } from '@vsp/near';
+} from '@glidepath/evm';
+import { type ChainPlan, type ChainReceipt, type KeyPairString, NearClient } from '@glidepath/near';
 import {
   createOneClickSimulator,
   OneClickClient,
   type SimAsset,
   simulatorPublicKey,
-} from '@vsp/oneclick';
-import type { PriceObservation } from '@vsp/planner';
+} from '@glidepath/oneclick';
+import type { PriceObservation } from '@glidepath/planner';
 import {
   BinancePriceSource,
   CoinbasePriceSource,
@@ -25,7 +30,7 @@ import {
   marketKey,
   type PriceSource,
   SimulatedPriceSource,
-} from '@vsp/prices';
+} from '@glidepath/prices';
 import { asc, eq } from 'drizzle-orm';
 import type { Hex, PublicClient } from 'viem';
 import { type Config, livePricePairs } from './config.ts';

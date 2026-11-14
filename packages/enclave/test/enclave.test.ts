@@ -1,5 +1,4 @@
 import { fileURLToPath } from 'node:url';
-import { ed25519 } from '@noble/curves/ed25519.js';
 import {
   ACK_DOMAIN,
   canonicalJson,
@@ -25,9 +24,10 @@ import {
   toBaseUnits,
   utf8ToBytes,
   verifySimulatedQuote,
-} from '@vsp/core';
-import type { ChainPlan } from '@vsp/near';
-import type { QuoteRequest, QuoteResponse } from '@vsp/oneclick';
+} from '@glidepath/core';
+import type { ChainPlan } from '@glidepath/near';
+import type { QuoteRequest, QuoteResponse } from '@glidepath/oneclick';
+import { ed25519 } from '@noble/curves/ed25519.js';
 import { describe, expect, it } from 'vitest';
 import { type EnclaveHost, type SealedStore, SimulatedEnclave } from '../src/index.ts';
 

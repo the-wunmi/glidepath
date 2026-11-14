@@ -25,12 +25,12 @@ services:
     # Pinned to a digest so a rebuilt tag cannot change what runs. Bump deliberately.
     image: postgres:17.11-alpine@sha256:e5d2edd28b1f8d40a0a6c0c9cdc545b19b56a0d5d88f94bc11a97d970d4700d0
     restart: unless-stopped
-    # The product was called Verified Sales Plans; the database keeps its names so existing data
+    # The product was called Glidepath; the database keeps its names so existing data
     # keeps working.
     environment:
-      POSTGRES_USER: salesplans
+      POSTGRES_USER: glidepath
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
-      POSTGRES_DB: salesplans
+      POSTGRES_DB: glidepath
     ports:
       # Loopback only, for pnpm dev on the host; the app containers use the Compose network.
       - "127.0.0.1:5437:5432"
@@ -45,7 +45,7 @@ services:
         max-size: 10m
         max-file: "5"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U salesplans -d salesplans"]
+      test: ["CMD-SHELL", "pg_isready -U glidepath -d glidepath"]
       interval: 2s
       timeout: 3s
       retries: 20
@@ -62,8 +62,8 @@ services:
     env_file: .env
     environment:
       # Inside the Compose network the database is postgres:5432, whatever .env says for pnpm dev.
-      DATABASE_URL: postgres://salesplans:${POSTGRES_PASSWORD}@postgres:5432/salesplans
-      DBOS_SYSTEM_DATABASE_URL: postgres://salesplans:${POSTGRES_PASSWORD}@postgres:5432/salesplans_dbos
+      DATABASE_URL: postgres://glidepath:${POSTGRES_PASSWORD}@postgres:5432/glidepath
+      DBOS_SYSTEM_DATABASE_URL: postgres://glidepath:${POSTGRES_PASSWORD}@postgres:5432/glidepath_dbos
       NODE_ENV: production
       # No local nodes on a server, whatever .env says for pnpm dev: NEAR is testnet and EVM is
       # Sepolia. Set EVM_NETWORK to "off" here to serve NEAR plans only.
@@ -101,7 +101,7 @@ services:
     image: glidepath-web
     # Nothing secret: the web server only proxies /api and /rpc to the API.
     environment:
-      VSP_API_ORIGIN: http://api:4400
+      GLIDEPATH_API_ORIGIN: http://api:4400
     tmpfs:
       - /app/apps/web/.next/cache
       - /tmp
@@ -114,8 +114,8 @@ services:
     stop_grace_period: 15s
 
 volumes:
-  # The volume the `salesplans` project created, kept by name so existing data survives the rename.
+  # The volume the `glidepath` project created, kept by name so existing data survives the rename.
   # A second copy of the repo sets DB_VOLUME (and COMPOSE_PROJECT_NAME) in its .env to keep its own.
   pgdata:
-    name: ${DB_VOLUME:-salesplans_pgdata}
+    name: ${DB_VOLUME:-glidepath_pgdata}
   apidata:

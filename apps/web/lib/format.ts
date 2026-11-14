@@ -1,4 +1,4 @@
-import { formatAmount } from '@vsp/core';
+import { formatAmount } from '@glidepath/core';
 
 export const DAY_MS = 86_400_000;
 

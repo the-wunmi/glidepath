@@ -1,6 +1,6 @@
-import { deriveSecretKey, signPayload } from '@vsp/chainsig';
-import { hexToBytes } from '@vsp/core';
-import type { Account, NearClient } from '@vsp/near';
+import { deriveSecretKey, signPayload } from '@glidepath/chainsig';
+import { hexToBytes } from '@glidepath/core';
+import type { Account, NearClient } from '@glidepath/near';
 
 interface PendingRequest {
   request: { tweak: string; payload: string; domain_id: number };

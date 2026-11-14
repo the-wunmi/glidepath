@@ -1,8 +1,8 @@
 import { readFileSync } from 'node:fs';
-import type { Db } from '@vsp/db';
-import type { EnclaveIdentity } from '@vsp/enclave';
-import { actions, KeyPair, type KeyPairString, type NearClient } from '@vsp/near';
-import { simulatorPublicKey } from '@vsp/oneclick';
+import type { Db } from '@glidepath/db';
+import type { EnclaveIdentity } from '@glidepath/enclave';
+import { actions, KeyPair, type KeyPairString, type NearClient } from '@glidepath/near';
+import { simulatorPublicKey } from '@glidepath/oneclick';
 import { updateSimSettings } from '../sim-settings.ts';
 import { LOCAL_MIN_COOLING_OFF_MS, SANDBOX_MS_PER_BLOCK, type WorldConfig } from '../world.ts';
 

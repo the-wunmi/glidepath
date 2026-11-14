@@ -1,4 +1,4 @@
-import { activity, type Tx } from '@vsp/db';
+import { activity, type Tx } from '@glidepath/db';
 
 /**
  * Appends to a plan's timeline. Never updated: corrections are new entries. Accepts a transaction,

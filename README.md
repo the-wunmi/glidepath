@@ -1,78 +1,144 @@
 # Glidepath
 
-Glidepath lets token insiders (founders, investors) sell on a schedule they commit to in advance
-and nobody else can see, while anyone can check that every sale followed it. It is the crypto
-version of a US [Rule 10b5-1 trading plan](https://www.sec.gov/rules-regulations/2022/12/rule-10b5-1-insider-trading-arrangements-related-disclosures),
-the pre-arranged selling plans company insiders use, without a broker.
+Glidepath lets token insiders sell on a schedule nobody can see, while anyone can check every sale
+followed it.
 
-Live at <https://glidepath.clanker.show>, on NEAR testnet and Sepolia. The enclave, the NEAR
-contracts and Chain Signatures are real; the 1Click swap service is simulated, because it has no
-testnet.
+Founders and investors commit to how they will sell before they sell, like the
+[Rule 10b5-1 plans](https://www.sec.gov/rules-regulations/2022/12/rule-10b5-1-insider-trading-arrangements-related-disclosures)
+company insiders use, without a broker. The plan is sealed inside an enclave, the tokens sit in an
+account with no keys, public limits hold on every sale, and every sale leaves a receipt that anyone
+can check in their browser.
+
+**Try it:** https://glidepath.clanker.show
+**Check it:** `pnpm verify https://glidepath.clanker.show` rechecks every receipt on the live site
+against NEAR testnet and Sepolia, with no keys and nothing signed ([what it checks](#check-the-live-site)).
+**Run it:** `cp .env.example .env && pnpm install && pnpm dev:local`, then http://localhost:3400
+(details in [Run it locally](#run-it-locally)).
+
+On NEAR testnet and Sepolia. The 1Click swap service is simulated on its real API, because it has
+no testnet; everything else on the live site is real.
+
+![Landing page](.github/media/landing-hero.png)
+
+## Contents
+
+- [The problem](#the-problem)
+- [What it does](#what-it-does)
+- [Screenshots](#screenshots)
+- [Try it: do this, see that](#try-it-do-this-see-that)
+- [Check the live site](#check-the-live-site)
+- [Run it locally](#run-it-locally)
+- [Tests](#tests)
+- [Architecture](#architecture)
+- [How Glidepath uses NEAR](#how-glidepath-uses-near)
+- [Labs: Bitcoin vault](#labs-bitcoin-vault)
+- [Labs: blind trust](#labs-blind-trust)
+- [Repository](#repository)
+
+## The problem
+
+Token unlocks hurt holders: Keyrock's study of 16,000+ unlocks found about 90% push the price down
+([source](https://keyrock.com/from-locked-to-liquidity-what-16000-token-unlocks-teach-us/)). Insiders
+who must sell have only bad options:
+
+1. **A public schedule gets sold into early.** In our replay of four large unlocks (ARB, OP, APT,
+   STRK), three tokens did 24–42 points worse than BTC in the 30 days before the date
+   ([method](data/replay/METHOD.md)).
+2. **A quiet sale can't be checked.** Holders have to take the insider's word, which is how the
+   [Movement scandal](https://www.coindesk.com/tech/2025/04/30/the-protocol-inside-movement-s-token-dump-scandal)
+   happened.
+3. **A broker has to be trusted**, and learns the size and timing.
 
 ## What it does
 
-Token unlocks hurt holders: Keyrock's study of 16,000+ unlocks found about 90% push the price down
-([source](https://keyrock.com/from-locked-to-liquidity-what-16000-token-unlocks-teach-us/)). A
-public selling schedule gets sold into early: in our replay of four large unlocks (ARB, OP, APT,
-STRK), three tokens did 24–42 points worse than BTC in the 30 days before the date
-([method](data/replay/METHOD.md)). A quiet sale can't be checked, which is how the
-[Movement scandal](https://www.coindesk.com/tech/2025/04/30/the-protocol-inside-movement-s-token-dump-scandal)
-happened. A plan written openly on-chain would be public, and a broker has to be trusted.
+**The plan is sealed.** The founder writes it in the browser, for example "sell at most 2% a month,
+never below $1.50, at random times". The browser checks the enclave's attestation (its signed
+statement of which code it runs on an Intel TDX machine) and encrypts the plan to it. Only a salted
+hash of the plan goes on chain, so traders cannot see the schedule.
 
-With Glidepath the founder writes the plan in the browser, for example "sell at most 2% a month,
-never below $1.50, at random times". The browser encrypts it to an enclave, hardware that runs code
-its operator can neither read nor change (an Intel TDX worker on OutLayer), after checking the
-enclave's attestation, its signed statement of which code it runs. Only a salted hash of the plan
-goes on-chain. The team's tokens are minted straight into a NEAR account with no keys, which moves
-them only when the plan's registry contract says so; for an ERC-20, they go to an Ethereum address
-that only the registry can have signed, through NEAR Chain Signatures (a network of signers that
-signs other chains' transactions on a NEAR contract's request).
+**Holders see the worst case.** Public limits sit beside the sealed plan: a per-sale cap, a
+per-period cap, a price floor and a minimum gap. The registry contract refuses any sale outside
+them, even one the enclave signed. Changing or cancelling the plan is public at once and waits out
+a cooling-off period before it applies.
 
-The enclave sells at random times through 1Click, NEAR Intents' swap API. The registry enforces
-public limits on every sale (per-sale and per-period caps, a price floor, a minimum gap), so even a
-broken enclave could not sell more or cheaper than they allow. Every sale leaves a receipt that
-anyone can check in the browser. Changing or cancelling the plan is public at once and waits out a
-cooling-off period. When the plan ends, what is left goes to the beneficiary, and the plan can be
-revealed and checked against the hash published on day one.
+**No one holds the tokens.** The team allocation is minted straight into a NEAR account with no
+keys, which moves only when the registry says so. For an ERC-20 it goes to an Ethereum address that
+only the registry can have signed, through NEAR Chain Signatures.
 
-Founders sign in with their own NEAR testnet wallet. It owns the plan on chain and signs and pays
-for every owner action; Glidepath never holds its keys. The work Glidepath's relayer does for a plan
-(enclave runs, sales, the token launch) is paid from a budget the founder funds from that wallet,
-at published prices; a plan without budget pauses until it is topped up.
+**Every sale can be checked.** The enclave sells at random times through 1Click, NEAR Intents' swap
+API, and each sale leaves a receipt. Anyone's browser checks it: the enclave's signature, its Intel
+quote up to Intel's root, Intel's revocation lists and the machine's patch level, the limits, the
+1Click quote, and for an ERC-20 the signed transfer on Sepolia. When the plan ends, what is left
+goes to the beneficiary, and the sealed plan is revealed and checked against the hash from day one.
+
+**The founder's wallet is in charge.** Founders sign in with their own NEAR wallet, which owns the
+plan and signs and pays for every owner action; Glidepath never holds its keys. Glidepath's relayer
+does the routine work (enclave runs, sending sales), paid from a budget the founder funds at
+published prices. It cannot change a sale, and a signed sale it does not send can be sent by anyone.
 
 ## Screenshots
 
-From the live site. Plan #3 is sold by the OutLayer enclave, with GLDE on Sepolia moved by Chain
-Signatures.
+From the live site.
 
-![Glidepath landing page](.github/media/landing-hero.png)
+![A plan's overview](.github/media/plan-timeline.png)
 
-![Plan #3 overview: timeline, cap usage and public terms](.github/media/plan-timeline.png)
-*A plan from sealing to selling, with the period cap used so far and the limits the registry enforces.*
+A plan from sealing to selling: its timeline, how much of the period's cap it has used, and the
+public limits the registry enforces.
 
-![Public verifier with every receipt verified](.github/media/verifier-all-receipts-verified.png)
-*After "Verify all", every receipt of plan #3 checks out in the browser against the chain.*
+![Every receipt verified in the browser](.github/media/verifier-all-receipts-verified.png)
 
-![Proof tab in dark mode](.github/media/verifier-proof-dark.png)
-*The day-one commitment, the keyless plan account and its Sepolia address, and the enclave's attestation.*
+The public verifier after "Verify all": every receipt checked in the browser against the chain.
 
-![ARB's March 2024 cliff replayed under a sealed plan](.github/media/arb-unlock-replay.png)
-*ARB's 2024 cliff from Arbitrum One: each real exchange deposit would have been refused by the per-sale cap.*
+![The Proof tab](.github/media/verifier-proof-dark.png)
 
-<img src=".github/media/verifier-mobile.png" alt="Public verifier on a phone" width="320">
+The Proof tab: the day-one commitment, the keyless plan account and its Sepolia address, and the
+enclave's attestation.
 
-## Using it
+![ARB's March 2024 unlock](.github/media/arb-unlock-replay.png)
 
-On <https://glidepath.clanker.show>:
+Case study: ARB's March 2024 team and investor cliff, every transfer read from Arbitrum One.
 
-1. **Case study: ARB's unlock** → ARB's 2024 cliff, every transfer linked, next to the same tokens under a sealed plan.
-2. **Verify a plan** → plan #4 → **Receipts** → **Verify all** → every receipt passes, checked in your browser.
-3. **Proof** tab → the plan account has 0 keys, and the enclave's attestation passes.
-4. **Sign in** with a NEAR testnet wallet (Meteor, for example) → **Create a plan** → fill in the five steps → **Seal and commit** → your wallet signs and pays for the commit.
-5. **Fund the plan** from your wallet → **Launch** *SYMBOL* → the team allocation is minted into the plan (an ERC-20 on Sepolia, or a NEAR token).
-6. Wait → sales arrive at random times, up to about 10 minutes apart, each with a receipt.
-7. On plan #4: **Proof** → **Try to bypass the plan** → under "Add a key to the plan account", **Try it** → refused on-chain.
-8. After the end date → **Finalize plan** → the rest goes to the beneficiary; footer → **Red team** shows 26 more attempts.
+<img src=".github/media/verifier-mobile.png" alt="The public verifier on a phone" width="300">
+
+The public verifier on a phone.
+
+## Try it: do this, see that
+
+On https://glidepath.clanker.show you sign in with a NEAR testnet wallet (Meteor's free wallet
+works; fund it from a testnet faucet, since your wallet pays for your plan).
+
+1. **Case study: ARB** (top of the home page) → ARB's 2024 cliff, every transfer linked.
+2. **Sign in** → **Create a plan** → fill in the five steps → **Seal and commit** → your wallet shows
+   the exact call and its deposit, and signs it.
+3. **Fund the plan** → your wallet sends the budget to Glidepath's relayer → **Launch** → the team
+   allocation is minted into the plan (an ERC-20 on Sepolia, or a NEAR token).
+4. Wait → sales arrive at random times, about 10–30 minutes apart, each with a receipt.
+5. **Public page** → **Receipts** → **Verify all** → every check passes in your browser.
+6. **Proof** tab → the plan account has 0 keys; the enclave's attestation passes.
+7. **Changes** → **Cancel plan** → your wallet signs it; it is public at once and waits out the
+   cooling-off while the plan keeps running.
+8. After the end → **Finalize plan** → the rest goes to the beneficiary, and the sealed terms are
+   revealed and match the day-one hash.
+
+## Check the live site
+
+`pnpm verify https://glidepath.clanker.show` (after `pnpm install`; no keys, nothing signed) runs the
+same checks as the verifier page, for every receipt of every plan. The site supplies only the
+registry's address and each enclave's evidence; the chains are read from public endpoints, so the
+answers do not depend on the site.
+
+| Check | Read from |
+|---|---|
+| The sale was signed by an enclave key on the registry's allowlist at the time | `get_enclaves` on the registry |
+| That key's Intel TDX quote hashes to the one the registry pinned, carries the pinned measurements, and is signed through Intel's certificate chain to Intel's root | OutLayer's attestation record |
+| No certificate in that chain is revoked, and the machine's patch level is up to date | Intel's revocation lists and TCB data, signed by Intel |
+| The quote belongs to the run that proved the enclave's keys, that run executed our module, and plans are sealed to the key it proved | The key-proof transaction on NEAR |
+| The sale stayed within the period budget, the per-sale cap and the price floor, at a scheduled time, under the plan's current commitment | The receipt and the plan on the registry |
+| Its 1Click quote is signed by the registered quote key and pays only the beneficiary | The receipt |
+| For an ERC-20: the transfer the registry built matches the receipt, the Chain Signatures signature recovers to the plan's address, and the transaction succeeded | Sepolia |
+
+Each enclave and receipt prints its result; warnings (for example a patch level below up to date)
+print but do not fail, and the exit code is 1 if any check fails.
 
 ## Run it locally
 
@@ -105,79 +171,98 @@ To run against testnet instead (`pnpm dev`), fill in these lines, which are alre
 
 ## Tests
 
-Postgres must be running (`pnpm db:up`, or a running `pnpm dev:local`). `pnpm test` takes about 20
-minutes, the contract tests about 15.
+Postgres must be running (`pnpm db:up`, or a running `pnpm dev:local`).
 
 ```sh
-pnpm db:up
-pnpm test && pnpm typecheck && pnpm lint
-cd contracts && bash test.sh && cargo fmt --check && cargo clippy --all-targets -- -D warnings
-pnpm enclave:wasi
+pnpm test && pnpm typecheck && pnpm lint     # every package, about 35 seconds
+pnpm test:chain                             # the engine on real local chains, about CHAIN_TIME minutes
+pnpm contracts:test                         # the contracts in a NEAR sandbox, about 15 minutes
+pnpm enclave:wasi                           # the Rust enclave against its TypeScript reference
 ```
 
-The contract tests (157) run in a local NEAR sandbox and cover keyless custody, signed and attested
-requests, the public limits, 1Click's real quote signature, cooling-off, the end-of-plan release and
-reveal, Chain Signatures failures and a real Sputnik DAO. The engine tests run on real Postgres and
-local chains and cover every money failure path, crash recovery and handing a plan to a new enclave
-build. `pnpm enclave:wasi` checks that the Rust enclave and its TypeScript reference agree case by
-case. The contract and enclave checks need Rust with `cargo-near`, the `wasm32-wasip1` target and
-`wasmtime`.
+`pnpm test` covers every package on stubs for the chains: plan sealing and sale decisions, the
+browser's receipt checks (with real Intel and OutLayer evidence as fixtures), sign-in and owner
+transactions, the plan budget and the API. `pnpm test:chain` runs the engine on a local NEAR node
+and EVM node, one per test file, files side by side: every money failure path, a process killed in
+the middle of a sale, and handing a plan to a new enclave build. The 158 contract tests cover keyless
+custody, signed and attested requests, the public limits, 1Click's real quote signature,
+cooling-off, the end-of-plan release and reveal, Chain Signatures failures, the Bitcoin vault and
+the blind trust. The contract and enclave checks need Rust with `cargo-near`, the `wasm32-wasip1`
+target and `wasmtime`.
 
-## What is real and what is simulated
+## Architecture
 
-| | |
+```mermaid
+flowchart LR
+  subgraph Browser
+    W["Next.js app<br/>seals plans, verifies receipts"]
+    WL["Founder's NEAR wallet"]
+  end
+  subgraph Server
+    A["Hono API + engine<br/>DBOS workflows"]
+    D[("Postgres<br/>plans, receipts, workflows")]
+  end
+  E["Enclave<br/>Rust on OutLayer, Intel TDX"]
+  N[("NEAR testnet<br/>registry, keyless plan accounts")]
+  M["Chain Signatures<br/>MPC network"]
+  S[("Sepolia<br/>ERC-20 sales")]
+  O["1Click<br/>swap quotes"]
+
+  W -- "sealed plan" --> A
+  WL -- "owner transactions" --> N
+  A --> D
+  A -- "paid runs" --> E
+  E -- "signed sales" --> A
+  A -- "relayed sales" --> N
+  N -- "sign requests" --> M
+  M -- "signatures" --> S
+  A --> O
+  W -- "read-only checks" --> N
+  W -- "read-only checks" --> S
+```
+
+- **The registry is the authority.** It holds each plan's commitment and public limits, allowlists
+  enclave keys after a public delay, and checks every sale against the limits and a 1Click-signed
+  quote before the plan account moves a token. It has no upgrade method and no key.
+- **The enclave decides, the registry checks.** The enclave opens the sealed plan, picks random
+  times and sizes inside it, and signs each sale; a backup build holds its own sealed copy and takes
+  over if the main build cannot run.
+- **The server never sees a plan.** It keeps the ciphertext, relays signed sales and watches them
+  settle; every step that touches money is a durable workflow that survives a crash without
+  repeating itself.
+
+## How Glidepath uses NEAR
+
+| Piece | What it does |
 |---|---|
-| NEAR | Real: NEAR testnet with the deployed registry (a local node under `pnpm dev:local`) |
-| Contracts, keyless accounts, limits, cooling-off, receipts | Real, enforced on-chain |
-| Chain Signatures | Real MPC network on testnet (`v1.signer-prod.testnet`); a simulator with the same interface locally |
-| ERC-20 sales | Real EIP-1559 transactions on Sepolia, signed through Chain Signatures |
-| Enclave | Real on OutLayer testnet (Intel TDX); its keys come from OutLayer's keystore and no operator holds them, and your browser checks its TDX quote up to Intel's root. Each plan is also sealed to a backup build, which sells only if the main one cannot run. Local runs and tests use a labelled simulator |
-| 1Click | Its quote-signature scheme is real: checked on-chain by the registry, and a live quote is checked in your browser on the Evidence page. The swap service itself is simulated on its real API (no testnet) and pays in a stand-in USDC |
-| Prices | Live Binance and Coinbase prices for listed tokens; a newly launched token has no market, so its price is simulated and labelled |
-| Unlock replay | Real historical prices; the market-impact part is a stated model |
+| Keyless plan accounts | Each plan gets `p<id>.<registry>`, an account with no keys running a global contract that obeys only the registry |
+| Chain Signatures | An ERC-20 plan's tokens sit at an Ethereum address derived for the registry; the registry builds each EIP-1559 transfer itself and asks the MPC network to sign only that |
+| NEAR Intents (1Click) | Every sale carries a 1Click quote in 1Click's own signed format; the registry verifies the signature and binds the amount, recipient, refund and price floor to it |
+| OutLayer | The enclave runs as a WASI module on Intel TDX workers; its keys come from OutLayer's keystore, bound to the exact build, and an attested run proves them before the registry pins them |
+| Sign-in | A NEAR testnet wallet signs a one-time challenge (NEP-413); the server checks it is a full-access key of that account |
+| Global contracts | The plan-account and token code is published once by hash and referenced by every plan |
 
-## Limits
-
-- Each sale is a visible transfer when it happens; random timing and sizes reduce what can be
-  inferred. Hiding sales needs NEAR's confidential Intents, which are not built: they need a 1Click
-  partner key and run on mainnet with real funds.
-- Glidepath's relayer asks the enclave when to sell; it cannot forge or change a sale, and it
-  cannot hold back a signed one: the registry accepts an enclave-signed sale from anyone, and a
-  sale left unsent for 3 minutes is shown on the plan's pages for any visitor to send with their
-  own wallet. It could stop asking the enclave at all, which shows publicly as a plan that stops
-  selling but is not provable on chain: OutLayer binds the enclave's keys to the account that
-  calls it, so only that account's runs carry them.
-- Trust in the enclave hardware and the MPC network is narrowed (an allowlist with a public
-  activation delay, revocation, and on-chain limits that hold whatever the enclave says), not
-  removed. The browser checks the enclave's TDX quote itself: it hashes to the one the registry
-  pinned, carries the registered measurements (OutLayer's worker), and is signed through Intel's
-  certificate chain up to Intel's root. The quote commits to the run that proved the enclave's
-  keys, so the browser also checks that run executed our module and that the key it seals plans to
-  is the one that run proved. It also checks Intel's revocation lists and the machine's TCB status
-  (patch level): Intel serves that data without CORS, so the API passes Intel's signed bytes
-  through and the browser verifies them up to the same root.
-- On testnet, 1Click quotes are signed by the simulator's key. The registry still binds every quote
-  to the sale, the beneficiary and the floor.
-
-## Labs: Bitcoin vault (prototype)
+## Labs: Bitcoin vault
 
 The same idea applied to Bitcoin theft and coercion. A vault is a Bitcoin testnet4 address whose
 only signer is a NEAR contract, through Chain Signatures. The owner's withdrawals are public at once
-and wait out a delay; guardians can veto one, or send everything to a recovery address fixed when
-the vault was made. Someone with the owner's key, or forcing the owner, cannot move the coins
-faster than the delay. After it, anyone can execute: the contract builds the transaction itself and
-the MPC network signs it.
+and wait out a delay; a guardian can veto one, or send everything to a recovery address fixed when
+the vault was made, with no delay. Someone with the owner's key, or forcing the owner, cannot move
+the coins faster than the delay. After it, anyone can execute: the contract builds the transaction
+and its signature hashes itself, and the MPC network signs it.
 
-Limits: the contract cannot read Bitcoin, so it trusts the coin
-amounts a request names; a wrong amount only produces signatures the network rejects. Not yet run
-against live testnet4.
+It runs on NEAR testnet and Bitcoin testnet4 (`btc-vault.zyx-dev.testnet`). Vault #1's run:
+a withdrawal refused before its delay, then executed and broadcast
+([57a2f943…](https://mempool.space/testnet4/tx/57a2f94314b4e59b6a8cf48a37067fe5e97d7814f742d1709474a34d30d0860f));
+a second withdrawal vetoed by the guardian; and a claw-back of everything to the recovery address
+([e62433ab…](https://mempool.space/testnet4/tx/e62433abf4e9a4fa64df64f1be432f236794e8d9a90169364456bad7104e4fb0)).
 
-- `pnpm vault:demo --local`: the whole flow on a throwaway sandbox (withdraw, early refusal,
-  execute, veto, claw-back), each transaction rebuilt and checked.
-- `pnpm vault:deploy --confirm` (about 3 NEAR), then `pnpm vault:demo create --recovery <address>`
-  and fund the printed address from a testnet4 faucet; `pnpm vault:demo run --to <address>
-  --amount 10000` withdraws, waits, executes and broadcasts.
-- Footer → **Labs** → **Bitcoin vault**: the vault read live from NEAR and mempool.space.
+- `pnpm vault:demo --local`: the whole flow on a throwaway sandbox, each transaction rebuilt and
+  checked.
+- `pnpm vault:deploy --confirm` (about 3 NEAR), then `pnpm vault:demo create --recovery <address>`,
+  fund the printed address from a testnet4 faucet, and `pnpm vault:demo run --to <address> --amount
+  10000`: withdraw, wait, execute and broadcast; withdraw and veto; claw back and broadcast.
+- Footer → **Labs** → **Bitcoin vault**: the vault read live from NEAR and Bitcoin testnet4.
 
 ## Labs: blind trust (prototype)
 

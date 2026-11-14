@@ -1,11 +1,11 @@
-import { ed25519 } from '@noble/curves/ed25519.js';
 import {
   oneclickSignedBytes,
   parseNearKey,
   parseQuoteTerms,
   type QuoteTerms,
   usdToE12,
-} from '@vsp/core';
+} from '@glidepath/core';
+import { ed25519 } from '@noble/curves/ed25519.js';
 import { remainingTurnoverE6 } from './decide.ts';
 import type { TrustMandate } from './mandate.ts';
 import {

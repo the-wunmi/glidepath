@@ -1,5 +1,5 @@
 {
-  "name": "@vsp/oneclick",
+  "name": "@glidepath/oneclick",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -11,9 +11,9 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@vsp/core": "workspace:*",
-    "@vsp/db": "workspace:*",
-    "@vsp/prices": "workspace:*",
+    "@glidepath/core": "workspace:*",
+    "@glidepath/db": "workspace:*",
+    "@glidepath/prices": "workspace:*",
     "drizzle-orm": "^0.45.4",
     "hono": "^4.13.17",
     "zod": "^4.6.7",

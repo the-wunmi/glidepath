@@ -16,7 +16,7 @@ use near_sdk::serde_json::{self, json};
 use near_sdk::{env, near, require, AccountId, Gas, Promise};
 
 /// Domain prefix of every enclave execution signature.
-pub const EXECUTE_DOMAIN: &[u8] = b"vsp/execute/v1\n";
+pub const EXECUTE_DOMAIN: &[u8] = b"glidepath/execute/v1\n";
 /// A quote may be valid for at most 7 days. Used quotes are remembered until their deadline, so
 /// this bounds how long each entry must be kept.
 pub const MAX_QUOTE_TTL_MS: u64 = 7 * 24 * 60 * 60 * 1000;
@@ -80,7 +80,7 @@ struct FtTransferArgs<'a> {
 #[near]
 impl PlanRegistry {
     /// Anyone can relay an enclave-signed sale. `signature` is standard base64 of the 64-byte
-    /// ed25519 signature over `"vsp/execute/v1\n" || request_json`. The deposit pays the
+    /// ed25519 signature over `"glidepath/execute/v1\n" || request_json`. The deposit pays the
     /// receipt's storage plus what the action forwards (1 yocto, plus 0.00125 NEAR when
     /// registering the receiver); the rest is refunded.
     #[payable]
@@ -215,7 +215,7 @@ impl PlanRegistry {
                 let Asset::Nep141 { token_id } = &plan.asset else {
                     env::panic_str("wrong_asset")
                 };
-                let memo = format!("vsp/{plan_id}/{seq}");
+                let memo = format!("glidepath/{plan_id}/{seq}");
                 let ft_args = serde_json::to_vec(&FtTransferArgs {
                     receiver_id,
                     amount: U128(amount),

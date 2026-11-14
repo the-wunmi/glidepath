@@ -1,13 +1,13 @@
-import { ed25519 } from '@noble/curves/ed25519.js';
 import {
   oneclickQuoteMessage,
   oneclickSignedBytes,
   parseNearKey,
   quoteCostWithinBound,
-} from '@vsp/core';
-import { createDb, createPool, simOneClickQuotes } from '@vsp/db';
-import { runMigrations } from '@vsp/db/migrate';
-import type { MarketSettings } from '@vsp/prices';
+} from '@glidepath/core';
+import { createDb, createPool, simOneClickQuotes } from '@glidepath/db';
+import { runMigrations } from '@glidepath/db/migrate';
+import type { MarketSettings } from '@glidepath/prices';
+import { ed25519 } from '@noble/curves/ed25519.js';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import {
   createOneClickSimulator,

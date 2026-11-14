@@ -1,4 +1,4 @@
-import { describeEnvelope, type Envelope, type EnvelopeJson } from '@vsp/core';
+import { describeEnvelope, type Envelope, type EnvelopeJson } from '@glidepath/core';
 import { fmtDate, fmtDateTime } from './format';
 
 /** The registry's and plan account's refusal codes, in one plain sentence each. */

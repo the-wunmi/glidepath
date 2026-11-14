@@ -1,7 +1,7 @@
 //! A WASI command: one JSON request on stdin, one JSON answer on stdout, the way OutLayer runs a
 //! module. Exit code 0 with `{"ok":true,"result":…}`, or 1 with `{"ok":false,"error":"…"}`.
 //!
-//! Keys never arrive in the request: the X25519 sealing key comes from `VSP_ENCLAVE_SECRET_HEX`,
+//! Keys never arrive in the request: the X25519 sealing key comes from `GLIDEPATH_ENCLAVE_SECRET_HEX`,
 //! which OutLayer would inject from its keystore as an environment secret. Two operations exist
 //! only in the `vectors` build used by the tests: `sign` (the production module must build what
 //! it signs itself) and a fixed `random_seed_hex` (production draws from the host's
@@ -10,7 +10,7 @@
 use serde::Deserialize;
 use serde_json::{json, Value};
 use std::io::Read;
-use vsp_enclave_wasi::*;
+use glidepath_enclave_wasi::*;
 
 #[derive(Deserialize)]
 #[serde(tag = "op", rename_all = "snake_case")]
@@ -105,8 +105,8 @@ fn handle(req: Request) -> Result<Value> {
             commitment: expected,
             envelope,
         } => {
-            let secret = std::env::var("VSP_ENCLAVE_SECRET_HEX")
-                .map_err(|_| "VSP_ENCLAVE_SECRET_HEX is not set")?;
+            let secret = std::env::var("GLIDEPATH_ENCLAVE_SECRET_HEX")
+                .map_err(|_| "GLIDEPATH_ENCLAVE_SECRET_HEX is not set")?;
             let opened: Value =
                 serde_json::from_str(&open_sealed(hex32(&secret, "secret")?, &sealed)?)
                     .map_err(|_| "the sealed payload is not JSON")?;

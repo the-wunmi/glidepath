@@ -1,5 +1,5 @@
 {
-  "name": "@vsp/web",
+  "name": "@glidepath/web",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -11,11 +11,11 @@
   },
   "dependencies": {
     "@hot-labs/near-connect": "0.12.0",
-    "@vsp/btc": "workspace:*",
-    "@vsp/core": "workspace:*",
-    "@vsp/near": "workspace:*",
-    "@vsp/trust": "workspace:*",
-    "@vsp/verify": "workspace:*",
+    "@glidepath/btc": "workspace:*",
+    "@glidepath/core": "workspace:*",
+    "@glidepath/near": "workspace:*",
+    "@glidepath/trust": "workspace:*",
+    "@glidepath/verify": "workspace:*",
     "next": "16.4.6",
     "react": "19.3.1",
     "react-dom": "19.3.1"

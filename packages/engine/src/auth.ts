@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from 'node:crypto';
-import { DomainError, parseInput } from '@vsp/core';
-import { sessions, walletChallenges } from '@vsp/db';
+import { DomainError, parseInput } from '@glidepath/core';
+import { sessions, walletChallenges } from '@glidepath/db';
 import { and, eq, gt, isNull, lt } from 'drizzle-orm';
 import { z } from 'zod';
 import type { Engine } from './context.ts';

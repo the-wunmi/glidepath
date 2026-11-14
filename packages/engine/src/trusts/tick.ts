@@ -1,6 +1,6 @@
-import { oneclickQuoteMessage } from '@vsp/core';
-import { trusts, trustTrades } from '@vsp/db';
-import type { ChainTrust } from '@vsp/trust';
+import { oneclickQuoteMessage } from '@glidepath/core';
+import { trusts, trustTrades } from '@glidepath/db';
+import type { ChainTrust } from '@glidepath/trust';
 import { and, eq, inArray, isNull } from 'drizzle-orm';
 import type { Engine } from '../context.ts';
 import { startOnce } from '../durable.ts';

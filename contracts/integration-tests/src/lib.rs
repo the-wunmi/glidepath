@@ -511,7 +511,7 @@ impl Env {
         self.ack_signed(
             plan_id,
             &ack,
-            &self.enclave.sign("vsp/ack/v1\n", &ack),
+            &self.enclave.sign("glidepath/ack/v1\n", &ack),
             &self.enclave.public_key(),
         )
         .await
@@ -607,7 +607,7 @@ impl Env {
     /// Signs `request` with the test enclave and relays it.
     pub async fn execute(&self, request: &Value) -> Result<ExecutionFinalResult> {
         let request_json = request.to_string();
-        let signature = self.enclave.sign("vsp/execute/v1\n", &request_json);
+        let signature = self.enclave.sign("glidepath/execute/v1\n", &request_json);
         self.execute_signed(
             request["plan_id"].as_u64().unwrap_or_default(),
             &request_json,
@@ -641,7 +641,7 @@ impl Env {
     /// Relays an EVM sale and plays the MPC responder while it waits for its signature.
     pub async fn execute_evm(&self, request: &Value) -> Result<ExecutionFinalResult> {
         let request_json = request.to_string();
-        let signature = self.enclave.sign("vsp/execute/v1\n", &request_json);
+        let signature = self.enclave.sign("glidepath/execute/v1\n", &request_json);
         let status = self
             .relayer
             .call(self.registry.id(), "execute")

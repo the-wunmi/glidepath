@@ -35,7 +35,7 @@ export const SimulatedQuote = z.object({
 export type SimulatedQuote = z.infer<typeof SimulatedQuote>;
 
 /** Public seed of the simulated vendor key. Anyone can sign with it: this is not a trust root. */
-export const SIM_VENDOR_SEED = sha256(utf8ToBytes('verified-sales-plans/simulated-tdx-vendor/v1'));
+export const SIM_VENDOR_SEED = sha256(utf8ToBytes('verified-glidepath/simulated-tdx-vendor/v1'));
 export const SIM_VENDOR_PUBLIC_KEY = bytesToHex(ed25519.getPublicKey(SIM_VENDOR_SEED));
 
 export function reportDataFor(signingKey: string, encryptionKeyHex: string): string {

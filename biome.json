@@ -21,6 +21,7 @@
       "!data/replay",
       "!data/oneclick",
       "!data/intel-pcs",
+      "!data/outlayer",
       "!**/.turbo",
       "!**/test-results",
       "!**/*.md"

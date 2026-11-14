@@ -1,4 +1,3 @@
-import { ed25519 } from '@noble/curves/ed25519.js';
 import {
   fromBase64,
   oneclickSignedBytes,
@@ -8,7 +7,8 @@ import {
   sha256Hex,
   signingBytes,
   verifySimulatedQuote,
-} from '@vsp/core';
+} from '@glidepath/core';
+import { ed25519 } from '@noble/curves/ed25519.js';
 import {
   ATTESTATION_LABELS,
   type ChainTrust,
@@ -23,7 +23,7 @@ import { quoteTurnoverE6, routesOnChain, slippageFloor, trustCostWithinBound } f
 
 /**
  * Checks of one trust receipt that run in the browser over bytes read from the chain, the same way
- * plan receipts are checked (`@vsp/verify`). The result says yes or no per check and never
+ * plan receipts are checked (`@glidepath/verify`). The result says yes or no per check and never
  * repeats amounts: the page shows the statements, not the holdings.
  */
 

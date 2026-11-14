@@ -1,11 +1,11 @@
 import { readFileSync } from 'node:fs';
 import { createServer, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
-import { createDb, createPool, plans } from '@vsp/db';
-import { runMigrations } from '@vsp/db/migrate';
-import type { Engine } from '@vsp/engine';
-import { loadConfig, newOwnerKey, REPO_DATA_DIR, serverLimits } from '@vsp/engine';
-import { publicRpcClient } from '@vsp/evm';
+import { createDb, createPool, plans } from '@glidepath/db';
+import { runMigrations } from '@glidepath/db/migrate';
+import type { Engine } from '@glidepath/engine';
+import { loadConfig, newOwnerKey, REPO_DATA_DIR, serverLimits } from '@glidepath/engine';
+import { publicRpcClient } from '@glidepath/evm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from '../src/app.ts';
 import { clientKeyOf } from '../src/limits.ts';

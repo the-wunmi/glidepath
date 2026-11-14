@@ -1,8 +1,8 @@
 import { readFileSync } from 'node:fs';
+import { derivationTweak, deriveSecretKey, signPayload } from '@glidepath/chainsig';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import { bytesToHex, hexToBytes } from '@noble/hashes/utils.js';
 import { bech32m } from '@scure/base';
-import { derivationTweak, deriveSecretKey, signPayload } from '@vsp/chainsig';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   assembleSpend,
@@ -288,6 +288,19 @@ describe('mempool.space client', () => {
       respond('sendrawtransaction RPC error: bad-txns-inputs-missingorspent', 400),
     );
     await expect(client.broadcast('00')).rejects.toThrow(/missingorspent/);
+  });
+
+  it('names the server it used when a read fails', async () => {
+    const client = new MempoolClient('https://example.test/testnet4/api');
+    vi.stubGlobal('fetch', respond('', 502));
+    await expect(client.feeRates()).rejects.toThrow('example.test answered 502');
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        throw new TypeError('fetch failed');
+      }),
+    );
+    await expect(client.utxos('tb1qx')).rejects.toThrow('example.test is not reachable');
   });
 
   it.runIf(process.env.BTC_LIVE === '1')('reads live testnet4 fee rates (BTC_LIVE=1)', async () => {

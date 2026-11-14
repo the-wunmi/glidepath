@@ -53,7 +53,7 @@ async fn an_attested_enclave_request_executes_a_sale_and_leaves_a_verifiable_rec
     assert_eq!(receipt["kind"], json!("sale"));
     // action_hash is sha256 of the exact ft_transfer arguments the plan account sent.
     let ft_args = format!(
-        r#"{{"receiver_id":"{}","amount":"{}","memo":"vsp/{plan_id}/0"}}"#,
+        r#"{{"receiver_id":"{}","amount":"{}","memo":"glidepath/{plan_id}/0"}}"#,
         env.venue.id(),
         10 * ONE_TOKEN
     );
@@ -76,15 +76,14 @@ async fn an_attested_enclave_request_executes_a_sale_and_leaves_a_verifiable_rec
         .try_into()
         .unwrap();
     let signed = [
-        b"vsp/execute/v1\n".as_slice(),
+        b"glidepath/execute/v1\n".as_slice(),
         receipt["request_json"].as_str().unwrap().as_bytes(),
     ]
     .concat();
     key.verify(&signed, &ed25519_dalek::Signature::from_bytes(&signature))?;
-    assert!(logs
-        .iter()
-        .any(|l| l
-            .starts_with(r#"EVENT_JSON:{"standard":"vsp","version":"1.0.0","event":"executed""#)));
+    assert!(logs.iter().any(|l| l.starts_with(
+        r#"EVENT_JSON:{"standard":"glidepath","version":"1.0.0","event":"executed""#
+    )));
     assert!(logs.iter().any(|l| l.contains(r#""event":"settled""#)));
     Ok(())
 }
@@ -95,7 +94,7 @@ async fn requests_signed_by_unregistered_or_revoked_enclaves_are_refused() -> an
     let (_token, plan_id) = env.funded_nep141_plan(None).await?;
     let stranger = TestEnclave::from_seed(SECOND_ENCLAVE_SEED);
     let request = env.nep141_sale(plan_id, ONE_TOKEN).await?.to_string();
-    let signature = stranger.sign("vsp/execute/v1\n", &request);
+    let signature = stranger.sign("glidepath/execute/v1\n", &request);
 
     let result = env
         .execute_signed(
@@ -158,7 +157,7 @@ async fn requests_signed_by_unregistered_or_revoked_enclaves_are_refused() -> an
         .await?
         .into_result()?;
     let request = env.nep141_sale(plan_id, ONE_TOKEN).await?.to_string();
-    let signature = stranger.sign("vsp/execute/v1\n", &request);
+    let signature = stranger.sign("glidepath/execute/v1\n", &request);
     let result = env
         .execute_signed(
             plan_id,
@@ -216,9 +215,9 @@ async fn a_forged_signature_is_refused() -> anyhow::Result<()> {
     let forger = TestEnclave::from_seed(SECOND_ENCLAVE_SEED);
 
     for signature in [
-        forger.sign("vsp/execute/v1\n", &request),
+        forger.sign("glidepath/execute/v1\n", &request),
         // A genuine enclave signature over the same bytes under the ack domain.
-        env.enclave.sign("vsp/ack/v1\n", &request),
+        env.enclave.sign("glidepath/ack/v1\n", &request),
         "not base64!".to_string(),
         base64_encode(&[0u8; 64]),
     ] {
@@ -254,7 +253,9 @@ async fn tampering_with_any_request_field_invalidates_the_signature() -> anyhow:
     let env = Env::new().await?;
     let (_token, plan_id) = env.funded_nep141_plan(None).await?;
     let request = env.nep141_sale(plan_id, ONE_TOKEN).await?;
-    let signature = env.enclave.sign("vsp/execute/v1\n", &request.to_string());
+    let signature = env
+        .enclave
+        .sign("glidepath/execute/v1\n", &request.to_string());
 
     let tampered: Vec<(&str, Value)> = vec![
         ("/seq", json!(5)),
@@ -525,7 +526,7 @@ async fn callers_pay_for_the_storage_they_add() -> anyhow::Result<()> {
     let (_token, plan_id) = env.funded_nep141_plan(None).await?;
     let request = env.nep141_sale(plan_id, ONE_TOKEN).await?;
     let request_json = request.to_string();
-    let signature = env.enclave.sign("vsp/execute/v1\n", &request_json);
+    let signature = env.enclave.sign("glidepath/execute/v1\n", &request_json);
     let result = env
         .execute_signed(
             plan_id,
@@ -934,7 +935,7 @@ async fn a_plan_with_a_long_cooling_off_refuses_new_keys_until_its_notice_has_pa
     let registered_at = env.now_ms().await?;
     env.advance_to(registered_at + 1_000).await?;
     let request = env.nep141_sale(plan_id, ONE_TOKEN).await?.to_string();
-    let signature = late_enclave.sign("vsp/execute/v1\n", &request);
+    let signature = late_enclave.sign("glidepath/execute/v1\n", &request);
     let refused = env
         .execute_signed(
             plan_id,
@@ -982,7 +983,7 @@ async fn a_plan_with_a_long_cooling_off_refuses_new_keys_until_its_notice_has_pa
         serde_json::from_str(request["settlement"]["quote"]["payload"].as_str().unwrap())?;
     quoted_by_new_key(&mut request, &payload);
     let request_json = request.to_string();
-    let signature = late_enclave.sign("vsp/execute/v1\n", &request_json);
+    let signature = late_enclave.sign("glidepath/execute/v1\n", &request_json);
     env.execute_signed(
         plan_id,
         &request_json,

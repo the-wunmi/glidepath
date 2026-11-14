@@ -5,8 +5,8 @@ import {
   planCommitment,
   SealedPlan,
   toBaseUnits,
-} from '@vsp/core';
-import type { ChainPlan, ChainReceipt } from '@vsp/near';
+} from '@glidepath/core';
+import type { ChainPlan, ChainReceipt } from '@glidepath/near';
 import { describe, expect, it } from 'vitest';
 import { verifyReveal } from '../src/index.ts';
 

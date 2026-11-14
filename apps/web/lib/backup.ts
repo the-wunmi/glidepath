@@ -1,4 +1,4 @@
-import { type EnvelopeJson, SealedPlan } from '@vsp/core';
+import { type EnvelopeJson, SealedPlan } from '@glidepath/core';
 
 /**
  * The founder's own copy of a sealed plan: the plan, its salt and commitment. It never leaves this
@@ -6,7 +6,7 @@ import { type EnvelopeJson, SealedPlan } from '@vsp/core';
  * second sealed plan to the same plan id.
  */
 export interface PlanBackup {
-  kind: 'verified-sales-plan-backup';
+  kind: 'glidepath-plan-backup';
   commitment: string;
   salt: string;
   plan: unknown;
@@ -15,7 +15,7 @@ export interface PlanBackup {
   created_at: string;
 }
 
-const key = (planId: number) => `vsp-plan-backups-${planId}`;
+const key = (planId: number) => `glidepath-plan-backups-${planId}`;
 
 function readAll(planId: number): Record<string, PlanBackup> {
   try {
@@ -46,7 +46,7 @@ export function backupPlan(b: PlanBackup | null) {
 export function parseBackupFile(text: string): PlanBackup | null {
   try {
     const v = JSON.parse(text) as Partial<PlanBackup>;
-    if (v.kind !== 'verified-sales-plan-backup' || typeof v.commitment !== 'string') return null;
+    if (v.kind !== 'glidepath-plan-backup' || typeof v.commitment !== 'string') return null;
     return v as PlanBackup;
   } catch {
     return null;
@@ -62,10 +62,10 @@ export interface StoredPlanKey {
   saved: boolean;
 }
 
-const planKeyKey = (planId: number) => `vsp-plan-key-${planId}`;
+const planKeyKey = (planId: number) => `glidepath-plan-key-${planId}`;
 
 /** Fired on window whenever a plan key is stored, so open pages pick it up. */
-export const PLAN_KEY_EVENT = 'vsp:plan-key';
+export const PLAN_KEY_EVENT = 'glidepath:plan-key';
 
 export function loadPlanKey(planId: number): StoredPlanKey | null {
   try {

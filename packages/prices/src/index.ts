@@ -1,6 +1,6 @@
+import { type PriceSourceName, toBaseUnits } from '@glidepath/core';
 import { sha256 } from '@noble/hashes/sha2.js';
 import { utf8ToBytes } from '@noble/hashes/utils.js';
-import { type PriceSourceName, toBaseUnits } from '@vsp/core';
 import { z } from 'zod';
 
 /** One independent price feed. Prices are integer micro-dollars (e6). */

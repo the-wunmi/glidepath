@@ -7,8 +7,8 @@
  * Layout: Intel TDX DCAP Quoting Library API, "TD Quote Format" (A.3, quote v4).
  */
 
+import { bytesToHex, concatBytes, fromBase64, hexToBytes, sha256Hex } from '@glidepath/core';
 import { p256 } from '@noble/curves/nist.js';
-import { bytesToHex, concatBytes, fromBase64, hexToBytes, sha256Hex } from '@vsp/core';
 
 /**
  * Intel SGX Root CA public key (uncompressed P-256). From the certificate Intel publishes at

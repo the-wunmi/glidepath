@@ -1,9 +1,9 @@
-import { signatureParts } from '@vsp/chainsig';
-import { DomainError, maxBig, type SealedBox } from '@vsp/core';
-import { activity, executions, plans, type Tx } from '@vsp/db';
-import type { BackupBox, BackupOutcome } from '@vsp/enclave';
-import { SALE_GAS } from '@vsp/evm';
-import type { ChainEnclave, ChainPlan, ChainReceipt, KeyPairString } from '@vsp/near';
+import { signatureParts } from '@glidepath/chainsig';
+import { DomainError, maxBig, type SealedBox } from '@glidepath/core';
+import { activity, executions, plans, type Tx } from '@glidepath/db';
+import type { BackupBox, BackupOutcome } from '@glidepath/enclave';
+import { SALE_GAS } from '@glidepath/evm';
+import type { ChainEnclave, ChainPlan, ChainReceipt, KeyPairString } from '@glidepath/near';
 import { and, desc, eq, inArray, sql } from 'drizzle-orm';
 import {
   type Hex,

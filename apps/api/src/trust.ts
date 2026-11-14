@@ -1,6 +1,6 @@
-import { parseInput, toJson } from '@vsp/core';
-import type { Engine } from '@vsp/engine';
-import * as engine from '@vsp/engine';
+import { parseInput, toJson } from '@glidepath/core';
+import type { Engine } from '@glidepath/engine';
+import * as engine from '@glidepath/engine';
 import { type Context, Hono } from 'hono';
 import { z } from 'zod';
 

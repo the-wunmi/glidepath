@@ -10,7 +10,7 @@
  * secrets). The deployer must keep DEPLOY_MIN_BALANCE_NEAR after every step, as with
  * deploy-testnet.ts. Rehearse the whole flow first on a local sandbox: `pnpm vault:demo --local`.
  */
-import { type KeyPairString, NearClient } from '@vsp/near';
+import { type KeyPairString, NearClient } from '@glidepath/near';
 import { z } from 'zod';
 import {
   deployVault,

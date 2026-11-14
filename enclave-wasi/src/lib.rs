@@ -26,9 +26,9 @@ mod u256 {
 }
 pub use u256::U256;
 
-pub const EXECUTE_DOMAIN: &str = "vsp/execute/v1\n";
-pub const ACK_DOMAIN: &str = "vsp/ack/v1\n";
-const SEAL_INFO: &[u8] = b"vsp/seal/v1";
+pub const EXECUTE_DOMAIN: &str = "glidepath/execute/v1\n";
+pub const ACK_DOMAIN: &str = "glidepath/ack/v1\n";
+const SEAL_INFO: &[u8] = b"glidepath/seal/v1";
 const DAY_MS: i64 = 86_400_000;
 const MINUTE_MS: i64 = 60_000;
 const USD_E6: u64 = 1_000_000;
@@ -298,7 +298,7 @@ pub struct SealedBox {
 }
 
 /// `openSealed`: X25519 with the box's ephemeral key, HKDF-SHA256 (salt = epk ‖ recipient,
-/// info `vsp/seal/v1`), ChaCha20-Poly1305.
+/// info `glidepath/seal/v1`), ChaCha20-Poly1305.
 pub fn open_sealed(secret: [u8; 32], b: &SealedBox) -> Result<String> {
     if b.v != 1 {
         return err("unsupported box version");

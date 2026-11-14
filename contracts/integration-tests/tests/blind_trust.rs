@@ -8,8 +8,8 @@ use near_workspaces::{Account, AccountId, Contract};
 use serde_json::{json, Value};
 use std::sync::atomic::{AtomicU64, Ordering};
 
-const TRADE_DOMAIN: &str = "vsp/trust-trade/v1\n";
-const ACK_DOMAIN: &str = "vsp/trust-ack/v1\n";
+const TRADE_DOMAIN: &str = "glidepath/trust-trade/v1\n";
+const ACK_DOMAIN: &str = "glidepath/trust-ack/v1\n";
 /// Long enough to try a change before it applies, short enough to wait out in the sandbox.
 const COOLING_OFF_MS: u64 = 10_000;
 /// A day; the turnover test uses a short period so the sandbox can reach the next one quickly.
@@ -361,7 +361,7 @@ async fn a_compliant_trade_sends_to_1click_and_counts_its_turnover() -> anyhow::
     );
     // action_hash is sha256 of the exact ft_transfer arguments the trust account sent.
     let ft_args = format!(
-        r#"{{"receiver_id":"{}","amount":"{}","memo":"vsp/trust/{}/0"}}"#,
+        r#"{{"receiver_id":"{}","amount":"{}","memo":"glidepath/trust/{}/0"}}"#,
         t.env.venue.id(),
         100 * ONE_TOKEN,
         t.id
@@ -534,7 +534,10 @@ async fn forged_signatures_are_refused() -> anyhow::Result<()> {
         .await?;
     assert_refused(&result, "bad_signature");
     // A plan registry signature (another domain) over the same bytes.
-    let plan_domain = t.env.enclave.sign("vsp/execute/v1\n", &request.to_string());
+    let plan_domain = t
+        .env
+        .enclave
+        .sign("glidepath/execute/v1\n", &request.to_string());
     let result = t
         .relay_signed(&request.to_string(), &plan_domain, &t.env.enclave)
         .await?;

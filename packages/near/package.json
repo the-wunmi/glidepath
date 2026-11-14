@@ -1,5 +1,5 @@
 {
-  "name": "@vsp/near",
+  "name": "@glidepath/near",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -11,7 +11,7 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@vsp/core": "workspace:*",
+    "@glidepath/core": "workspace:*",
     "near-api-js": "^7.5.1",
     "near-sandbox": "^0.3.5"
   }

@@ -1,6 +1,6 @@
 'use client';
 
-import { canonicalJson, newSaltHex, planCommitment, sealTo } from '@vsp/core';
+import { canonicalJson, newSaltHex, planCommitment, sealTo } from '@glidepath/core';
 import Link from 'next/link';
 
 import { type FormEvent, type ReactNode, useEffect, useId, useRef, useState } from 'react';
@@ -409,7 +409,7 @@ export function MoveEnclavePanel({
       const commitment = planCommitment(plan, salt);
       // Kept first: the owner's copy of the new commitment must outlive a lost response.
       saveBackup(p.id, {
-        kind: 'verified-sales-plan-backup',
+        kind: 'glidepath-plan-backup',
         commitment,
         salt,
         plan: terms,

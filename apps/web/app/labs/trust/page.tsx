@@ -1,6 +1,6 @@
 'use client';
 
-import { SimulatedQuote, sealTo, verifySimulatedQuote } from '@vsp/core';
+import { SimulatedQuote, sealTo, verifySimulatedQuote } from '@glidepath/core';
 import {
   checkMandateEnvelope,
   mandateCommitment,
@@ -10,7 +10,7 @@ import {
   sealedMandateJson,
   type TrustEnclaveEntry,
   type TrustEnvelope,
-} from '@vsp/trust';
+} from '@glidepath/trust';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { type FormEvent, useMemo, useState } from 'react';

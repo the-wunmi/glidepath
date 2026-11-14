@@ -1,7 +1,7 @@
-import { DomainError, Hex32, parseInput, SealedBox } from '@vsp/core';
-import { trusts } from '@vsp/db';
-import type { KeyPairString, NearClient } from '@vsp/near';
-import { marketKey, marketPriceE6 } from '@vsp/prices';
+import { DomainError, Hex32, parseInput, SealedBox } from '@glidepath/core';
+import { trusts } from '@glidepath/db';
+import type { KeyPairString, NearClient } from '@glidepath/near';
+import { marketKey, marketPriceE6 } from '@glidepath/prices';
 import {
   AssetId,
   type AssetPrice,
@@ -12,7 +12,7 @@ import {
   TrustEnvelope,
   type TrustQuoteSigner,
   tokenOf,
-} from '@vsp/trust';
+} from '@glidepath/trust';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import type { Engine } from '../context.ts';

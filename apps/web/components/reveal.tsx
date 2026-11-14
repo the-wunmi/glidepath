@@ -1,8 +1,8 @@
 'use client';
 
-import { describePlan } from '@vsp/core';
-import type { ChainPlan, ChainReceipt } from '@vsp/near';
-import { type ChainReveal, verifyReveal } from '@vsp/verify';
+import { describePlan } from '@glidepath/core';
+import type { ChainPlan, ChainReceipt } from '@glidepath/near';
+import { type ChainReveal, verifyReveal } from '@glidepath/verify';
 import { useMemo } from 'react';
 import { CheckMark, Panel } from '@/components/ui';
 import { plainLines } from '@/lib/copy';

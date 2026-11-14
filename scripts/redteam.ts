@@ -9,7 +9,6 @@
  * Writes data/redteam/results.json, which the app's red-team page shows.
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
-import { ed25519 } from '@noble/curves/ed25519.js';
 import {
   ACK_DOMAIN,
   bytesToHex,
@@ -19,16 +18,16 @@ import {
   oneclickQuoteMessage,
   signingBytes,
   toBase64,
-} from '@vsp/core';
-import { createDb, createPool } from '@vsp/db';
-import { deriveEnclaveKeys } from '@vsp/enclave';
+} from '@glidepath/core';
+import { createDb, createPool } from '@glidepath/db';
+import { deriveEnclaveKeys } from '@glidepath/enclave';
 import {
   enclaveHardwareSecret,
   loadWorld,
   REPO_DATA_DIR,
   resolveDataDir,
   SANDBOX_MS_PER_BLOCK,
-} from '@vsp/engine';
+} from '@glidepath/engine';
 import {
   actions,
   type ChainPlan,
@@ -36,8 +35,9 @@ import {
   KeyPair,
   type KeyPairString,
   NearClient,
-} from '@vsp/near';
-import type { QuoteResponse } from '@vsp/oneclick';
+} from '@glidepath/near';
+import type { QuoteResponse } from '@glidepath/oneclick';
+import { ed25519 } from '@noble/curves/ed25519.js';
 import { API, api, type Meta, sealPlan, waitFor } from './lib/api.ts';
 
 const NEAR = 10n ** 24n;

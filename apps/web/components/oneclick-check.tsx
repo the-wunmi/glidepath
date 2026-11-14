@@ -5,7 +5,7 @@ import {
   oneclickQuoteMessage,
   oneclickSignedBytes,
   parseNearKey,
-} from '@vsp/core';
+} from '@glidepath/core';
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import { fmtDateTime } from '@/lib/format';

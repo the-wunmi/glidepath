@@ -1,6 +1,6 @@
 'use client';
 
-import { assembleSpend, type SpendView, type VaultView, vaultAddress } from '@vsp/btc';
+import { assembleSpend, type SpendView, type VaultView, vaultAddress } from '@glidepath/btc';
 import { api } from './api';
 import { nearChainTimeMs, nearView } from './chain';
 

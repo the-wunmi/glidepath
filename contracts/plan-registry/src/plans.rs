@@ -13,7 +13,7 @@ use near_sdk::serde_json::{self, json};
 use near_sdk::{bs58, env, near, require, Gas, NearToken, Promise};
 
 /// Domain prefix of every enclave acknowledgement signature.
-pub const ACK_DOMAIN: &[u8] = b"vsp/ack/v1\n";
+pub const ACK_DOMAIN: &[u8] = b"glidepath/ack/v1\n";
 /// Signed messages are capped: they are stored in receipts that the relayer pays for, and a
 /// plan's real content never needs more than a few hundred bytes.
 pub const MAX_SIGNED_JSON_BYTES: usize = 4096;
@@ -236,7 +236,7 @@ impl PlanRegistry {
     /// Anyone can relay. Activates a plan, or applies a modification whose cooling-off has passed,
     /// once a registered enclave signs that the sealed plan matches the commitment and envelope.
     /// `signature` is standard base64 of the 64-byte ed25519 signature over
-    /// `"vsp/ack/v1\n" || ack_json`.
+    /// `"glidepath/ack/v1\n" || ack_json`.
     #[payable]
     pub fn ack_plan(
         &mut self,

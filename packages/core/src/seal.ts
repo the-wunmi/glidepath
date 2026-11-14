@@ -17,7 +17,7 @@ import {
  * ephemeral X25519 exchange, HKDF-SHA256, ChaCha20-Poly1305. The info string binds the key to this
  * use so a ciphertext made for one purpose cannot be opened as another.
  */
-const HKDF_INFO = utf8ToBytes('vsp/seal/v1');
+const HKDF_INFO = utf8ToBytes('glidepath/seal/v1');
 
 /** A sealed plan is a few hundred bytes; 64 KB stops anyone storing junk through the API. */
 const MAX_CIPHERTEXT_CHARS = 65_536;

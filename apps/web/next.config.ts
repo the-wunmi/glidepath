@@ -2,7 +2,7 @@ import { fileURLToPath } from 'node:url';
 import type { NextConfig } from 'next';
 
 /** The API also serves the read-only chain proxies (/rpc/*) and the 1Click simulator (/sim/*). */
-const API_ORIGIN = process.env.VSP_API_ORIGIN ?? 'http://127.0.0.1:4400';
+const API_ORIGIN = process.env.GLIDEPATH_API_ORIGIN ?? 'http://127.0.0.1:4400';
 
 const config: NextConfig = {
   reactStrictMode: true,
@@ -12,8 +12,14 @@ const config: NextConfig = {
   outputFileTracingRoot: fileURLToPath(new URL('../../', import.meta.url)),
   agentRules: false,
   devIndicators: false,
-  // The workspace packages ship TypeScript source; the browser needs @vsp/core, @vsp/verify and @vsp/btc.
-  transpilePackages: ['@vsp/core', '@vsp/verify', '@vsp/chainsig', '@vsp/trust', '@vsp/btc'],
+  // The workspace packages ship TypeScript source; the browser needs @glidepath/core, @glidepath/verify and @glidepath/btc.
+  transpilePackages: [
+    '@glidepath/core',
+    '@glidepath/verify',
+    '@glidepath/chainsig',
+    '@glidepath/trust',
+    '@glidepath/btc',
+  ],
   typescript: {
     // Type checking runs through `pnpm typecheck` (tsc --noEmit), which uses the workspace compiler.
     ignoreBuildErrors: true,

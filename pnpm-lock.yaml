@@ -11,6 +11,39 @@ importers:
       '@biomejs/biome':
         specifier: ^2.6.3
         version: 2.6.6
+      '@glidepath/btc':
+        specifier: workspace:*
+        version: link:packages/btc
+      '@glidepath/chainsig':
+        specifier: workspace:*
+        version: link:packages/chainsig
+      '@glidepath/core':
+        specifier: workspace:*
+        version: link:packages/core
+      '@glidepath/db':
+        specifier: workspace:*
+        version: link:packages/db
+      '@glidepath/enclave':
+        specifier: workspace:*
+        version: link:packages/enclave
+      '@glidepath/engine':
+        specifier: workspace:*
+        version: link:packages/engine
+      '@glidepath/near':
+        specifier: workspace:*
+        version: link:packages/near
+      '@glidepath/oneclick':
+        specifier: workspace:*
+        version: link:packages/oneclick
+      '@glidepath/planner':
+        specifier: workspace:*
+        version: link:packages/planner
+      '@glidepath/trust':
+        specifier: workspace:*
+        version: link:packages/trust
+      '@glidepath/verify':
+        specifier: workspace:*
+        version: link:packages/verify
       '@noble/curves':
         specifier: ^2.4.0
         version: 2.4.0
@@ -20,39 +53,6 @@ importers:
       '@types/node':
         specifier: ^24
         version: 24.19.2
-      '@vsp/btc':
-        specifier: workspace:*
-        version: link:packages/btc
-      '@vsp/chainsig':
-        specifier: workspace:*
-        version: link:packages/chainsig
-      '@vsp/core':
-        specifier: workspace:*
-        version: link:packages/core
-      '@vsp/db':
-        specifier: workspace:*
-        version: link:packages/db
-      '@vsp/enclave':
-        specifier: workspace:*
-        version: link:packages/enclave
-      '@vsp/engine':
-        specifier: workspace:*
-        version: link:packages/engine
-      '@vsp/near':
-        specifier: workspace:*
-        version: link:packages/near
-      '@vsp/oneclick':
-        specifier: workspace:*
-        version: link:packages/oneclick
-      '@vsp/planner':
-        specifier: workspace:*
-        version: link:packages/planner
-      '@vsp/trust':
-        specifier: workspace:*
-        version: link:packages/trust
-      '@vsp/verify':
-        specifier: workspace:*
-        version: link:packages/verify
       tsx:
         specifier: ^4.23.15
         version: 4.23.15
@@ -74,24 +74,24 @@ importers:
 
   apps/api:
     dependencies:
+      '@glidepath/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@glidepath/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+      '@glidepath/engine':
+        specifier: workspace:*
+        version: link:../../packages/engine
+      '@glidepath/evm':
+        specifier: workspace:*
+        version: link:../../packages/evm
+      '@glidepath/near':
+        specifier: workspace:*
+        version: link:../../packages/near
       '@hono/node-server':
         specifier: ^2.1.5
         version: 2.1.6(hono@4.13.17)
-      '@vsp/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@vsp/db':
-        specifier: workspace:*
-        version: link:../../packages/db
-      '@vsp/engine':
-        specifier: workspace:*
-        version: link:../../packages/engine
-      '@vsp/evm':
-        specifier: workspace:*
-        version: link:../../packages/evm
-      '@vsp/near':
-        specifier: workspace:*
-        version: link:../../packages/near
       hono:
         specifier: ^4.13.17
         version: 4.13.17
@@ -111,24 +111,24 @@ importers:
 
   apps/web:
     dependencies:
+      '@glidepath/btc':
+        specifier: workspace:*
+        version: link:../../packages/btc
+      '@glidepath/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@glidepath/near':
+        specifier: workspace:*
+        version: link:../../packages/near
+      '@glidepath/trust':
+        specifier: workspace:*
+        version: link:../../packages/trust
+      '@glidepath/verify':
+        specifier: workspace:*
+        version: link:../../packages/verify
       '@hot-labs/near-connect':
         specifier: 0.12.0
         version: 0.12.0
-      '@vsp/btc':
-        specifier: workspace:*
-        version: link:../../packages/btc
-      '@vsp/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@vsp/near':
-        specifier: workspace:*
-        version: link:../../packages/near
-      '@vsp/trust':
-        specifier: workspace:*
-        version: link:../../packages/trust
-      '@vsp/verify':
-        specifier: workspace:*
-        version: link:../../packages/verify
       next:
         specifier: 16.4.6
         version: 16.4.6(@types/node@24.19.2)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -160,6 +160,9 @@ importers:
 
   packages/btc:
     dependencies:
+      '@glidepath/chainsig':
+        specifier: workspace:*
+        version: link:../chainsig
       '@noble/curves':
         specifier: ^2.4.0
         version: 2.4.0
@@ -169,21 +172,18 @@ importers:
       '@scure/base':
         specifier: ^2.2.0
         version: 2.2.0
-      '@vsp/chainsig':
-        specifier: workspace:*
-        version: link:../chainsig
 
   packages/chainsig:
     dependencies:
+      '@glidepath/core':
+        specifier: workspace:*
+        version: link:../core
       '@noble/curves':
         specifier: ^2.4.0
         version: 2.4.0
       '@noble/hashes':
         specifier: ^2.4.0
         version: 2.4.0
-      '@vsp/core':
-        specifier: workspace:*
-        version: link:../core
       viem:
         specifier: ^2.57.17
         version: 2.57.17(typescript@7.0.2)(zod@4.6.7)
@@ -205,7 +205,7 @@ importers:
 
   packages/db:
     dependencies:
-      '@vsp/core':
+      '@glidepath/core':
         specifier: workspace:*
         version: link:../core
       drizzle-orm:
@@ -224,24 +224,24 @@ importers:
 
   packages/enclave:
     dependencies:
+      '@glidepath/core':
+        specifier: workspace:*
+        version: link:../core
+      '@glidepath/near':
+        specifier: workspace:*
+        version: link:../near
+      '@glidepath/oneclick':
+        specifier: workspace:*
+        version: link:../oneclick
+      '@glidepath/planner':
+        specifier: workspace:*
+        version: link:../planner
       '@noble/curves':
         specifier: ^2.4.0
         version: 2.4.0
       '@noble/hashes':
         specifier: ^2.4.0
         version: 2.4.0
-      '@vsp/core':
-        specifier: workspace:*
-        version: link:../core
-      '@vsp/near':
-        specifier: workspace:*
-        version: link:../near
-      '@vsp/oneclick':
-        specifier: workspace:*
-        version: link:../oneclick
-      '@vsp/planner':
-        specifier: workspace:*
-        version: link:../planner
       zod:
         specifier: ^4.6.7
         version: 4.6.7
@@ -254,39 +254,39 @@ importers:
       '@dbos-inc/drizzle-datasource':
         specifier: 5.3.0
         version: 5.3.0(@dbos-inc/dbos-sdk@5.3.0)(drizzle-orm@0.45.4(@types/pg@8.23.1)(pg@8.23.1))
+      '@glidepath/chainsig':
+        specifier: workspace:*
+        version: link:../chainsig
+      '@glidepath/core':
+        specifier: workspace:*
+        version: link:../core
+      '@glidepath/db':
+        specifier: workspace:*
+        version: link:../db
+      '@glidepath/enclave':
+        specifier: workspace:*
+        version: link:../enclave
+      '@glidepath/evm':
+        specifier: workspace:*
+        version: link:../evm
+      '@glidepath/near':
+        specifier: workspace:*
+        version: link:../near
+      '@glidepath/oneclick':
+        specifier: workspace:*
+        version: link:../oneclick
+      '@glidepath/planner':
+        specifier: workspace:*
+        version: link:../planner
+      '@glidepath/prices':
+        specifier: workspace:*
+        version: link:../prices
+      '@glidepath/trust':
+        specifier: workspace:*
+        version: link:../trust
       '@noble/curves':
         specifier: ^2.4.0
         version: 2.4.0
-      '@vsp/chainsig':
-        specifier: workspace:*
-        version: link:../chainsig
-      '@vsp/core':
-        specifier: workspace:*
-        version: link:../core
-      '@vsp/db':
-        specifier: workspace:*
-        version: link:../db
-      '@vsp/enclave':
-        specifier: workspace:*
-        version: link:../enclave
-      '@vsp/evm':
-        specifier: workspace:*
-        version: link:../evm
-      '@vsp/near':
-        specifier: workspace:*
-        version: link:../near
-      '@vsp/oneclick':
-        specifier: workspace:*
-        version: link:../oneclick
-      '@vsp/planner':
-        specifier: workspace:*
-        version: link:../planner
-      '@vsp/prices':
-        specifier: workspace:*
-        version: link:../prices
-      '@vsp/trust':
-        specifier: workspace:*
-        version: link:../trust
       drizzle-orm:
         specifier: ^0.45.4
         version: 0.45.4(@types/pg@8.23.1)(pg@8.23.1)
@@ -300,22 +300,22 @@ importers:
         specifier: ^4.6.7
         version: 4.6.7
     devDependencies:
+      '@glidepath/verify':
+        specifier: workspace:*
+        version: link:../verify
       '@hono/node-server':
         specifier: ^2.1.5
         version: 2.1.6(hono@4.13.17)
       '@types/pg':
         specifier: ^8.23.1
         version: 8.23.1
-      '@vsp/verify':
-        specifier: workspace:*
-        version: link:../verify
       hono:
         specifier: ^4.13.17
         version: 4.13.17
 
   packages/evm:
     dependencies:
-      '@vsp/core':
+      '@glidepath/core':
         specifier: workspace:*
         version: link:../core
       hardhat:
@@ -331,7 +331,7 @@ importers:
 
   packages/near:
     dependencies:
-      '@vsp/core':
+      '@glidepath/core':
         specifier: workspace:*
         version: link:../core
       near-api-js:
@@ -343,18 +343,18 @@ importers:
 
   packages/oneclick:
     dependencies:
+      '@glidepath/core':
+        specifier: workspace:*
+        version: link:../core
+      '@glidepath/db':
+        specifier: workspace:*
+        version: link:../db
+      '@glidepath/prices':
+        specifier: workspace:*
+        version: link:../prices
       '@noble/curves':
         specifier: ^2.4.0
         version: 2.4.0
-      '@vsp/core':
-        specifier: workspace:*
-        version: link:../core
-      '@vsp/db':
-        specifier: workspace:*
-        version: link:../db
-      '@vsp/prices':
-        specifier: workspace:*
-        version: link:../prices
       drizzle-orm:
         specifier: ^0.45.4
         version: 0.45.4(@types/pg@8.23.1)(pg@8.23.1)
@@ -367,18 +367,18 @@ importers:
 
   packages/planner:
     dependencies:
-      '@vsp/core':
+      '@glidepath/core':
         specifier: workspace:*
         version: link:../core
 
   packages/prices:
     dependencies:
+      '@glidepath/core':
+        specifier: workspace:*
+        version: link:../core
       '@noble/hashes':
         specifier: ^2.4.0
         version: 2.4.0
-      '@vsp/core':
-        specifier: workspace:*
-        version: link:../core
       zod:
         specifier: ^4.6.7
         version: 4.6.7
@@ -391,36 +391,36 @@ importers:
 
   packages/trust:
     dependencies:
+      '@glidepath/core':
+        specifier: workspace:*
+        version: link:../core
+      '@glidepath/enclave':
+        specifier: workspace:*
+        version: link:../enclave
       '@noble/curves':
         specifier: ^2.4.0
         version: 2.4.0
       '@noble/hashes':
         specifier: ^2.4.0
         version: 2.4.0
-      '@vsp/core':
-        specifier: workspace:*
-        version: link:../core
-      '@vsp/enclave':
-        specifier: workspace:*
-        version: link:../enclave
       zod:
         specifier: ^4.6.7
         version: 4.6.7
 
   packages/verify:
     dependencies:
+      '@glidepath/chainsig':
+        specifier: workspace:*
+        version: link:../chainsig
+      '@glidepath/core':
+        specifier: workspace:*
+        version: link:../core
+      '@glidepath/near':
+        specifier: workspace:*
+        version: link:../near
       '@noble/curves':
         specifier: ^2.4.0
         version: 2.4.0
-      '@vsp/chainsig':
-        specifier: workspace:*
-        version: link:../chainsig
-      '@vsp/core':
-        specifier: workspace:*
-        version: link:../core
-      '@vsp/near':
-        specifier: workspace:*
-        version: link:../near
       viem:
         specifier: ^2.57.17
         version: 2.57.17(typescript@7.0.2)(zod@4.6.7)

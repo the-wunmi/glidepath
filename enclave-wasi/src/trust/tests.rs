@@ -20,7 +20,7 @@ fn seal_to(recipient_hex: &str, plaintext: &str) -> SealedBox {
         Some(&[epk.as_bytes().as_slice(), &recipient].concat()),
         shared.as_bytes(),
     )
-    .expand(b"vsp/seal/v1", &mut key)
+    .expand(b"glidepath/seal/v1", &mut key)
     .unwrap();
     let nonce = [9u8; 12];
     let ct = ChaCha20Poly1305::new(&key.into())

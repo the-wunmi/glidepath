@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { MoonIcon, SunIcon } from './icons';
 
-const KEY = 'vsp-theme';
+const KEY = 'glidepath-theme';
 
 /**
  * Runs before paint (inlined in <head>) so the page never flashes the wrong theme. An explicit

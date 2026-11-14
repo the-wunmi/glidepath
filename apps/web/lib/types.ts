@@ -1,13 +1,14 @@
-import type { SimulatedQuote } from '@vsp/core';
+import type { SimulatedQuote } from '@glidepath/core';
 import type {
   ChainEnclave,
   ChainPlan,
   ChainReceipt,
   PendingChange,
   RegistryConfig,
-} from '@vsp/near';
+} from '@glidepath/near';
+import type { OutlayerQuote } from '@glidepath/verify/outlayer';
 
-export type { ChainEnclave, ChainPlan, ChainReceipt, PendingChange, RegistryConfig };
+export type { ChainEnclave, ChainPlan, ChainReceipt, OutlayerQuote, PendingChange, RegistryConfig };
 
 /**
  * `live`: a public network or service; `local`: a real node on the server's machine; `mock`: a
@@ -64,21 +65,6 @@ export interface Meta {
   limits: {
     nearTokens: boolean;
   };
-}
-
-/**
- * A live OutLayer enclave's evidence (`enclave.quote` when `format` is 'outlayer-tdx-v1'). The
- * Intel TDX quote itself sits behind `attestation_url`; the browser fetches and checks it (`@vsp/verify/tdx`).
- */
-export interface OutlayerQuote {
-  format: 'outlayer-tdx-v1';
-  measurements: ChainEnclave['measurements'];
-  attestation_url: string;
-  /** The testnet transaction of the attested run that proved the key; the registry pinned it then. */
-  key_proof_tx: string;
-  wasm_url: string;
-  wasm_sha256: string;
-  worker_registry: string;
 }
 
 export const SIM_OUTCOMES = ['success', 'refund', 'fail', 'stall'] as const;

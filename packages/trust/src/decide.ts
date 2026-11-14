@@ -1,4 +1,4 @@
-import { usdToE6 } from '@vsp/core';
+import { usdToE6 } from '@glidepath/core';
 import type { TrustEnvelope, TrustMandate } from './mandate.ts';
 
 /**

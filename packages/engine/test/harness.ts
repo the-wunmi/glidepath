@@ -1,5 +1,4 @@
 import { createServer } from 'node:net';
-import { serve } from '@hono/node-server';
 import {
   canonicalJson,
   type Envelope,
@@ -11,9 +10,10 @@ import {
   type SealedPlanInput,
   sealTo,
   toBaseUnits,
-} from '@vsp/core';
-import { createDb, createPool } from '@vsp/db';
-import { runMigrations } from '@vsp/db/migrate';
+} from '@glidepath/core';
+import { createDb, createPool } from '@glidepath/db';
+import { runMigrations } from '@glidepath/db/migrate';
+import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 import {
   bootstrapLocalWorld,
@@ -64,8 +64,41 @@ export const testEnv = (ports: { api: number; near: number; evm: number }) => ({
   EVM_NODE_PORT: String(ports.evm),
   SETTLE_IN_DOUBT_SECONDS: '2',
   EVM_STUCK_BLOCKS: '3',
-  DATA_DIR: `${process.env.TMPDIR ?? '/tmp'}/vsp-engine-test`,
+  // Each test file (vitest worker) has its own data folder, so files can run side by side.
+  DATA_DIR: `${process.env.TMPDIR ?? '/tmp'}/glidepath-engine-test-${process.env.VITEST_POOL_ID ?? 0}`,
+  ...workerDatabase(),
 });
+
+/**
+ * This test file's own database and DBOS system database, made from the suite's: test files run
+ * in parallel, each with its own chains, so they must not share rows or workflows either.
+ */
+function workerDatabase() {
+  const base = process.env.DATABASE_URL;
+  if (!base) return {};
+  const id = process.env.VITEST_POOL_ID ?? '0';
+  const url = new URL(base);
+  url.pathname = `${url.pathname}_w${id}`;
+  const system = new URL(base);
+  system.pathname = `${url.pathname}_dbos`;
+  return { DATABASE_URL: url.toString(), DBOS_SYSTEM_DATABASE_URL: system.toString() };
+}
+
+/** Creates this file's database afresh (and drops its DBOS system database) before a world starts. */
+export async function resetWorkerDatabase(databaseUrl: string): Promise<void> {
+  const target = new URL(databaseUrl);
+  const name = target.pathname.slice(1);
+  const admin = new URL(databaseUrl);
+  admin.pathname = '/postgres';
+  const pool = createPool(admin.toString());
+  try {
+    await pool.query(`drop database if exists "${name}" with (force)`);
+    await pool.query(`create database "${name}"`);
+    await pool.query(`drop database if exists "${name}_dbos" with (force)`);
+  } finally {
+    await pool.end();
+  }
+}
 
 /**
  * Starts the local chains, deploys everything and records the world in the test database. Returns
@@ -77,11 +110,12 @@ export async function prepareWorld(): Promise<{
 }> {
   const ports = { api: await freePort(), near: await freePort(), evm: await freePort() };
   const config = loadConfig({ ...process.env, ...testEnv(ports) });
+  await resetWorkerDatabase(config.DATABASE_URL);
   await runMigrations(config.DATABASE_URL);
   const pool = createPool(config.DATABASE_URL);
   const db = createDb(pool);
   const chains = await startLocalChains(config);
-  const { NearClient } = await import('@vsp/near');
+  const { NearClient } = await import('@glidepath/near');
   const genesis = await new NearClient(chains.near.rpcUrl).genesisHash();
   const world = await bootstrapLocalWorld(
     chains,

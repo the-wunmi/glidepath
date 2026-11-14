@@ -19,7 +19,7 @@ fn seal_to(recipient_hex: &str, plaintext: &str) -> SealedBox {
         Some(&[epk.as_bytes().as_slice(), &recipient].concat()),
         shared.as_bytes(),
     )
-    .expand(b"vsp/seal/v1", &mut key)
+    .expand(b"glidepath/seal/v1", &mut key)
     .unwrap();
     let nonce = [9u8; 12];
     let ct = ChaCha20Poly1305::new(&key.into())
@@ -37,7 +37,7 @@ fn plan_json() -> Value {
     json!({
         "version": 1,
         "token": { "chain": "near", "address": "acme.testnet", "symbol": "ACME", "decimals": 6 },
-        "beneficiary": { "near_account": "founder.testnet", "asset": "nep141:vusdc.testnet" },
+        "beneficiary": { "near_account": "founder.testnet", "asset": "nep141:glidepath-usdc.testnet" },
         "allocation": "1000000000",
         "period_days": 1,
         "max_sell_per_period_bps": 1000,
@@ -67,7 +67,7 @@ fn chain_plan(status: &str, next_seq: u64) -> ChainPlan {
         "token_decimals": 6,
         "quote_decimals": 6,
         "beneficiary": { "near_account": "founder.testnet", "evm_address": null },
-        "proceeds_asset": "nep141:vusdc.testnet",
+        "proceeds_asset": "nep141:glidepath-usdc.testnet",
         "envelope": {
             "period_ms": DAY,
             "max_amount_per_period": "200000000",
@@ -79,7 +79,7 @@ fn chain_plan(status: &str, next_seq: u64) -> ChainPlan {
         "start_ms": start,
         "end_ms": end,
         "status": status,
-        "plan_account": "7.vsp-registry.testnet",
+        "plan_account": "7.glidepath.testnet",
         "evm_address": null,
         "evm_nonce": 0,
         "next_seq": next_seq,
@@ -144,10 +144,10 @@ impl Harness {
             "amountInUsd": "10.000000", "amountOut": out.to_string(), "amountOutFormatted": "x",
             "amountOutUsd": "9.990000", "depositAddress": "deposit.testnet",
             "deadline": iso_from_ms(deadline_ms), "depositType": "ORIGIN_CHAIN",
-            "destinationAsset": "nep141:vusdc.testnet", "dry": false,
+            "destinationAsset": "nep141:glidepath-usdc.testnet", "dry": false,
             "minAmountIn": amount, "minAmountOut": (out * 995 / 1000).to_string(),
             "originAsset": "nep141:acme.testnet", "recipient": "founder.testnet",
-            "recipientType": "DESTINATION_CHAIN", "refundTo": "7.vsp-registry.testnet",
+            "recipientType": "DESTINATION_CHAIN", "refundTo": "7.glidepath.testnet",
             "refundType": "ORIGIN_CHAIN", "slippageTolerance": 100, "swapType": "EXACT_INPUT",
             "timestamp": "2027-01-15T08:00:00.000Z",
         })
@@ -249,7 +249,7 @@ fn a_sealed_plan_is_acked_and_sold_with_signed_requests_the_registry_accepts() {
     assert_eq!(decided["quote_request"]["amount"], amount);
     assert_eq!(
         decided["quote_request"]["refundTo"],
-        "7.vsp-registry.testnet"
+        "7.glidepath.testnet"
     );
 
     let sold = h.run(json!({

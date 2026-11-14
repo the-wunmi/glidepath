@@ -1,4 +1,4 @@
-import { ONECLICK_LIVE_QUOTE_KEY } from '@vsp/core';
+import { ONECLICK_LIVE_QUOTE_KEY } from '@glidepath/core';
 import type { Engine } from './context.ts';
 
 /** wNEAR to USDC on NEAR mainnet, 1 wNEAR: a pair 1Click always quotes. */

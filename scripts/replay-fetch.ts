@@ -1,7 +1,7 @@
 /**
  * Fetches hourly Binance klines around each replayed unlock (and BTC for the same window, as the
  * market reference) and writes data/replay/<SYMBOL>-<date>.json. Keyless: Binance market data needs
- * no API key. Run with `pnpm replay`; then `pnpm --filter @vsp/replay build:results`.
+ * no API key. Run with `pnpm replay`; then `pnpm --filter @glidepath/replay build:results`.
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';

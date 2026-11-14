@@ -1,4 +1,4 @@
-import { deriveEvmAddress, planPath } from '@vsp/chainsig';
+import { deriveEvmAddress, planPath } from '@glidepath/chainsig';
 import {
   AccountId,
   canonicalJson,
@@ -17,9 +17,9 @@ import {
   UsdDecimal,
   usdToE6,
   utf8ToBytes,
-} from '@vsp/core';
-import { activity, plans } from '@vsp/db';
-import { DEPLOY_GAS } from '@vsp/evm';
+} from '@glidepath/core';
+import { activity, plans } from '@glidepath/db';
+import { DEPLOY_GAS } from '@glidepath/evm';
 import {
   actions,
   innerFailure,
@@ -28,7 +28,7 @@ import {
   type RegistryConfig,
   type TxOutcome,
   teraToGas,
-} from '@vsp/near';
+} from '@glidepath/near';
 import { and, eq, ne, sql } from 'drizzle-orm';
 import { getContractAddress, type Hex } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';

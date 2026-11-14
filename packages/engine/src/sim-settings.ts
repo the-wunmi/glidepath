@@ -1,6 +1,6 @@
-import { type Db, simSettings } from '@vsp/db';
-import { SIM_OUTCOMES, type SimOutcome } from '@vsp/oneclick';
-import { MarketSettings } from '@vsp/prices';
+import { type Db, simSettings } from '@glidepath/db';
+import { SIM_OUTCOMES, type SimOutcome } from '@glidepath/oneclick';
+import { MarketSettings } from '@glidepath/prices';
 import { eq, sql } from 'drizzle-orm';
 import { z } from 'zod';
 

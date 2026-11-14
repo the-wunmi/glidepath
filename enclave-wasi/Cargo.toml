@@ -1,5 +1,5 @@
 [package]
-name = "vsp-enclave-wasi"
+name = "glidepath-enclave-wasi"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
@@ -7,16 +7,16 @@ description = "The Glidepath enclave logic as a WASI command, for OutLayer"
 publish = false
 
 [[bin]]
-name = "vsp-enclave"
+name = "glidepath-enclave"
 path = "src/main.rs"
 
 [[bin]]
-name = "vsp-enclave-outlayer"
+name = "glidepath-enclave-outlayer"
 path = "src/bin/outlayer.rs"
 required-features = ["outlayer"]
 
 [[bin]]
-name = "vsp-enclave-local"
+name = "glidepath-enclave-local"
 path = "src/bin/local.rs"
 
 [dependencies]

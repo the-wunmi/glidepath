@@ -1,8 +1,8 @@
 import type { TrustEnvelope } from './mandate.ts';
 
 /** Domain prefixes the trust contract verifies; distinct from the plan registry's. */
-export const TRUST_ACK_DOMAIN = 'vsp/trust-ack/v1\n';
-export const TRUST_TRADE_DOMAIN = 'vsp/trust-trade/v1\n';
+export const TRUST_ACK_DOMAIN = 'glidepath/trust-ack/v1\n';
+export const TRUST_TRADE_DOMAIN = 'glidepath/trust-trade/v1\n';
 /** A signed trade is good for five minutes: a run and the relay take seconds to tens of seconds. */
 export const TRUST_REQUEST_TTL_MS = 300_000;
 /** 1Click is asked to settle within ten minutes. */
@@ -115,4 +115,4 @@ export interface ChainTrustReceipt {
 
 /** The JSON the trust account's ft_transfer carries; its sha256 is the receipt's action hash. */
 export const trustActionJson = (receiver: string, amount: string, trustId: number, seq: number) =>
-  JSON.stringify({ receiver_id: receiver, amount, memo: `vsp/trust/${trustId}/${seq}` });
+  JSON.stringify({ receiver_id: receiver, amount, memo: `glidepath/trust/${trustId}/${seq}` });

@@ -1,4 +1,4 @@
-import type { EnvelopeJson } from '@vsp/core';
+import type { EnvelopeJson } from '@glidepath/core';
 
 /** The registry's public view of a plan (contracts/plan-registry, `get_plan`). */
 export interface ChainPlan {

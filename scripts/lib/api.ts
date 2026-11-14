@@ -11,9 +11,14 @@ import {
   sealTo,
   toBaseUnits,
   verifySimulatedQuote,
-} from '@vsp/core';
+} from '@glidepath/core';
 
-export const API = process.env.VSP_API ?? 'http://127.0.0.1:4400';
+/** The site to talk to: a URL argument (`pnpm verify https://…`), GLIDEPATH_API, or the local API. */
+export const API = (
+  process.argv.slice(2).find((a) => /^https?:\/\//.test(a)) ??
+  process.env.GLIDEPATH_API ??
+  'http://127.0.0.1:4400'
+).replace(/\/$/, '');
 
 /** Owner keys of the plans this script created: POST /api/plans hands each out once. */
 const ownerKeys = new Map<number, string>();

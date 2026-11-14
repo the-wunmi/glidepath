@@ -1,13 +1,13 @@
 'use client';
 
-import type { SealedBox, SimulatedQuote } from '@vsp/core';
+import type { SealedBox, SimulatedQuote } from '@glidepath/core';
 import type {
   ChainTrust,
   ChainTrustReceipt,
   TrustEnclaveEntry,
   TrustEnvelope,
   TrustQuoteSigner,
-} from '@vsp/trust';
+} from '@glidepath/trust';
 import { api } from './api';
 import { accessKeys, nearChainTimeMs, nearView } from './chain';
 
@@ -55,7 +55,7 @@ export interface CreateTrustBody {
 export const createTrust = (body: CreateTrustBody) =>
   api<{ trustId: number; txHash: string; ownerKey: string }>('/api/trusts', { body });
 
-const keyName = (id: number) => `vsp:trust-key:${id}`;
+const keyName = (id: number) => `glidepath:trust-key:${id}`;
 export const saveTrustKey = (id: number, key: string) => localStorage.setItem(keyName(id), key);
 export const loadTrustKey = (id: number) => localStorage.getItem(keyName(id));
 

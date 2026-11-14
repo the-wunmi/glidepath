@@ -1,5 +1,5 @@
+import { bytesToHex, hexToBytes } from '@glidepath/core';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
-import { bytesToHex, hexToBytes } from '@vsp/core';
 import { publicKeyToAddress } from 'viem/accounts';
 import { describe, expect, it } from 'vitest';
 import {

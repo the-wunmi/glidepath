@@ -1,8 +1,8 @@
+import { bytesToHex } from '@glidepath/core';
+import { type EvmClient, SALE_GAS } from '@glidepath/evm';
+import { actions, KeyPair, type KeyPairString, type NearClient, teraToGas } from '@glidepath/near';
+import type { SimAsset, SimRails } from '@glidepath/oneclick';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
-import { bytesToHex } from '@vsp/core';
-import { type EvmClient, SALE_GAS } from '@vsp/evm';
-import { actions, KeyPair, type KeyPairString, type NearClient, teraToGas } from '@vsp/near';
-import type { SimAsset, SimRails } from '@vsp/oneclick';
 import { createWalletClient, erc20Abi, type Hex } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import type { WorldConfig } from './world.ts';

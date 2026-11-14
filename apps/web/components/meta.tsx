@@ -12,8 +12,8 @@ export function MetaProvider({ children }: { children: ReactNode }) {
   const meta = useResource(() => api<Meta>('/api/meta'), [], 20_000);
   useEffect(() => {
     const onChange = () => void meta.reload();
-    window.addEventListener('vsp:chain-advanced', onChange);
-    return () => window.removeEventListener('vsp:chain-advanced', onChange);
+    window.addEventListener('glidepath:chain-advanced', onChange);
+    return () => window.removeEventListener('glidepath:chain-advanced', onChange);
   }, [meta.reload]);
   return <MetaContext.Provider value={meta}>{children}</MetaContext.Provider>;
 }

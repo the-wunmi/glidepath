@@ -19,3 +19,4 @@ deployments/local-*.json
 # Tooling
 .DS_Store
 test-results
+.claude/

@@ -1,4 +1,4 @@
-import { type Envelope, parseInput, SealedPlan, toBaseUnits } from '@vsp/core';
+import { type Envelope, parseInput, SealedPlan, toBaseUnits } from '@glidepath/core';
 import { describe, expect, it } from 'vitest';
 import {
   checkMarket,

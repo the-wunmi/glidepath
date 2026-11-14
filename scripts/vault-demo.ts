@@ -17,17 +17,16 @@
  *
  * Testnet reads deployments/vault-testnet.json (pnpm vault:deploy). The owner signs with
  * VAULT_OWNER_* (default DEPLOY_*), guardians with VAULT_GUARDIAN_*. Every NEAR write costs testnet
- * gas; Bitcoin fees come out of the vault.
+ * gas; Bitcoin fees come out of the vault. VAULT_MEMPOOL_API overrides the mempool.space API.
  */
 
 import { readFileSync } from 'node:fs';
-import { secp256k1 } from '@noble/curves/secp256k1.js';
-import { bytesToHex, hexToBytes } from '@noble/hashes/utils.js';
 import {
   assembleSpend,
   type ConfirmedUtxo,
   inputArgs,
   MempoolClient,
+  MempoolError,
   mempoolAddressUrl,
   mempoolTxUrl,
   type PlannedSpend,
@@ -38,8 +37,8 @@ import {
   scriptForAddress,
   type VaultView,
   vaultAddress,
-} from '@vsp/btc';
-import { nearSecpKey } from '@vsp/chainsig';
+} from '@glidepath/btc';
+import { nearSecpKey } from '@glidepath/chainsig';
 import {
   type Account,
   actions,
@@ -49,7 +48,9 @@ import {
   SANDBOX_ROOT,
   startNearSandbox,
   teraToGas,
-} from '@vsp/near';
+} from '@glidepath/near';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
+import { bytesToHex, hexToBytes } from '@noble/hashes/utils.js';
 import { z } from 'zod';
 import {
   answerSignatures,
@@ -93,18 +94,38 @@ interface BitcoinSide {
   broadcast(signed: SignedSpend, spend: SpendView, vaultAddress: string): Promise<void>;
 }
 
+/**
+ * VAULT_MEMPOOL_API points at another Esplora server for testnet4 (for example
+ * https://blockstream.info/testnet4/api) where mempool.space itself is unreachable. Plain Esplora
+ * has no fee recommendations, so there the rate is the 2 sat/vB floor (testnet4 clears at 1).
+ */
 function testnet4(): BitcoinSide {
-  const mempool = new MempoolClient();
+  const mempool = new MempoolClient(env.VAULT_MEMPOOL_API);
   return {
-    label: 'Bitcoin testnet4 (mempool.space)',
+    label: `Bitcoin testnet4 (${new URL(mempool.baseUrl).host})`,
     utxos: (address) => mempool.utxos(address),
     async feeRate(cap) {
-      const rate = Math.ceil((await mempool.feeRates()).halfHourFee);
+      const rate = await mempool.feeRates().then(
+        (f) => Math.ceil(f.halfHourFee),
+        (error) => {
+          if (!(error instanceof MempoolError && error.status === 404)) throw error;
+          console.log('  (no fee recommendations on this server: 2 sat/vB)');
+          return 2;
+        },
+      );
       return BigInt(Math.min(Math.max(rate, 1), Number(cap)));
     },
-    async broadcast(signed) {
+    async broadcast(signed, spend, vaultAddress) {
       const id = await mempool.broadcast(signed.hex);
       console.log(`  ✓ broadcast ${id}\n    ${mempoolTxUrl(id)}`);
+      // The next spend may use this one's change, which the server lists only once it has indexed
+      // the transaction: wait for it (a spend with no change back to the vault has nothing to wait for).
+      if (BigInt(spend.change) === 0n) return;
+      for (let i = 0; i < 40; i++) {
+        if ((await mempool.utxos(vaultAddress)).some((u) => u.txid === id)) return;
+        await new Promise((r) => setTimeout(r, 3_000));
+      }
+      throw new Error(`${id} was broadcast, but the server has not listed its change yet`);
     },
   };
 }

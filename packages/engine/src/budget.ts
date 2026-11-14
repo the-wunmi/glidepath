@@ -1,5 +1,5 @@
-import { DomainError } from '@vsp/core';
-import { type Db, planBudget, plans, type Tx } from '@vsp/db';
+import { DomainError } from '@glidepath/core';
+import { type Db, planBudget, plans, type Tx } from '@glidepath/db';
 import { eq, sql } from 'drizzle-orm';
 import type { Engine } from './context.ts';
 import { authorizePlan, type PlanPrincipal } from './guards.ts';

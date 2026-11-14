@@ -9,7 +9,7 @@ import {
   UsdDecimal,
   usdToE6,
   utf8ToBytes,
-} from '@vsp/core';
+} from '@glidepath/core';
 import { z } from 'zod';
 
 /**

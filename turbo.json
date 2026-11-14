@@ -20,8 +20,8 @@
   "globalPassThroughEnv": [
     "DATABASE_URL",
     "DBOS_SYSTEM_DATABASE_URL",
-    "VSP_API",
-    "VSP_API_ORIGIN",
+    "GLIDEPATH_API",
+    "GLIDEPATH_API_ORIGIN",
     "DATA_DIR",
     "TMPDIR",
     "NODE_ENV",

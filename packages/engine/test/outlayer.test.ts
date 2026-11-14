@@ -1,4 +1,3 @@
-import { ed25519 } from '@noble/curves/ed25519.js';
 import {
   base58Encode,
   canonicalJson,
@@ -13,10 +12,11 @@ import {
   type SealedPlanInput,
   sealTo,
   signingBytes,
-} from '@vsp/core';
-import type { EnclaveHost } from '@vsp/enclave';
-import type { ChainPlan } from '@vsp/near';
-import type { QuoteResponse } from '@vsp/oneclick';
+} from '@glidepath/core';
+import type { EnclaveHost } from '@glidepath/enclave';
+import type { ChainPlan } from '@glidepath/near';
+import type { QuoteResponse } from '@glidepath/oneclick';
+import { ed25519 } from '@noble/curves/ed25519.js';
 import { beforeAll, describe, expect, it } from 'vitest';
 import {
   type HeldRecord,
@@ -62,7 +62,7 @@ const start = Date.parse('2027-01-15T08:00:00.000Z');
 const sealed: SealedPlanInput = {
   version: 1,
   token: { chain: 'near', address: 'acme.testnet', symbol: 'ACME', decimals: 6 },
-  beneficiary: { near_account: 'founder.testnet', asset: 'nep141:vusdc.testnet' },
+  beneficiary: { near_account: 'founder.testnet', asset: 'nep141:glidepath-usdc.testnet' },
   allocation: '1000000000',
   period_days: 1,
   max_sell_per_period_bps: 1000,
@@ -87,7 +87,7 @@ function chainPlan(commitment: string, status: ChainPlan['status'], nextSeq = 0)
     token_decimals: 6,
     quote_decimals: 6,
     beneficiary: { near_account: 'founder.testnet', evm_address: null },
-    proceeds_asset: 'nep141:vusdc.testnet',
+    proceeds_asset: 'nep141:glidepath-usdc.testnet',
     envelope: {
       period_ms: DAY,
       max_amount_per_period: '200000000',
@@ -103,7 +103,7 @@ function chainPlan(commitment: string, status: ChainPlan['status'], nextSeq = 0)
     created_at_ms: start - DAY,
     acked_at_ms: null,
     acked_by: null,
-    plan_account: '7.vsp-registry.testnet',
+    plan_account: '7.glidepath.testnet',
     evm_address: null,
     evm_nonce: 0,
     evm_sign_pending: false,
@@ -433,7 +433,7 @@ describe('the OutLayer enclave adapter', () => {
     expect(
       ed25519.verify(
         fromBase64(accepted.ack.signature),
-        signingBytes('vsp/ack/v1\n', accepted.ack.json),
+        signingBytes('glidepath/ack/v1\n', accepted.ack.json),
         parseNearKey(h.signingKey).bytes,
       ),
     ).toBe(true);

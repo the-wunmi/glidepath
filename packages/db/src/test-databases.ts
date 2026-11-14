@@ -9,8 +9,8 @@ export async function freshTestDatabase(suite: string): Promise<Record<string, s
   const envFile = new URL('../../../.env', import.meta.url).pathname;
   if (existsSync(envFile)) process.loadEnvFile(envFile);
   const base =
-    process.env.DATABASE_URL ?? 'postgres://salesplans:salesplans@localhost:5437/salesplans';
-  const name = `salesplans_test_${suite}`;
+    process.env.DATABASE_URL ?? 'postgres://glidepath:glidepath@localhost:5437/glidepath';
+  const name = `glidepath_test_${suite}`;
   const admin = new pg.Client({ connectionString: base });
   await admin.connect();
   try {

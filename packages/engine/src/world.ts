@@ -1,7 +1,6 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { secp256k1 } from '@noble/curves/secp256k1.js';
-import { nearSecpKey } from '@vsp/chainsig';
-import { base58Encode, bytesToHex, DomainError, hexToBytes, sha256Hex } from '@vsp/core';
+import { nearSecpKey } from '@glidepath/chainsig';
+import { base58Encode, bytesToHex, DomainError, hexToBytes, sha256Hex } from '@glidepath/core';
 import {
   activity,
   type Db,
@@ -13,9 +12,9 @@ import {
   trusts,
   trustTrades,
   world,
-} from '@vsp/db';
-import type { Enclave } from '@vsp/enclave';
-import { type EvmNode, startEvmNode } from '@vsp/evm';
+} from '@glidepath/db';
+import type { Enclave } from '@glidepath/enclave';
+import { type EvmNode, startEvmNode } from '@glidepath/evm';
 import {
   actions,
   KeyPair,
@@ -24,8 +23,9 @@ import {
   NearClient,
   startNearSandbox,
   teraToGas,
-} from '@vsp/near';
-import { simulatorPublicKey } from '@vsp/oneclick';
+} from '@glidepath/near';
+import { simulatorPublicKey } from '@glidepath/oneclick';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
 import { eq, like } from 'drizzle-orm';
 import type { Config } from './config.ts';
 import { defaultSimSettings } from './sim-settings.ts';

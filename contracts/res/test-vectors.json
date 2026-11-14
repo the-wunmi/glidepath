@@ -26,9 +26,9 @@
   "signed_execute": {
     "enclave_secret_seed_hex": "2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a",
     "enclave_public_key": "ed25519:2iXtA8oeZqUU5pofxK971TCEvFGfems2AcDRaZHKD2pQ",
-    "domain": "vsp/execute/v1\n",
+    "domain": "glidepath/execute/v1\n",
     "request_json": "{\"plan_id\":1,\"seq\":0,\"commitment\":\"1111111111111111111111111111111111111111111111111111111111111111\",\"action\":{\"type\":\"nep141_transfer\",\"receiver_id\":\"venue.test.near\",\"amount\":\"10000000000000000000\",\"register_receiver\":true},\"settlement\":{\"venue\":\"1click\",\"correlation_id\":\"quote-0001\",\"deposit_address\":\"venue.test.near\",\"min_amount_out\":\"15000000\",\"destination_asset\":\"nep141:usdc.near\",\"quote\":{\"signature\":\"ed25519:4CHVyRFEDRXMfJ9wzG8X4VTNjctVq9G73t7BAV5TAUhbbAyyaV7ikga7bio1Mdw6ymV4Ak2hYTpNYkQ6reAvnucD\",\"payload\":\"{\\\"amount\\\":\\\"10000000000000000000\\\",\\\"amountIn\\\":\\\"10000000000000000000\\\",\\\"amountInFormatted\\\":\\\"10.0\\\",\\\"amountInUsd\\\":\\\"15.200000000000\\\",\\\"amountOut\\\":\\\"15150000\\\",\\\"amountOutFormatted\\\":\\\"15.15\\\",\\\"amountOutUsd\\\":\\\"15.150000000000\\\",\\\"deadline\\\":\\\"2026-09-21T13:56:40.000Z\\\",\\\"depositAddress\\\":\\\"venue.test.near\\\",\\\"depositType\\\":\\\"ORIGIN_CHAIN\\\",\\\"destinationAsset\\\":\\\"nep141:usdc.near\\\",\\\"dry\\\":false,\\\"minAmountIn\\\":\\\"10000000000000000000\\\",\\\"minAmountOut\\\":\\\"15000000\\\",\\\"originAsset\\\":\\\"nep141:token.test.near\\\",\\\"recipient\\\":\\\"beneficiary.test.near\\\",\\\"recipientType\\\":\\\"DESTINATION_CHAIN\\\",\\\"refundFee\\\":\\\"0\\\",\\\"refundTo\\\":\\\"p1.registry.test.near\\\",\\\"refundType\\\":\\\"ORIGIN_CHAIN\\\",\\\"slippageTolerance\\\":100,\\\"swapType\\\":\\\"EXACT_INPUT\\\",\\\"timeEstimate\\\":20,\\\"timeWhenInactive\\\":\\\"2026-09-21T13:56:40.000Z\\\",\\\"timestamp\\\":\\\"2026-09-21T13:46:40.000Z\\\",\\\"withdrawFee\\\":\\\"0\\\"}\"}},\"compliance\":{\"within_period_budget\":true,\"within_tx_cap\":true,\"above_floor\":true,\"venue_allowed\":true,\"prices_agree\":true,\"schedule_ok\":true},\"issued_at_ms\":1789998400000,\"expires_at_ms\":1789999000000}",
-    "signature_base64": "YfFBkmPsNpIv8oN5DahFGfLzj6iHkF1oquKqf2a1YLx7Ub2fJsjurkiZehvu1rqfkeUHtsF78eXaqviUypM/BA=="
+    "signature_base64": "XRXRuzTau5CmjwuM1/QuZwALr65lxzHDFaqOtFMITYJwlmTwzTaV5HL0CvZwsx2RhYTNlHikRj3dQXuRw7XKDg=="
   },
   "quote": {
     "quote_signer_secret_seed_hex": "2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c",
@@ -47,7 +47,7 @@
     }
   },
   "nep141_action_hash": {
-    "ft_transfer_args": "{\"receiver_id\":\"venue.test.near\",\"amount\":\"10000000000000000000\",\"memo\":\"vsp/1/0\"}",
-    "sha256": "3920790dfe03184b20d3357ad041454fad431cc85bd9f87986cd36922f8e27ab"
+    "ft_transfer_args": "{\"receiver_id\":\"venue.test.near\",\"amount\":\"10000000000000000000\",\"memo\":\"glidepath/1/0\"}",
+    "sha256": "b45b2026fcd42f275dff23cf3f7253a203b0561775a0661c5f339f9a28792285"
   }
 }

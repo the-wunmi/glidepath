@@ -1,4 +1,4 @@
-import type { EnvelopeJson } from '@vsp/core';
+import type { EnvelopeJson } from '@glidepath/core';
 import { periodWords, tokens, usdE6 } from '@/lib/format';
 
 /**

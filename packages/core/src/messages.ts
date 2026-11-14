@@ -6,8 +6,8 @@ import type { EnvelopeJson } from './plan.ts';
  * DOMAIN ‖ the exact JSON string it receives, so no canonical form is needed: the bytes signed are
  * the bytes stored in the receipt, and anyone can re-check them from chain data alone.
  */
-export const ACK_DOMAIN = 'vsp/ack/v1\n';
-export const EXECUTE_DOMAIN = 'vsp/execute/v1\n';
+export const ACK_DOMAIN = 'glidepath/ack/v1\n';
+export const EXECUTE_DOMAIN = 'glidepath/execute/v1\n';
 
 /**
  * The registry refuses execute requests longer than this (MAX_EXECUTE_JSON_BYTES in execute.rs), so

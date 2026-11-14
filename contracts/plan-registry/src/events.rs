@@ -1,10 +1,10 @@
-//! NEP-297 events: `EVENT_JSON:{"standard":"vsp","version":"1.0.0","event":"<name>","data":[{...}]}`.
+//! NEP-297 events: `EVENT_JSON:{"standard":"glidepath","version":"1.0.0","event":"<name>","data":[{...}]}`.
 
 use near_sdk::env;
 use near_sdk::serde::Serialize;
 use near_sdk::serde_json::{self, Value};
 
-const EVENT_STANDARD: &str = "vsp";
+const EVENT_STANDARD: &str = "glidepath";
 const EVENT_VERSION: &str = "1.0.0";
 
 /// Field order is fixed so logs read `standard, version, event, data` like other NEP-297 emitters.

@@ -1,4 +1,3 @@
-import { ed25519, x25519 } from '@noble/curves/ed25519.js';
 import {
   bytesToHex,
   formatNearKey,
@@ -10,8 +9,9 @@ import {
   sha256Hex,
   signSimulatedQuote,
   stableStringify,
-} from '@vsp/core';
-import { deriveEnclaveKeys, type SealedStore } from '@vsp/enclave';
+} from '@glidepath/core';
+import { deriveEnclaveKeys, type SealedStore } from '@glidepath/enclave';
+import { ed25519, x25519 } from '@noble/curves/ed25519.js';
 import { describe, expect, it } from 'vitest';
 import { SimulatedTrustEnclave } from '../src/enclave.ts';
 import {

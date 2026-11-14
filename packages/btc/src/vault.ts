@@ -1,5 +1,5 @@
+import { derivePublicKey } from '@glidepath/chainsig';
 import { bytesToHex, hexToBytes } from '@noble/hashes/utils.js';
-import { derivePublicKey } from '@vsp/chainsig';
 import {
   bip143Sighash,
   DUST_SATS,

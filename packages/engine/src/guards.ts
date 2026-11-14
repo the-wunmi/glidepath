@@ -1,6 +1,6 @@
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
-import { DomainError, toBaseUnits } from '@vsp/core';
-import type { plans } from '@vsp/db';
+import { DomainError, toBaseUnits } from '@glidepath/core';
+import type { plans } from '@glidepath/db';
 import type { Engine } from './context.ts';
 
 /**

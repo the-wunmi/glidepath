@@ -25,9 +25,9 @@ fn derive(seed: &[u8; 32], info: &str) -> [u8; 32] {
 impl LocalKeys {
     pub fn from_seed(seed: [u8; 32]) -> Self {
         Self {
-            signing: SigningKey::from_bytes(&derive(&seed, "vsp/local/signing")),
-            seal: derive(&seed, "vsp/local/seal"),
-            boxing: derive(&seed, "vsp/local/box"),
+            signing: SigningKey::from_bytes(&derive(&seed, "glidepath/local/signing")),
+            seal: derive(&seed, "glidepath/local/seal"),
+            boxing: derive(&seed, "glidepath/local/box"),
         }
     }
 }

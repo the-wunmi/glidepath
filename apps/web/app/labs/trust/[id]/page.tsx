@@ -1,6 +1,6 @@
 'use client';
 
-import { formatAmount } from '@vsp/core';
+import { formatAmount } from '@glidepath/core';
 import {
   ATTESTATION_LABELS,
   type ChainTrustReceipt,
@@ -8,7 +8,7 @@ import {
   type TradeRequest,
   type TrustReceiptVerification,
   verifyTrustReceipt,
-} from '@vsp/trust';
+} from '@glidepath/trust';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useState } from 'react';

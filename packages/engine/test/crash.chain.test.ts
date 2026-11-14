@@ -1,7 +1,7 @@
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { createPool } from '@vsp/db';
-import { type ChainPlan, type ChainReceipt, NearClient } from '@vsp/near';
+import { createPool } from '@glidepath/db';
+import { type ChainPlan, type ChainReceipt, NearClient } from '@glidepath/near';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { type Config, clearDurableHistory, systemDatabaseUrl } from '../src/index.ts';
 import type { WorldConfig } from '../src/world.ts';
@@ -43,7 +43,7 @@ function run(op: string, crashAt?: string) {
   return new Promise<{ code: number | null; signal: NodeJS.Signals | null; out: string }>(
     (resolve) => {
       const child = spawn(TSX, [CHILD, op], {
-        env: { ...process.env, ...childEnv(), ...(crashAt ? { VSP_CRASH_AT: crashAt } : {}) },
+        env: { ...process.env, ...childEnv(), ...(crashAt ? { GLIDEPATH_CRASH_AT: crashAt } : {}) },
         stdio: ['ignore', 'pipe', 'pipe'],
       });
       let out = '';

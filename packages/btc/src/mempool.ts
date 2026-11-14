@@ -1,8 +1,9 @@
 import type { Utxo } from './vault.ts';
 
 /**
- * Reads and broadcasts through the mempool.space Esplora API for testnet4. Plain fetch, so it runs
- * in the browser (its CORS headers are unverified: not yet tried from a browser) and in Node.
+ * Reads and broadcasts through the mempool.space Esplora API for testnet4 (or another Esplora
+ * server for testnet4, such as blockstream.info's). Plain fetch, so it runs in the browser and in
+ * Node; mempool.space's own CORS headers are untried (it was unreachable from the build machine).
  */
 export const MEMPOOL_TESTNET4_API = 'https://mempool.space/testnet4/api';
 export const MEMPOOL_TESTNET4_WEB = 'https://mempool.space/testnet4';
@@ -63,6 +64,7 @@ export class MempoolClient {
   constructor(readonly baseUrl: string = MEMPOOL_TESTNET4_API) {}
 
   private async request(path: string, init?: RequestInit): Promise<Response> {
+    const host = new URL(this.baseUrl).host;
     let res: Response;
     try {
       res = await fetch(`${this.baseUrl}${path}`, {
@@ -72,14 +74,14 @@ export class MempoolClient {
     } catch (error) {
       throw new MempoolError(
         error instanceof DOMException && error.name === 'TimeoutError'
-          ? `mempool.space did not answer within ${TIMEOUT_MS / 1000} s`
-          : 'mempool.space is not reachable',
+          ? `${host} did not answer within ${TIMEOUT_MS / 1000} s`
+          : `${host} is not reachable`,
         null,
       );
     }
     if (!res.ok) {
       const text = (await res.text().catch(() => '')).slice(0, 300);
-      throw new MempoolError(text || `mempool.space answered ${res.status}`, res.status);
+      throw new MempoolError(text || `${host} answered ${res.status}`, res.status);
     }
     return res;
   }

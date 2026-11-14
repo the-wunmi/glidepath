@@ -1,4 +1,4 @@
-import { freshTestDatabase } from '@vsp/db/test-databases';
+import { freshTestDatabase } from '@glidepath/db/test-databases';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig(async () => ({

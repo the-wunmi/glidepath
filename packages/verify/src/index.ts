@@ -3,11 +3,11 @@
  * the chain, so the server cannot fake a check by asserting it. Limits, stated plainly: the bytes
  * arrive through an RPC endpoint (the app proxies one; point it at any NEAR node you trust), NEAR
  * view results are not light-client proofs, and the simulated enclave's TDX vendor key is simulated.
- * A live OutLayer enclave's TDX quote is checked against Intel's root in `tdx.ts`. The 1Click quote
+ * A live OutLayer enclave is checked in `outlayer.ts` (its TDX quote against Intel's root in
+ * `tdx.ts`, Intel's collateral, and its key proof); the caller passes those rows in. The 1Click quote
  * is checked in 1Click's own signature format against whichever key the registry holds.
  */
 
-import { ed25519 } from '@noble/curves/ed25519.js';
 import {
   erc20TransferTx,
   recoverSigner,
@@ -15,7 +15,7 @@ import {
   signedTx,
   unsignedTxHash,
   unsignedTxHex,
-} from '@vsp/chainsig';
+} from '@glidepath/chainsig';
 import {
   COMPLIANCE_LABELS,
   type Compliance,
@@ -38,8 +38,10 @@ import {
   signingBytes,
   utf8ToBytes,
   verifySimulatedQuote,
-} from '@vsp/core';
-import type { ChainEnclave, ChainPlan, ChainReceipt } from '@vsp/near';
+} from '@glidepath/core';
+import type { ChainEnclave, ChainPlan, ChainReceipt } from '@glidepath/near';
+import { ed25519 } from '@noble/curves/ed25519.js';
+import { checkState, type EnclaveCheck } from './outlayer.ts';
 
 export {
   KEY_PROOF_DOMAIN,
@@ -101,6 +103,14 @@ export interface ReceiptVerification {
 }
 
 /** Reads the verifier needs from chains, made by the caller (browser fetch to the RPC proxy). */
+/**
+ * The attestation of the build that signed a receipt: a simulated quote (checked here), or the
+ * rows of an OutLayer enclave's checks, already run (`checkOutlayerEnclave` in `./outlayer`).
+ */
+export type ReceiptAttestation =
+  | { quote: unknown; encryptionKeyHex: string }
+  | { outlayer: EnclaveCheck[] };
+
 export interface ChainReads {
   /** Null only when the chain has no such transaction; a read that fails throws. */
   evmTransaction?: (hash: Hex) => Promise<{ status: 'success' | 'reverted' } | null>;
@@ -123,13 +133,13 @@ const check = (id: string, label: string, ok: boolean, detail?: string): Check =
 
 /** The JSON the registry hashes for a NEP-141 sale: ft_transfer's exact arguments. */
 export const nep141ActionJson = (receiver: string, amount: string, planId: number, seq: number) =>
-  JSON.stringify({ receiver_id: receiver, amount, memo: `vsp/${planId}/${seq}` });
+  JSON.stringify({ receiver_id: receiver, amount, memo: `glidepath/${planId}/${seq}` });
 
 export async function verifyReceipt(
   receipt: ChainReceipt,
   plan: ChainPlan,
   enclaves: ChainEnclave[],
-  attestation: { quote: unknown; encryptionKeyHex: string } | null,
+  attestation: ReceiptAttestation | null,
   reads: ChainReads = {},
   quoteSigner: string | QuoteSignerEntry[] | null = null,
 ): Promise<ReceiptVerification> {
@@ -178,14 +188,26 @@ export async function verifyReceipt(
 
   // 3. The enclave's attestation binds that key to the registered measurements.
   let simulated = true;
-  if (enclave && attestation) {
-    const parsed = SimulatedQuote.safeParse(attestation.quote);
+  const outlayer = attestation && 'outlayer' in attestation ? attestation.outlayer : null;
+  const simulatedQuote = attestation && 'quote' in attestation ? attestation : null;
+  if (enclave && outlayer && outlayer.length > 0) {
+    // A live enclave's rows, already checked against this key's registry entry by the caller.
+    simulated = false;
+    for (const [i, c] of outlayer.entries())
+      checks.push({
+        id: `attestation-outlayer-${i}`,
+        label: c.label,
+        status: checkState(c),
+        ...(c.detail ? { detail: c.detail } : {}),
+      });
+  } else if (enclave && simulatedQuote) {
+    const parsed = SimulatedQuote.safeParse(simulatedQuote.quote);
     if (!parsed.success) {
       checks.push(fail('attestation', 'Attestation quote is well-formed'));
     } else {
       const result = verifySimulatedQuote(parsed.data, {
         signingKey: enclave.public_key,
-        encryptionKeyHex: attestation.encryptionKeyHex,
+        encryptionKeyHex: simulatedQuote.encryptionKeyHex,
         measurements: enclave.measurements,
         quoteHash: enclave.quote_hash,
       });

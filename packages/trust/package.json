@@ -1,5 +1,5 @@
 {
-  "name": "@vsp/trust",
+  "name": "@glidepath/trust",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -14,8 +14,8 @@
   "dependencies": {
     "@noble/curves": "^2.4.0",
     "@noble/hashes": "^2.4.0",
-    "@vsp/core": "workspace:*",
-    "@vsp/enclave": "workspace:*",
+    "@glidepath/core": "workspace:*",
+    "@glidepath/enclave": "workspace:*",
     "zod": "^4.6.7"
   }
 }

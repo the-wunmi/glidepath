@@ -11,7 +11,7 @@ const REPO_ROOT = fileURLToPath(new URL('../../../', import.meta.url));
 export const resolveDataDir = (dir: string): string =>
   isAbsolute(dir) ? dir : resolve(REPO_ROOT, dir);
 
-export const LOCAL_DATABASE_URL = 'postgres://salesplans:salesplans@localhost:5437/salesplans';
+export const LOCAL_DATABASE_URL = 'postgres://glidepath:glidepath@localhost:5437/glidepath';
 
 const Mode = z.enum(['mock', 'live']).default('mock');
 

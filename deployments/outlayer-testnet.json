@@ -3,21 +3,21 @@
   "contract": "outlayer.testnet",
   "api": "https://testnet-api.outlayer.ai",
   "workerRegistry": "worker.outlayer.testnet",
-  "caller": "zyx-dev.testnet",
+  "caller": "glidepath-relayer.zyx-dev.testnet",
   "wasm": {
-    "url": "https://test.fastfs.io/zyx-dev.testnet/outlayer.testnet/3c05714cf7f69fafa71fefe5da0f48ea2a78e0536d97c5c972a29d591d5c5484.wasm",
-    "sha256": "3c05714cf7f69fafa71fefe5da0f48ea2a78e0536d97c5c972a29d591d5c5484"
+    "url": "https://test.fastfs.io/glidepath-relayer.zyx-dev.testnet/outlayer.testnet/12e41121d76992fdc8298c1a653d70daf78a99627cb39410ef532c48af87ccdc.wasm",
+    "sha256": "12e41121d76992fdc8298c1a653d70daf78a99627cb39410ef532c48af87ccdc"
   },
-  "signingKey": "ed25519:J3prhAPX1LjN224RnkPiQpvmMjwH8Pq76USJf98WrRsa",
-  "encryptionKeyHex": "eceaef9d9c68216f29de6f3f2b2b56342047ea682766f217329f3fdacc143953",
+  "signingKey": "ed25519:49ewWYsETFRvQXCjYS9t6JNwFj74iKSwMiqKU7yFJQBU",
+  "encryptionKeyHex": "6cda84a881cb90d5948de0bd8d2d97d8f2633b5921b641d8f564d725b00dd452",
   "quoteSignerKey": "ed25519:B96gpqFD7DTxGLMSn7eWr6XTaVFg3Y9wdXWhZwqzQUB3",
   "keyProof": {
-    "txHash": "E8qHNakCNabwcBqHiGYJhtZtcpxmuSmzfCXKFYDDgYB8",
-    "json": "{\"caller\":\"zyx-dev.testnet\",\"encryption_key_hex\":\"eceaef9d9c68216f29de6f3f2b2b56342047ea682766f217329f3fdacc143953\",\"quote_signer_key\":\"ed25519:B96gpqFD7DTxGLMSn7eWr6XTaVFg3Y9wdXWhZwqzQUB3\",\"signing_key\":\"ed25519:J3prhAPX1LjN224RnkPiQpvmMjwH8Pq76USJf98WrRsa\",\"type\":\"key_proof\"}",
-    "signature": "qUAuLUcwdtQwR/NR0MeuNXItqVHOn+D3dlsYgA5bc7VI0wD8x2Y1xzufRy2WRIJ1N4CCpZUi44vrZjoYb0jLAQ=="
+    "txHash": "DbCE4nU9ytaDcr2s5CubQvwn7MTWZDWTC5fAqhDPkn45",
+    "json": "{\"caller\":\"glidepath-relayer.zyx-dev.testnet\",\"encryption_key_hex\":\"6cda84a881cb90d5948de0bd8d2d97d8f2633b5921b641d8f564d725b00dd452\",\"quote_signer_key\":\"ed25519:B96gpqFD7DTxGLMSn7eWr6XTaVFg3Y9wdXWhZwqzQUB3\",\"signing_key\":\"ed25519:49ewWYsETFRvQXCjYS9t6JNwFj74iKSwMiqKU7yFJQBU\",\"type\":\"key_proof\"}",
+    "signature": "e18T5LZZklAj3EsHYUcQuCbx7F+LvONMSpg1v0jwTs22vRr+nNbDdupo65Gfndc709bifzm6m+vwbCOU3z+vCw=="
   },
   "attestation": {
-    "url": "https://testnet-api.outlayer.ai/attestations/by-tx/E8qHNakCNabwcBqHiGYJhtZtcpxmuSmzfCXKFYDDgYB8",
+    "url": "https://testnet-api.outlayer.ai/attestations/by-tx/DbCE4nU9ytaDcr2s5CubQvwn7MTWZDWTC5fAqhDPkn45",
     "measurements": {
       "mrtd": "7fe60787222bd394cb516abca2435f22f035ab2cc9c0a4b4b3b148e46297f3d931a237b72f359052c6e657d8c1409173",
       "rtmr0": "573aadb4d478839c803c4b1d3e03dd748976b63a89622f377e32a54dd60546e88ec2097f595ceafc324f48a0d0d31db6",
@@ -25,101 +25,25 @@
       "rtmr2": "764489f277a8540189761e72b4238ba36d4d647e11bd958d8ab5522af2a4867b0ff63e06b0c4967f1857236244040a5d",
       "rtmr3": "528235764e42c8ec9bbd3d58543dddba5f2eb43f18ad580385bd03991bbeaded7fde1b0f24697a4506742a44a7f7b884"
     },
-    "quoteHash": "afb5c4f439803aa0cc4b19aa633f00b1a6bbbeab0324f841f9890b0f1993601b"
+    "quoteHash": "0cdd564f6b278304b37f0b8c278d134368193869c42854e3d6b84a06c67e1ee2"
   },
-  "registerTx": "8Fpthph8R8gCQMSy875nLUGnpXDr6S4xkT9BGnbdF4Rx",
-  "previous": [
-    {
-      "wasm": {
-        "url": "https://test.fastfs.io/zyx-dev.testnet/outlayer.testnet/c965f04a429ea67c773a62beb8d9083bdb0ac0b6bc24f47ebf8b455104ce199e.wasm",
-        "sha256": "c965f04a429ea67c773a62beb8d9083bdb0ac0b6bc24f47ebf8b455104ce199e"
-      },
-      "signingKey": "ed25519:FyBo8bQDnRQbEkzV29FxSCzKU7CmxaL2vEcHRkF9HXvq",
-      "encryptionKeyHex": "e7fa01e0fe84298625560e48ab2078d9f30d02bcfcebc3b3e9ffd5f17e22e555",
-      "keyProof": {
-        "txHash": "cxmt7H2q7p83PWaJzR1RWQij8VyhjbjGkkf3ZyZGnVo",
-        "json": "{\"caller\":\"zyx-dev.testnet\",\"encryption_key_hex\":\"e7fa01e0fe84298625560e48ab2078d9f30d02bcfcebc3b3e9ffd5f17e22e555\",\"quote_signer_key\":\"ed25519:B96gpqFD7DTxGLMSn7eWr6XTaVFg3Y9wdXWhZwqzQUB3\",\"signing_key\":\"ed25519:FyBo8bQDnRQbEkzV29FxSCzKU7CmxaL2vEcHRkF9HXvq\",\"type\":\"key_proof\"}",
-        "signature": "Kd7OEqKdkPq+ZJfhcxHGxtkUCF97gpS9recxCtgfzRfnDA7z+rLnA97bscnVWPmH1N4m8AhIYRAwUA98zKUuAw=="
-      },
-      "attestation": {
-        "url": "https://testnet-api.outlayer.ai/attestations/by-tx/cxmt7H2q7p83PWaJzR1RWQij8VyhjbjGkkf3ZyZGnVo",
-        "measurements": {
-          "mrtd": "7fe60787222bd394cb516abca2435f22f035ab2cc9c0a4b4b3b148e46297f3d931a237b72f359052c6e657d8c1409173",
-          "rtmr0": "573aadb4d478839c803c4b1d3e03dd748976b63a89622f377e32a54dd60546e88ec2097f595ceafc324f48a0d0d31db6",
-          "rtmr1": "e7b3ffa0e72b50557d85f7ecd8dc98a4ffc3dd6f82d01f122ef522d61361abeac310d70d2877e56be9c9408d9bcc320c",
-          "rtmr2": "764489f277a8540189761e72b4238ba36d4d647e11bd958d8ab5522af2a4867b0ff63e06b0c4967f1857236244040a5d",
-          "rtmr3": "528235764e42c8ec9bbd3d58543dddba5f2eb43f18ad580385bd03991bbeaded7fde1b0f24697a4506742a44a7f7b884"
-        },
-        "quoteHash": "8be14a5484dbf8d1332b0e7e0a42b1a4576eaaf90c038d31c224dbb7adadc2da"
-      },
-      "registerTx": "GLu7xiKnwGoXEsAEuigWcCPNrArW2r7vGM3cjFsBxbQy"
-    },
-    {
-      "wasm": {
-        "url": "https://test.fastfs.io/zyx-dev.testnet/outlayer.testnet/6c9aa4fc45b39385059948fd39e241f35dda628adad074cedd84c53d369bbe55.wasm",
-        "sha256": "6c9aa4fc45b39385059948fd39e241f35dda628adad074cedd84c53d369bbe55"
-      },
-      "signingKey": "ed25519:Cfon6NgcmWU27NKci8BD14PLgngnvSm6eRCygh6b6Wun",
-      "encryptionKeyHex": "b3539525fb1a78890a25d99bc5dec48003d93a0d9fcae247bc78cf84a551c03b",
-      "keyProof": {
-        "txHash": "ALWMv1FWK2uYxjw9vqJzvc1ZJnAx84M5SmA8CgKFTyEu",
-        "json": "{\"caller\":\"zyx-dev.testnet\",\"encryption_key_hex\":\"b3539525fb1a78890a25d99bc5dec48003d93a0d9fcae247bc78cf84a551c03b\",\"quote_signer_key\":\"ed25519:B96gpqFD7DTxGLMSn7eWr6XTaVFg3Y9wdXWhZwqzQUB3\",\"signing_key\":\"ed25519:Cfon6NgcmWU27NKci8BD14PLgngnvSm6eRCygh6b6Wun\",\"type\":\"key_proof\"}",
-        "signature": "C/JN77tmJJ7OP4ZIenszFUY4HxxNp+6h/4atCjdb58jNDnc4YoaLWVMPluN8V2kbZZ3T+s4rBpVyR/Uhp7MYAQ=="
-      },
-      "attestation": {
-        "url": "https://testnet-api.outlayer.ai/attestations/by-tx/ALWMv1FWK2uYxjw9vqJzvc1ZJnAx84M5SmA8CgKFTyEu",
-        "measurements": {
-          "mrtd": "7fe60787222bd394cb516abca2435f22f035ab2cc9c0a4b4b3b148e46297f3d931a237b72f359052c6e657d8c1409173",
-          "rtmr0": "573aadb4d478839c803c4b1d3e03dd748976b63a89622f377e32a54dd60546e88ec2097f595ceafc324f48a0d0d31db6",
-          "rtmr1": "e7b3ffa0e72b50557d85f7ecd8dc98a4ffc3dd6f82d01f122ef522d61361abeac310d70d2877e56be9c9408d9bcc320c",
-          "rtmr2": "764489f277a8540189761e72b4238ba36d4d647e11bd958d8ab5522af2a4867b0ff63e06b0c4967f1857236244040a5d",
-          "rtmr3": "d85416a5a567dd0313fd66c309f736ec608d1e0e0c246d069517a616bd3d01d6a6bef8f2f6467d239ce3754de16f99b6"
-        },
-        "quoteHash": "75d4495cc12d4f10d0bb65c2e0da559bc109b74bd9b7c1ca28629becba539f98"
-      },
-      "registerTx": "D7waW2Ene1A5biNKztFx79nBmmWLmoMbmbLzejLyNxfn"
-    },
-    {
-      "wasm": {
-        "url": "https://test.fastfs.io/zyx-dev.testnet/outlayer.testnet/bc84483901fa81fdd510bebcc98cd385a4dfc901f4dfb80a500d1b3beffd069c.wasm",
-        "sha256": "bc84483901fa81fdd510bebcc98cd385a4dfc901f4dfb80a500d1b3beffd069c"
-      },
-      "signingKey": "ed25519:5HrfcRs5fLyx3MGib9UoQqbrZGVqivQsvEKCCg5BbEY9",
-      "encryptionKeyHex": "39c4753e0cf27170a5c12a3b1cb196816d5428dc0db85396dfc78fdbb6abc776",
-      "keyProof": {
-        "txHash": "3XV6BodWG598prmcFVENFmSFi7EmfffSJyTy3rpmeh9e",
-        "json": "{\"caller\":\"zyx-dev.testnet\",\"encryption_key_hex\":\"39c4753e0cf27170a5c12a3b1cb196816d5428dc0db85396dfc78fdbb6abc776\",\"quote_signer_key\":\"ed25519:B96gpqFD7DTxGLMSn7eWr6XTaVFg3Y9wdXWhZwqzQUB3\",\"signing_key\":\"ed25519:5HrfcRs5fLyx3MGib9UoQqbrZGVqivQsvEKCCg5BbEY9\",\"type\":\"key_proof\"}",
-        "signature": "KecZZeGXoks0y+6aEtDLNkxtIbD5dV8JX1vgaJIId4jGVwk9dqgMro+dGbMa2dzGc3ncCgAH0MEbaazmx72vAg=="
-      },
-      "attestation": {
-        "url": "https://testnet-api.outlayer.ai/attestations/by-tx/3XV6BodWG598prmcFVENFmSFi7EmfffSJyTy3rpmeh9e",
-        "measurements": {
-          "mrtd": "7fe60787222bd394cb516abca2435f22f035ab2cc9c0a4b4b3b148e46297f3d931a237b72f359052c6e657d8c1409173",
-          "rtmr0": "573aadb4d478839c803c4b1d3e03dd748976b63a89622f377e32a54dd60546e88ec2097f595ceafc324f48a0d0d31db6",
-          "rtmr1": "e7b3ffa0e72b50557d85f7ecd8dc98a4ffc3dd6f82d01f122ef522d61361abeac310d70d2877e56be9c9408d9bcc320c",
-          "rtmr2": "764489f277a8540189761e72b4238ba36d4d647e11bd958d8ab5522af2a4867b0ff63e06b0c4967f1857236244040a5d",
-          "rtmr3": "528235764e42c8ec9bbd3d58543dddba5f2eb43f18ad580385bd03991bbeaded7fde1b0f24697a4506742a44a7f7b884"
-        },
-        "quoteHash": "f594c8820a0fa459d7cb92f71dd910bde9b77e6b3242c9874dce25540c8ffc3e"
-      },
-      "registerTx": "Fya1hSLGUcH9gbHHdBivdfrmg7W1kL9DLQQzUzRSdTRg"
-    }
-  ],
+  "registerTx": "Fb6JURGNxQCwMj923UuRPv59fyeUoveHjSLj636vHFDk",
+  "previous": [],
   "backups": [
     {
       "wasm": {
-        "url": "https://test.fastfs.io/zyx-dev.testnet/outlayer.testnet/d5d6c4d2dfd3a38f411cc9ce295a7fbdf24a6e286b4c6654aa49ce85a43fdf81.wasm",
-        "sha256": "d5d6c4d2dfd3a38f411cc9ce295a7fbdf24a6e286b4c6654aa49ce85a43fdf81"
+        "url": "https://test.fastfs.io/glidepath-relayer.zyx-dev.testnet/outlayer.testnet/7128e9fb91384950694694abcdaa0ae01b5b564943462f701e2cfbcbb73ef6fc.wasm",
+        "sha256": "7128e9fb91384950694694abcdaa0ae01b5b564943462f701e2cfbcbb73ef6fc"
       },
-      "signingKey": "ed25519:8pfjqtygTNbuEDo99SkYUk7HcZdXbCMfKfE9PuZngmQo",
-      "encryptionKeyHex": "a8d9a5bc9edf1aff131fde7c6c6a7c5c90f7b956c303695d51bee997dab81107",
+      "signingKey": "ed25519:Gg1ckTi8yQKjtCs2d5hPzVCnvwr4DVS4E9j19SVhiEX5",
+      "encryptionKeyHex": "280f3ec7fdc66daeb3bf4b0482ee896d85749a97bdf54a06863a4d7047861005",
       "keyProof": {
-        "txHash": "BTff4y1pw1CZdhpGvQZPCQCPTYMKqyfFp4rWJyeYqSLw",
-        "json": "{\"caller\":\"zyx-dev.testnet\",\"encryption_key_hex\":\"a8d9a5bc9edf1aff131fde7c6c6a7c5c90f7b956c303695d51bee997dab81107\",\"quote_signer_key\":\"ed25519:B96gpqFD7DTxGLMSn7eWr6XTaVFg3Y9wdXWhZwqzQUB3\",\"signing_key\":\"ed25519:8pfjqtygTNbuEDo99SkYUk7HcZdXbCMfKfE9PuZngmQo\",\"type\":\"key_proof\"}",
-        "signature": "yLevAGmS71J36riaP/9O0CjFgUtQG9v2jarH4IzWvAH/FGa5DIYB0Nvt+u8hUULqAemAv8zNyhger6DqOF2WDA=="
+        "txHash": "7jSjkD7mS3jjbPhNNQkDZxpiz6tMGAxgTy8GV9YjHtRY",
+        "json": "{\"caller\":\"glidepath-relayer.zyx-dev.testnet\",\"encryption_key_hex\":\"280f3ec7fdc66daeb3bf4b0482ee896d85749a97bdf54a06863a4d7047861005\",\"quote_signer_key\":\"ed25519:B96gpqFD7DTxGLMSn7eWr6XTaVFg3Y9wdXWhZwqzQUB3\",\"signing_key\":\"ed25519:Gg1ckTi8yQKjtCs2d5hPzVCnvwr4DVS4E9j19SVhiEX5\",\"type\":\"key_proof\"}",
+        "signature": "OG7KHhkYoiERiDo+DskRb9GnyTPjbadZeeHYGkty5UF0n1f/WdHLZUqiMWcZ+/YhlE0v+RKqhBHa0Pej+fFOCA=="
       },
       "attestation": {
-        "url": "https://testnet-api.outlayer.ai/attestations/by-tx/BTff4y1pw1CZdhpGvQZPCQCPTYMKqyfFp4rWJyeYqSLw",
+        "url": "https://testnet-api.outlayer.ai/attestations/by-tx/7jSjkD7mS3jjbPhNNQkDZxpiz6tMGAxgTy8GV9YjHtRY",
         "measurements": {
           "mrtd": "7fe60787222bd394cb516abca2435f22f035ab2cc9c0a4b4b3b148e46297f3d931a237b72f359052c6e657d8c1409173",
           "rtmr0": "573aadb4d478839c803c4b1d3e03dd748976b63a89622f377e32a54dd60546e88ec2097f595ceafc324f48a0d0d31db6",
@@ -127,9 +51,9 @@
           "rtmr2": "764489f277a8540189761e72b4238ba36d4d647e11bd958d8ab5522af2a4867b0ff63e06b0c4967f1857236244040a5d",
           "rtmr3": "d85416a5a567dd0313fd66c309f736ec608d1e0e0c246d069517a616bd3d01d6a6bef8f2f6467d239ce3754de16f99b6"
         },
-        "quoteHash": "cc9e48ec191b2c937b22a89fa786245d7663f04ef30f380f97f1e38a418403e0"
+        "quoteHash": "d46460c444561645d617d6d397629dd25c07aaf73594bdef3286f6446cad50f1"
       },
-      "registerTx": "2avepJrH9otYnLNMVwerXjaVYGSvcPbJW7reaKDYmNiG"
+      "registerTx": "GGRF2ijzMqFFUA6MitpQry8WEMkLrCWQUBux9dnnp2hX"
     }
   ]
 }

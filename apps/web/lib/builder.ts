@@ -6,7 +6,7 @@ import {
   SealedPlan,
   type SealedPlanInput,
   toBaseUnits,
-} from '@vsp/core';
+} from '@glidepath/core';
 import { DAY_MS } from './format';
 
 /** Everything the founder types, as typed. Converted to base units only when it parses. */

@@ -1,7 +1,7 @@
-import { DomainError } from '@vsp/core';
-import { activity, executions, plans } from '@vsp/db';
-import type { EnclaveIdentity } from '@vsp/enclave';
-import type { ChainEnclave, ChainPlan, RegistryConfig } from '@vsp/near';
+import { DomainError } from '@glidepath/core';
+import { activity, executions, plans } from '@glidepath/db';
+import type { EnclaveIdentity } from '@glidepath/enclave';
+import type { ChainEnclave, ChainPlan, RegistryConfig } from '@glidepath/near';
 import { and, desc, eq, lt } from 'drizzle-orm';
 import { erc20Abi, type Hex } from 'viem';
 import { livePricePairs } from './config.ts';

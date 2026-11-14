@@ -10,7 +10,7 @@
  *                                  # global contract (~17 NEAR burnt) so NEAR-token launches
  *                                  # reference it; without --confirm it only prints the cost
  *
- * Steps: create the stand-in USDC `vusdc.<deployer>` unless DEPLOY_PROCEEDS_ASSET names another,
+ * Steps: create the stand-in USDC `glidepath-usdc.<deployer>` unless DEPLOY_PROCEEDS_ASSET names another,
  * create <name>.<deployer> with the registry code, initialise it with the deployer as governance,
  * publish the plan-account code as a global contract, allowlist the proceeds asset, register this
  * machine's simulated enclave and the 1Click simulator's quote key (1Click has no testnet), then
@@ -19,9 +19,8 @@
  */
 import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { secp256k1 } from '@noble/curves/secp256k1.js';
-import { nearSecpKey } from '@vsp/chainsig';
-import { base58Encode } from '@vsp/core';
+import { nearSecpKey } from '@glidepath/chainsig';
+import { base58Encode } from '@glidepath/core';
 import {
   actions,
   KeyPair,
@@ -29,7 +28,8 @@ import {
   NearClient,
   startNearSandbox,
   teraToGas,
-} from '@vsp/near';
+} from '@glidepath/near';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
 import { z } from 'zod';
 
 const NEAR = 10n ** 24n;
@@ -53,7 +53,7 @@ const Env = z.object({
   DEPLOY_REGISTRY_NAME: z
     .string()
     .regex(/^[a-z0-9-]{2,32}$/)
-    .default('vsp-registry'),
+    .default('glidepath'),
   /** Real Chain Signatures signer on testnet. */
   DEPLOY_SIGNER_ACCOUNT_ID: z.string().default('v1.signer-prod.testnet'),
   /**
@@ -62,7 +62,7 @@ const Env = z.object({
    * the app says so.
    */
   DEPLOY_MIN_COOLING_OFF_MS: z.coerce.number().int().min(60_000).default(600_000),
-  /** Empty: deploy the stand-in `vusdc.<deployer>` (no real USDC on testnet can be minted to). */
+  /** Empty: deploy the stand-in `glidepath-usdc.<deployer>` (no real USDC on testnet can be minted to). */
   DEPLOY_PROCEEDS_ASSET: z.string().optional(),
   DEPLOY_PROCEEDS_DECIMALS: z.coerce.number().int().min(0).max(24).default(6),
   DEPLOY_REGISTRY_FUNDING_NEAR: z.coerce.bigint().default(5n),
@@ -98,7 +98,7 @@ async function deploy(env: Env, network: string) {
   const tokenWasm = wasm('demo_token');
   // A token account needs its code's storage (1 byte = 10^19 yocto) and a little for balances.
   const tokenFunding = BigInt(tokenWasm.length) * 10n ** 19n + NEAR / 5n;
-  const usdcId = `vusdc.${env.DEPLOY_ACCOUNT_ID}`;
+  const usdcId = `glidepath-usdc.${env.DEPLOY_ACCOUNT_ID}`;
   const proceedsAsset = env.DEPLOY_PROCEEDS_ASSET ?? `nep141:${usdcId}`;
   const createUsdc = !env.DEPLOY_PROCEEDS_ASSET && !(await near.accountExists(usdcId));
   const required =
@@ -361,9 +361,9 @@ async function rehearseLocally() {
  * quote key, so the testnet registry knows exactly the keys the app runs with.
  */
 async function localKeys() {
-  const { createDb, createPool } = await import('@vsp/db');
+  const { createDb, createPool } = await import('@glidepath/db');
   const { identityOnlyEnclave, loadConfig, oneclickSimSecret, simulatorQuoteKey } = await import(
-    '@vsp/engine'
+    '@glidepath/engine'
   );
   const config = loadConfig();
   const pool = createPool(config.DATABASE_URL);
@@ -462,8 +462,17 @@ async function main() {
     const env = Env.parse(stripEmpty(process.env));
     return publishDemoToken(env, 'testnet', process.argv.includes('--confirm'));
   }
-  const env = Env.parse({ ...(await localKeys()), ...stripEmpty(process.env) });
+  // The registry trusts only enclaves that prove themselves on OutLayer (`pnpm outlayer:enclave`),
+  // so a new deployment takes just the 1Click simulator's quote key from this machine.
+  const { DEPLOY_QUOTE_SIGNER_KEY } = await quoteKeyOnly();
+  const env = Env.parse({ DEPLOY_QUOTE_SIGNER_KEY, ...stripEmpty(process.env) });
   await deploy(env, 'testnet');
+}
+
+/** The 1Click simulator's quote key (no database needed). */
+async function quoteKeyOnly() {
+  const { loadConfig, oneclickSimSecret, simulatorQuoteKey } = await import('@glidepath/engine');
+  return { DEPLOY_QUOTE_SIGNER_KEY: simulatorQuoteKey(oneclickSimSecret(loadConfig().DATA_DIR)) };
 }
 
 /** `.env` lines left empty mean "use the default", not "use the empty string". */

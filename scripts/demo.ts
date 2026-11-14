@@ -4,7 +4,7 @@
  * It creates and seals a NEAR plan and an EVM plan, launches each token with the team allocation
  * minted into the plan, tries to cheat, waits for the enclave to sell, and prints the receipts.
  */
-import type { Envelope, SealedPlanInput } from '@vsp/core';
+import type { Envelope, SealedPlanInput } from '@glidepath/core';
 import { api, envelopeBody, type Meta, sealPlan, tokens, waitFor } from './lib/api.ts';
 
 const DAY = 86_400_000;

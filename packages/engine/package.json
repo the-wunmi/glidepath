@@ -1,5 +1,5 @@
 {
-  "name": "@vsp/engine",
+  "name": "@glidepath/engine",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -8,22 +8,23 @@
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "test:chain": "vitest run -c vitest.chain.config.ts"
   },
   "dependencies": {
     "@dbos-inc/dbos-sdk": "5.3.0",
     "@dbos-inc/drizzle-datasource": "5.3.0",
     "@noble/curves": "^2.4.0",
-    "@vsp/chainsig": "workspace:*",
-    "@vsp/core": "workspace:*",
-    "@vsp/db": "workspace:*",
-    "@vsp/enclave": "workspace:*",
-    "@vsp/evm": "workspace:*",
-    "@vsp/near": "workspace:*",
-    "@vsp/oneclick": "workspace:*",
-    "@vsp/planner": "workspace:*",
-    "@vsp/prices": "workspace:*",
-    "@vsp/trust": "workspace:*",
+    "@glidepath/chainsig": "workspace:*",
+    "@glidepath/core": "workspace:*",
+    "@glidepath/db": "workspace:*",
+    "@glidepath/enclave": "workspace:*",
+    "@glidepath/evm": "workspace:*",
+    "@glidepath/near": "workspace:*",
+    "@glidepath/oneclick": "workspace:*",
+    "@glidepath/planner": "workspace:*",
+    "@glidepath/prices": "workspace:*",
+    "@glidepath/trust": "workspace:*",
     "drizzle-orm": "^0.45.4",
     "pg": "^8.23.1",
     "viem": "^2.57.17",
@@ -32,7 +33,7 @@
   "devDependencies": {
     "@hono/node-server": "^2.1.5",
     "@types/pg": "^8.23.1",
-    "@vsp/verify": "workspace:*",
+    "@glidepath/verify": "workspace:*",
     "hono": "^4.13.17"
   }
 }

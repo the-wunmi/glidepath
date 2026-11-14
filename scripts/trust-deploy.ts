@@ -7,7 +7,8 @@
  *   pnpm trust:deploy --confirm         # deploy
  *   pnpm trust:deploy --tokens --confirm   # also the five demo tokens a trust holds
  *   pnpm trust:deploy --local           # rehearse every step on a throwaway local sandbox
- *   pnpm trust:deploy --outlayer        # register the current OutLayer build's key instead
+ *   pnpm trust:deploy --outlayer        # register the current OutLayer build's key (and its
+ *                                       # backups') instead
  *
  * Steps: create <TRUST_CONTRACT_NAME>.<deployer> with the contract, initialise it with the deployer
  * as governance and the plan-account code the registry already published as a global contract
@@ -18,12 +19,11 @@
  * spends, the deployer must keep DEPLOY_MIN_BALANCE_NEAR. Writes deployments/trust-<network>.json.
  *
  * The enclave key: TRUST_ENCLAVE_PUBLIC_KEY / _MEASUREMENTS / _QUOTE_HASH if set; with --outlayer
- * the current OutLayer build in deployments/outlayer-testnet.json; otherwise this machine's
- * simulated enclave, the key the API's simulated trust enclave signs with (as `deploy:testnet`
- * registers it for plans). The current OutLayer build (`3c0571…`, published 2026-11-14) carries the
- * trust operations (trust_accept, trust_tick, trust_trade); running a trust on OutLayer needs that
- * build's key registered here, and the engine wired to `ModuleTrustEnclave` with an OutLayer runner (it takes any
- * `OutLayerRunner`; the tests run it on the local module).
+ * the current OutLayer build in deployments/outlayer-testnet.json and its backups; otherwise this
+ * machine's simulated enclave, the key the API's simulated trust enclave signs with (as
+ * `deploy:testnet` registers it for plans). The current OutLayer build (`3c0571…`, published
+ * 2026-11-14) carries the trust operations (trust_accept, trust_tick, trust_trade); an API started
+ * with ENCLAVE_BACKEND=outlayer runs trusts on it.
  */
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -34,9 +34,11 @@ import {
   NearClient,
   startNearSandbox,
   teraToGas,
-} from '@vsp/near';
+} from '@glidepath/near';
 import { z } from 'zod';
 
+/** The demo tokens' account prefix; each deployment's tokens belong to its own relayer. */
+const TOKEN_PREFIX = 'glidepath-labs-';
 const NEAR = 10n ** 24n;
 const wasm = (name: string) =>
   new Uint8Array(readFileSync(new URL(`../contracts/res/${name}.wasm`, import.meta.url)));
@@ -59,7 +61,7 @@ const Env = z.object({
   TRUST_CONTRACT_NAME: z
     .string()
     .regex(/^[a-z0-9-]{2,32}$/)
-    .default('vsp-trust'),
+    .default('glidepath-trust'),
   /** The contract's minimum cooling-off and its keys' activation delay, as the registry's. */
   DEPLOY_MIN_COOLING_OFF_MS: z.coerce.number().int().min(60_000).default(600_000),
   /** The contract stores its code (about 3.1 NEAR at 311 KB) plus room for trusts' storage. */
@@ -90,15 +92,22 @@ interface Inputs {
   accountCodeHash: string;
   quoteSigner: string;
   demoTokenHash: string | null;
-  enclave: { publicKey: string; measurements: z.output<typeof Measurements>; quoteHash: string };
+  enclave: EnclaveEntry;
+  /** More keys to allowlist: the OutLayer backup builds, which stand in when the main one fails. */
+  backups?: EnclaveEntry[];
 }
+type EnclaveEntry = {
+  publicKey: string;
+  measurements: z.output<typeof Measurements>;
+  quoteHash: string;
+};
 
 const step = (s: string) => console.log(`▸ ${s}`);
 
 /** This machine's simulated enclave: the key the API's simulated trust enclave signs with. */
 async function simulatedEnclave(): Promise<Inputs['enclave']> {
-  const { createDb, createPool } = await import('@vsp/db');
-  const { identityOnlyEnclave, loadConfig } = await import('@vsp/engine');
+  const { createDb, createPool } = await import('@glidepath/db');
+  const { identityOnlyEnclave, loadConfig } = await import('@glidepath/engine');
   const config = loadConfig();
   const pool = createPool(config.DATABASE_URL);
   try {
@@ -113,20 +122,26 @@ async function simulatedEnclave(): Promise<Inputs['enclave']> {
   }
 }
 
-/** The current OutLayer build (deployments/outlayer-testnet.json). */
-function outlayerEnclave(): Inputs['enclave'] {
-  const outlayer = JSON.parse(readFileSync(deployments('outlayer-testnet.json'), 'utf8')) as {
-    signingKey: string;
-    attestation: { measurements: z.input<typeof Measurements>; quoteHash: string };
-  };
+interface PublishedBuild {
+  signingKey: string;
+  attestation: { measurements: z.input<typeof Measurements>; quoteHash: string };
+}
+
+const buildEntry = (b: PublishedBuild): EnclaveEntry => ({
+  publicKey: b.signingKey,
+  measurements: Measurements.parse(b.attestation.measurements),
+  quoteHash: b.attestation.quoteHash,
+});
+
+/** The current OutLayer build and its backups (deployments/outlayer-testnet.json). */
+function outlayerEnclaves(): { main: EnclaveEntry; backups: EnclaveEntry[] } {
+  const outlayer = JSON.parse(
+    readFileSync(deployments('outlayer-testnet.json'), 'utf8'),
+  ) as PublishedBuild & { backups?: PublishedBuild[] };
   console.log(
     '  note: only builds published from 2026-11-14 on (3c0571… and later) carry the trust operations; an older current build can never trade',
   );
-  return {
-    publicKey: outlayer.signingKey,
-    measurements: Measurements.parse(outlayer.attestation.measurements),
-    quoteHash: outlayer.attestation.quoteHash,
-  };
+  return { main: buildEntry(outlayer), backups: (outlayer.backups ?? []).map(buildEntry) };
 }
 
 /** What a testnet deployment builds on: the registry's record and an enclave key. */
@@ -137,6 +152,7 @@ async function testnetInputs(env: Env, useOutlayer: boolean): Promise<Inputs> {
     demo_token_global_hash?: string;
   };
   if (!registry.quote_signer) throw new Error('deployments/testnet.json has no quote signer');
+  const outlayer = useOutlayer && !env.TRUST_ENCLAVE_PUBLIC_KEY ? outlayerEnclaves() : null;
   const enclave =
     env.TRUST_ENCLAVE_PUBLIC_KEY && env.TRUST_ENCLAVE_MEASUREMENTS && env.TRUST_ENCLAVE_QUOTE_HASH
       ? {
@@ -144,14 +160,13 @@ async function testnetInputs(env: Env, useOutlayer: boolean): Promise<Inputs> {
           measurements: Measurements.parse(JSON.parse(env.TRUST_ENCLAVE_MEASUREMENTS)),
           quoteHash: env.TRUST_ENCLAVE_QUOTE_HASH,
         }
-      : useOutlayer
-        ? outlayerEnclave()
-        : await simulatedEnclave();
+      : (outlayer?.main ?? (await simulatedEnclave()));
   return {
     accountCodeHash: registry.plan_account_code_hash,
     quoteSigner: registry.quote_signer,
     demoTokenHash: registry.demo_token_global_hash ?? null,
     enclave,
+    backups: outlayer?.backups ?? [],
   };
 }
 
@@ -171,8 +186,13 @@ async function deploy(
       '--tokens needs the demo token published first: pnpm deploy:testnet --publish-demo-token --confirm',
     );
   const funding = env.TRUST_CONTRACT_FUNDING_NEAR * NEAR;
-  // Registrations and fees: two 0.1 NEAR storage deposits and gas, rounded up.
-  const required = funding + NEAR / 2n + (opts.tokens ? TOKEN_FUNDING * BigInt(TOKENS.length) : 0n);
+  const enclaves = [inputs.enclave, ...(inputs.backups ?? [])];
+  // Registrations and fees: a 0.1 NEAR storage deposit per enclave key and gas, rounded up.
+  const required =
+    funding +
+    NEAR / 2n +
+    (NEAR / 10n) * BigInt(enclaves.length - 1) +
+    (opts.tokens ? TOKEN_FUNDING * BigInt(TOKENS.length) : 0n);
   const floor = BigInt(Math.round(env.DEPLOY_MIN_BALANCE_NEAR * 1000)) * (NEAR / 1000n);
   const near3 = (y: bigint) => (Number(y / (NEAR / 1000n)) / 1000).toFixed(3);
   /** Refuses a step that would leave the deployer under the floor. */
@@ -194,80 +214,84 @@ async function deploy(
   step(`Checking ${env.DEPLOY_ACCOUNT_ID} on ${network}`);
   const balance = await guard('The whole deployment', required);
   console.log(`  balance ${near3(balance)} NEAR; this deployment needs about ${near3(required)}`);
-  if (await near.accountExists(contract))
+  // `--resume` finishes a deployment whose contract is already up and keyless (for example after
+  // a token step failed); everything before the tokens is then skipped.
+  const resume = process.argv.includes('--resume');
+  if ((await near.accountExists(contract)) && !resume)
     throw new Error(`${contract} already exists; choose another TRUST_CONTRACT_NAME`);
-  const plan = [
-    `create ${contract} with blind_trust.wasm (${code.length} bytes) and ${near3(funding)} NEAR`,
-    `new(governance ${env.DEPLOY_ACCOUNT_ID}, cooling-off ${env.DEPLOY_MIN_COOLING_OFF_MS} ms, trust account code ${inputs.accountCodeHash})`,
-    `register_enclave ${inputs.enclave.publicKey}`,
-    `set_quote_signer ${inputs.quoteSigner}`,
-    `delete ${contract}'s key and check it has none`,
-    ...(opts.tokens
-      ? TOKENS.map(
-          (t) =>
-            `create labs-${t.symbol.toLowerCase()}.${env.DEPLOY_ACCOUNT_ID} (${t.symbol}, owner ${tokenOwner})`,
-        )
-      : []),
-  ];
-  for (const p of plan) console.log(`  · ${p}`);
-  if (!opts.confirm) {
-    console.log('\nDry run: nothing sent. Rerun with --confirm to deploy.');
-    return;
-  }
+  if (resume && (await near.accessKeyCount(contract)) !== 0)
+    throw new Error(`${contract} still has keys; it was not finished, so it cannot be resumed`);
+  if (!resume) {
+    const plan = [
+      `create ${contract} with blind_trust.wasm (${code.length} bytes) and ${near3(funding)} NEAR`,
+      `new(governance ${env.DEPLOY_ACCOUNT_ID}, cooling-off ${env.DEPLOY_MIN_COOLING_OFF_MS} ms, trust account code ${inputs.accountCodeHash})`,
+      ...enclaves.map((x) => `register_enclave ${x.publicKey}`),
+      `set_quote_signer ${inputs.quoteSigner}`,
+      `delete ${contract}'s key and check it has none`,
+      ...(opts.tokens
+        ? TOKENS.map(
+            (t) =>
+              `create ${TOKEN_PREFIX}${t.symbol.toLowerCase()}.${env.DEPLOY_ACCOUNT_ID} (${t.symbol}, owner ${tokenOwner})`,
+          )
+        : []),
+    ];
+    for (const p of plan) console.log(`  · ${p}`);
+    if (!opts.confirm) {
+      console.log('\nDry run: nothing sent. Rerun with --confirm to deploy.');
+      return;
+    }
 
-  step(`Creating ${contract}`);
-  await guard('Creating the contract', funding);
-  const key = KeyPair.fromRandom('ed25519');
-  await must(
-    'create and deploy',
-    near.send(deployer, contract, [
-      actions.createAccount(),
-      actions.transfer(funding),
-      actions.addFullAccessKey(key.getPublicKey()),
-      actions.deployContract(code),
-      actions.functionCall(
-        'new',
-        {
-          governance: env.DEPLOY_ACCOUNT_ID,
-          min_cooling_off_ms: env.DEPLOY_MIN_COOLING_OFF_MS,
-          enclave_activation_delay_ms: env.DEPLOY_MIN_COOLING_OFF_MS,
-          account_code_hash: inputs.accountCodeHash,
-        },
-        teraToGas(50),
-        0n,
-      ),
-    ]),
-  );
-  step('Registering the enclave key and the quote key (active after the public delay)');
-  await must(
-    'register_enclave',
-    near.call(
-      deployer,
-      contract,
-      'register_enclave',
-      {
-        public_key: inputs.enclave.publicKey,
-        measurements: inputs.enclave.measurements,
-        quote_hash: inputs.enclave.quoteHash,
-      },
-      { deposit: NEAR / 10n },
-    ),
-  );
-  await must(
-    'set_quote_signer',
-    near.call(deployer, contract, 'set_quote_signer', { public_key: inputs.quoteSigner }),
-  );
-  step('Deleting the contract’s key');
-  const self = near.account(contract, key.toString() as KeyPairString);
-  await must('delete key', near.send(self, contract, [actions.deleteKey(key.getPublicKey())]));
-  const keys = await near.accessKeyCount(contract);
-  if (keys !== 0) throw new Error(`${contract} still has ${keys} keys`);
-  console.log('  ✓ the contract has no keys');
+    step(`Creating ${contract}`);
+    await guard('Creating the contract', funding);
+    const key = KeyPair.fromRandom('ed25519');
+    await must(
+      'create and deploy',
+      near.send(deployer, contract, [
+        actions.createAccount(),
+        actions.transfer(funding),
+        actions.addFullAccessKey(key.getPublicKey()),
+        actions.deployContract(code),
+        actions.functionCall(
+          'new',
+          {
+            governance: env.DEPLOY_ACCOUNT_ID,
+            min_cooling_off_ms: env.DEPLOY_MIN_COOLING_OFF_MS,
+            enclave_activation_delay_ms: env.DEPLOY_MIN_COOLING_OFF_MS,
+            account_code_hash: inputs.accountCodeHash,
+          },
+          teraToGas(50),
+          0n,
+        ),
+      ]),
+    );
+    step('Registering the enclave keys and the quote key (active after the public delay)');
+    for (const x of enclaves)
+      await must(
+        `register_enclave ${x.publicKey}`,
+        near.call(
+          deployer,
+          contract,
+          'register_enclave',
+          { public_key: x.publicKey, measurements: x.measurements, quote_hash: x.quoteHash },
+          { deposit: NEAR / 10n },
+        ),
+      );
+    await must(
+      'set_quote_signer',
+      near.call(deployer, contract, 'set_quote_signer', { public_key: inputs.quoteSigner }),
+    );
+    step('Deleting the contract’s key');
+    const self = near.account(contract, key.toString() as KeyPairString);
+    await must('delete key', near.send(self, contract, [actions.deleteKey(key.getPublicKey())]));
+    const keys = await near.accessKeyCount(contract);
+    if (keys !== 0) throw new Error(`${contract} still has ${keys} keys`);
+    console.log('  ✓ the contract has no keys');
+  }
 
   const tokens = [];
   if (opts.tokens && inputs.demoTokenHash) {
     for (const t of TOKENS) {
-      const account = `labs-${t.symbol.toLowerCase()}.${env.DEPLOY_ACCOUNT_ID}`;
+      const account = `${TOKEN_PREFIX}${t.symbol.toLowerCase()}.${env.DEPLOY_ACCOUNT_ID}`;
       step(`Creating ${t.symbol} (${account})`);
       await guard(`Creating ${t.symbol}`, TOKEN_FUNDING);
       await must(
@@ -301,6 +325,7 @@ async function deploy(
     min_cooling_off_ms: env.DEPLOY_MIN_COOLING_OFF_MS,
     account_code_hash: inputs.accountCodeHash,
     enclave_key: inputs.enclave.publicKey,
+    backup_enclave_keys: (inputs.backups ?? []).map((x) => x.publicKey),
     quote_signer: inputs.quoteSigner,
     blind_trust_wasm_sha256: createHash('sha256').update(code).digest('hex'),
     tokens,
@@ -339,7 +364,7 @@ async function rehearseLocally() {
       actions.deployGlobalContract(wasm('demo_token'), 'codeHash'),
     ]);
     if (!tokenPublished.ok) throw new Error(`publish demo token code: ${tokenPublished.error}`);
-    const { base58Encode } = await import('@vsp/core');
+    const { base58Encode } = await import('@glidepath/core');
     const hash = (bytes: Uint8Array) =>
       base58Encode(new Uint8Array(createHash('sha256').update(bytes).digest()));
     const env = Env.extend({ DEPLOY_ACCOUNT_ID: z.string() }).parse({

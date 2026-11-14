@@ -1,4 +1,3 @@
-import { ed25519, x25519 } from '@noble/curves/ed25519.js';
 import {
   bytesToHex,
   formatNearKey,
@@ -9,8 +8,9 @@ import {
   signingBytes,
   toBase64,
   toJson,
-} from '@vsp/core';
-import { deriveEnclaveKeys, type SealedStore, type SignedMessage } from '@vsp/enclave';
+} from '@glidepath/core';
+import { deriveEnclaveKeys, type SealedStore, type SignedMessage } from '@glidepath/enclave';
+import { ed25519, x25519 } from '@noble/curves/ed25519.js';
 import { z } from 'zod';
 import { type AssetPrice, decideRebalance, type Holding, PUBLIC_HOLD_REASONS } from './decide.ts';
 import {

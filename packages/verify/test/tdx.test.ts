@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
+import { bytesToHex, fromBase64, sha256Hex } from '@glidepath/core';
 import { p256 } from '@noble/curves/nist.js';
-import { bytesToHex, fromBase64, sha256Hex } from '@vsp/core';
 import { describe, expect, it } from 'vitest';
 import {
   INTEL_SGX_ROOT_CA_PUBLIC_KEY,
@@ -18,7 +18,7 @@ const data = (path: string) =>
 /** The current build's key-proof run, as OutLayer serves it (fetched 2026-11-14). */
 const record = data('data/outlayer/attestation-cxmt7H2q7p83PWaJzR1RWQij8VyhjbjGkkf3ZyZGnVo.json');
 /** The build the fixture belongs to: the record keeps earlier builds in `previous`. */
-const record_ = data('deployments/outlayer-testnet.json');
+const record_ = data('deployments/previous/outlayer-testnet-vsp.json');
 const deployment = [record_, ...record_.previous, ...(record_.backups ?? [])].find(
   (b: { keyProof: { txHash: string } }) =>
     b.keyProof.txHash === 'cxmt7H2q7p83PWaJzR1RWQij8VyhjbjGkkf3ZyZGnVo',

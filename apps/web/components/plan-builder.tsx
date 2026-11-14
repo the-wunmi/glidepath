@@ -11,7 +11,7 @@ import {
   planCommitment,
   planProblems,
   sealTo,
-} from '@vsp/core';
+} from '@glidepath/core';
 import { type ReactNode, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { api, errorMessage } from '@/lib/api';
 import {
@@ -102,7 +102,7 @@ const nearTokensOffered = (meta: Meta) => meta.limits.nearTokens;
  * An unfinished new plan survives a reload in this tab, and signing in on the way; it holds no salt
  * and no key. It notes whose it was, so a default beneficiary follows the account.
  */
-const DRAFT_KEY = 'vsp-builder-draft';
+const DRAFT_KEY = 'glidepath-builder-draft';
 
 interface Draft {
   actor: string;
@@ -535,7 +535,7 @@ export function PlanBuilder({
   const backup = (): PlanBackup | null =>
     plan && envelope
       ? {
-          kind: 'verified-sales-plan-backup',
+          kind: 'glidepath-plan-backup',
           commitment,
           salt,
           plan: JSON.parse(canonicalJson(plan)),

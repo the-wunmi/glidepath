@@ -85,7 +85,7 @@ async fn an_mpc_timeout_marks_the_sale_failed_and_returns_its_budget_and_nonce(
         .call(env.registry.id(), "execute")
         .args_json(json!({
             "plan_id": plan_id, "request_json": request_json,
-            "signature": env.enclave.sign("vsp/execute/v1\n", &request_json),
+            "signature": env.enclave.sign("glidepath/execute/v1\n", &request_json),
             "enclave_key": env.enclave.public_key(),
         }))
         .deposit(EXECUTE_DEPOSIT)

@@ -1,8 +1,8 @@
-import { DomainError, parseInput, toJson } from '@vsp/core';
-import type { Engine } from '@vsp/engine';
-import * as engine from '@vsp/engine';
-import { rpcUnavailable } from '@vsp/evm';
-import { nearRpcUnavailable } from '@vsp/near';
+import { DomainError, parseInput, toJson } from '@glidepath/core';
+import type { Engine } from '@glidepath/engine';
+import * as engine from '@glidepath/engine';
+import { rpcUnavailable } from '@glidepath/evm';
+import { nearRpcUnavailable } from '@glidepath/near';
 import { type Context, Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
@@ -335,7 +335,7 @@ export function createApp(e: Engine) {
     return json(quote);
   });
 
-  /** The demo's real-unlock case (data/replay/case-*.json, built by `pnpm --filter @vsp/replay build:results`). */
+  /** The demo's real-unlock case (data/replay/case-*.json, built by `pnpm --filter @glidepath/replay build:results`). */
   app.get('/api/replay/case', async () => {
     const { readFile } = await import('node:fs/promises');
     const file = new URL('../../../data/replay/case-arb-2024-03-16.json', import.meta.url);

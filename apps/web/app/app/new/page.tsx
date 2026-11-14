@@ -10,7 +10,7 @@ import { EmptyState, ErrorNote, LoadingBlock, PageHeader } from '@/components/ui
 import { useMe } from '@/lib/session';
 
 /** The operator may also build for the server's own accounts; this browser remembers which. */
-const OWNER_KEY = 'vsp-builder-owner';
+const OWNER_KEY = 'glidepath-builder-owner';
 
 export default function NewPlanPage() {
   const meta = useMeta();

@@ -1,5 +1,5 @@
 {
-  "name": "@vsp/verify",
+  "name": "@glidepath/verify",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -8,7 +8,8 @@
     "./reads": "./src/reads.ts",
     "./tdx": "./src/tdx.ts",
     "./collateral": "./src/collateral.ts",
-    "./keyproof": "./src/keyproof.ts"
+    "./keyproof": "./src/keyproof.ts",
+    "./outlayer": "./src/outlayer.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
@@ -16,9 +17,9 @@
   },
   "dependencies": {
     "@noble/curves": "^2.4.0",
-    "@vsp/core": "workspace:*",
-    "@vsp/chainsig": "workspace:*",
-    "@vsp/near": "workspace:*",
+    "@glidepath/core": "workspace:*",
+    "@glidepath/chainsig": "workspace:*",
+    "@glidepath/near": "workspace:*",
     "viem": "^2.57.17"
   }
 }

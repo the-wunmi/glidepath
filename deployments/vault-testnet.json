@@ -1,0 +1,17 @@
+{
+  "network": "testnet",
+  "deployed_at": "2026-11-14T17:43:07.794Z",
+  "rpc": "https://test.rpc.fastnear.com",
+  "contract": "btc-vault.zyx-dev.testnet",
+  "signer_contract": "v1.signer-prod.testnet",
+  "mpc_root_public_key": "secp256k1:4NfTiv3UsGahebgTaHyD9vF8KYKMBnfd6kh94mK6xv8fGBiJB8TBtFMP5WWXz6B89Ac1fbpzPwAvoyQebemHFwx3",
+  "min_delay_ms": 300000,
+  "wasm_sha256": "b3cb62549a33d785d4d3b048acb46f6e375e7c0e25b6528bd3ab9d8975258a86",
+  "near_spent": "3.315",
+  "vault": {
+    "id": 1,
+    "owner": "zyx-dev.testnet",
+    "address": "tb1q4xanyfjt9n48lvzce3xf64cp37drcwuevj0l02",
+    "created_tx": "73ncBhTwWoqvu4XS6a6j4x63ucr9M5vuMBWSCzWP2GLH"
+  }
+}

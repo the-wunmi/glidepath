@@ -1,6 +1,6 @@
-import type { SealedBox } from '@vsp/core';
-import { type Tx, trusts, trustTrades } from '@vsp/db';
-import type { KeyPairString } from '@vsp/near';
+import type { SealedBox } from '@glidepath/core';
+import { type Tx, trusts, trustTrades } from '@glidepath/db';
+import type { KeyPairString } from '@glidepath/near';
 import { and, eq, inArray } from 'drizzle-orm';
 import type { z } from 'zod';
 import type { Engine } from '../context.ts';

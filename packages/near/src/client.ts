@@ -1,4 +1,4 @@
-import { DomainError, fromBase64 } from '@vsp/core';
+import { DomainError, fromBase64 } from '@glidepath/core';
 import {
   Account,
   type Action,

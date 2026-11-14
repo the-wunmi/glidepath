@@ -1,5 +1,5 @@
 import { execFileSync, spawnSync } from 'node:child_process';
-import { sha256Hex } from '@vsp/core';
+import { sha256Hex } from '@glidepath/core';
 import {
   ModuleError,
   type OutLayerBuild,
@@ -8,17 +8,17 @@ import {
 } from '../src/outlayer.ts';
 
 /**
- * The OutLayer module's own code run locally: `vsp-enclave-local` runs the same operations as the
+ * The OutLayer module's own code run locally: `glidepath-enclave-local` runs the same operations as the
  * OutLayer build (enclave-wasi/src/enclave.rs) with keys from a seed instead of the keystore. Two
  * seeds stand in for two published builds, each with its own keys.
  */
 const crate = new URL('../../../enclave-wasi/', import.meta.url).pathname;
-const binary = `${crate}target/release/vsp-enclave-local`;
+const binary = `${crate}target/release/glidepath-enclave-local`;
 
 export function buildLocalModule(): void {
   execFileSync(
     `${process.env.HOME}/.cargo/bin/cargo`,
-    ['build', '--release', '--bin', 'vsp-enclave-local'],
+    ['build', '--release', '--bin', 'glidepath-enclave-local'],
     { cwd: crate, stdio: 'ignore' },
   );
 }
@@ -28,8 +28,8 @@ export interface LocalBuild extends OutLayerBuild {
 }
 
 const moduleEnv = (seed: string, quoteKey: string) => ({
-  VSP_LOCAL_ENCLAVE_SEED_HEX: seed,
-  VSP_QUOTE_SIGNER_KEY: quoteKey,
+  GLIDEPATH_LOCAL_ENCLAVE_SEED_HEX: seed,
+  GLIDEPATH_QUOTE_SIGNER_KEY: quoteKey,
 });
 
 /** A build's keys as OutLayer's keystore would issue them; the seed stands in for its wasm hash. */

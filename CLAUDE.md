@@ -1,7 +1,8 @@
 # Glidepath
 
-The product was called Verified Sales Plans; internal names keep it (`@vsp/*`, the `sales-plans`
-folder, database names, the testnet accounts `vsp-registry`/`vusdc`). User-facing text says Glidepath.
+Glidepath (first called Verified Sales Plans; renamed everywhere on 2026-11-14, on-chain names
+included, with a fresh testnet deployment: registry `glidepath.zyx-dev.testnet`, test USDC
+`glidepath-usdc.zyx-dev.testnet`, signing domains `glidepath/…`).
 
 A crypto 10b5-1 plan: insiders seal a selling plan in a TEE, their allocation sits in a keyless NEAR
 plan account (or its Chain Signatures address on an EVM chain), an enclave sells at random times
@@ -30,24 +31,20 @@ pnpm dev            # Postgres :5437 (compose project glidepath), API :4400, web
 pnpm dev:local      # the same on a local NEAR sandbox and Hardhat node
 pnpm demo           # scripted demo against the running API
 pnpm redteam        # bypass attempts; writes data/redteam/results.json (needs one sale first)
-pnpm test && pnpm lint && pnpm typecheck
+pnpm test && pnpm lint && pnpm typecheck   # every package's fast tests (engine on stubs), under a minute
+pnpm test:chain     # the engine on real local chains (sandbox, Hardhat, crash, module); files in parallel
 cd contracts && bash test.sh && cargo fmt --check && cargo clippy --all-targets -- -D warnings
 pnpm enclave:wasi   # builds enclave-wasi for wasm32-wasip1, runs TS-generated vectors under wasmtime
 pnpm oneclick:vectors   # rebuilds contracts/res/oneclick-quote-vectors.json from the live 1Click fixture
 pnpm deploy:testnet --local   # rehearses the testnet deployment on a throwaway sandbox
-pnpm replay && pnpm --filter @vsp/replay build:results   # refetch prices, rebuild the study
+pnpm replay && pnpm --filter @glidepath/replay build:results   # refetch prices, rebuild the study
 ```
 
 On testnet the API uses the registry in `deployments/testnet.json` (`pnpm deploy:testnet`; keeps
 the deployer above `DEPLOY_MIN_BALANCE_NEAR`) and Sepolia through public RPCs, paced with failover.
 Locally it starts a fresh NEAR sandbox (:4420) and Hardhat node (:4430) on every start and
 redeploys everything (`packages/engine/src/world.ts`). Tests always pin `NEAR_NETWORK=local`. A new genesis hash wipes chain-derived rows and drops DBOS's
-system database (`salesplans_dbos`); the enclave's own identity row survives. Logs: `.data/api.log` when started by scripts.
-
-Keep the Postgres database `salesplans_outlayer` (on :5437): it holds the app-side history of
-testnet plan #3, the first plan sold by the OutLayer enclave (receipts 0-3, sale #3 settled), as
-evidence. An API started with `ENCLAVE_BACKEND=outlayer API_PORT=4410 API_ORIGIN=http://127.0.0.1:4410`
-and that DATABASE_URL serves it; set `OUTLAYER_TICK_SECONDS` high to keep it from spending.
+system database (`glidepath_dbos`); the enclave's own identity row survives. Logs: `.data/api.log` when started by scripts.
 
 ## Architecture
 
@@ -77,7 +74,7 @@ and that DATABASE_URL serves it; set `OUTLAYER_TICK_SECONDS` high to keep it fro
   failover; visitors' reads have their own budget. `eth_call`/`eth_getLogs` are allowed on plan tokens
   only: those in our database plus those on the registry (read once a minute), so plans made before
   or without this server's database still verify. The browser reads 3-4 at a time and retries
-  429/502/503/network with backoff (`@vsp/verify/reads`); a read that still fails shows "could not
+  429/502/503/network with backoff (`@glidepath/verify/reads`); a read that still fails shows "could not
   be checked" with a retry, never "not broadcast". `apps/web` Next.js 16.
 - Labs (footer only, `/labs`): `contracts/btc-vault` is a coercion-safe Bitcoin vault prototype. A
   vault is a testnet4 P2WPKH address derived for (vault contract, creator's path); owner withdrawals
@@ -107,12 +104,12 @@ and that DATABASE_URL serves it; set `OUTLAYER_TICK_SECONDS` high to keep it fro
   record for the server's network; `/labs/vault` reads the chain through `/rpc/near` and
   mempool.space directly from the browser.
 - Labs: `contracts/blind-trust` is a blind trust prototype for officials. A trust holds a commitment
-  to a sealed mandate (`@vsp/trust`: universe with sectors, excluded sectors, target weights, band,
+  to a sealed mandate (`@glidepath/trust`: universe with sectors, excluded sectors, target weights, band,
   trade sizes, beneficiary, end), a public envelope (excluded 1Click asset ids, turnover cap per
   period in USD e6 measured on the quote's signed `amountInUsd` rounded up, min gap), a keyless trust
   account `t<id>.<contract>` running the plan account code by global hash (`new(registry: contract,
   token: null)`: deposits arrive by plain `ft_transfer`), and a term. Trades are enclave-signed over
-  `vsp/trust-trade/v1\n` ‖ JSON (acks `vsp/trust-ack/v1\n`): seq, held origin token, quote in
+  `glidepath/trust-trade/v1\n` ‖ JSON (acks `glidepath/trust-ack/v1\n`): seq, held origin token, quote in
   1Click's format (shares `oneclick.rs`/`events.rs` with the registry by `#[path]`), recipient and
   refund = the trust account, deposit/refund `ORIGIN_CHAIN` and recipient `DESTINATION_CHAIN`
   (`routes_on_chain`, `quote_routing`; the registry code checks it too, the deployed testnet
@@ -133,13 +130,13 @@ and that DATABASE_URL serves it; set `OUTLAYER_TICK_SECONDS` high to keep it fro
   bootstrap `bootstrapTrustWorld` with five demo tokens owned by the solver, priced on the simulated
   market; `trust_created`/`trust_trade`/`trust_release` workflows; `startTrustWorker` every 15 s;
   tables `trusts`, `trust_trades`); the simulated trust enclave shares the plan enclave's keys;
-  `ModuleTrustEnclave` runs the enclave-wasi ops (tests: `vsp-enclave-local`; with
+  `ModuleTrustEnclave` runs the enclave-wasi ops (tests: `glidepath-enclave-local`; with
   `ENCLAVE_BACKEND=outlayer`, `trustEnclaveOf` runs them on the current OutLayer build, the key
   the page seals to; no backup fallback for trusts, and each 15 s wake-up is a paid run). API `/api/trusts`
   (`apps/api/src/trust.ts`), page `/labs/trust` (seal + create) and `/labs/trust/<id>` (total value,
   attested statements, rules, receipts with Verify all, proof). `pnpm trust:deploy` (dry run unless
   `--confirm`; `--tokens`, `--outlayer` registers the current build and its backups, `--local`)
-  writes `deployments/trust-testnet.json`, which the server loads on testnet: `vsp-trust.zyx-dev.testnet`
+  writes `deployments/trust-testnet.json`, which the server loads on testnet: `glidepath-trust.zyx-dev.testnet`
   (deployed 2026-11-14 with the five `labs-*` tokens, keys `J3prhAPX…` and backup `8pfjqtyg…`).
 
 ## Decisions
@@ -199,7 +196,7 @@ and that DATABASE_URL serves it; set `OUTLAYER_TICK_SECONDS` high to keep it fro
   executes, launch, finalize, reveal); ticks skip a plan under `SALE_RESERVE` (`budget_low`).
   Personas (operator, tests, demo) are never charged. API tests: `apps/api/test/wallet.test.ts`.
 - Intel collateral: `/api/pcs/*` passes Intel's PCS collateral through unchanged (TDX TCB Info, QE
-  Identity, PCK CRL, Root CA CRL; kept ≤1 h, never past nextUpdate); `@vsp/verify/collateral`
+  Identity, PCK CRL, Root CA CRL; kept ≤1 h, never past nextUpdate); `@glidepath/verify/collateral`
   checks signatures to the pinned root, revocation, and the TCB status (non-UpToDate or a newer
   format Intel publishes is a warning, Revoked or a bad signature a failure). Fixtures in
   `data/intel-pcs/` (excluded from Biome: reformatting breaks the signatures).
@@ -231,9 +228,9 @@ and that DATABASE_URL serves it; set `OUTLAYER_TICK_SECONDS` high to keep it fro
   prefixed with the genesis hash (the registry on testnet) and started on the rate-limited `chain`
   queue (`startOnce`), DB writes as transaction steps (`inTx`), outside
   effects as steps (`effect`) that read the outside world first so a repeat sends nothing. System DB
-  `salesplans_dbos`, dropped on a new world. Execution status moves only through `transition()` in
+  `glidepath_dbos`, dropped on a new world. Execution status moves only through `transition()` in
   `workflows.ts`; 1Click silence is `in_doubt`, polled with durable sleeps, never failed. Crash
-  tests: `packages/engine/test/crash.test.ts` (SIGKILL after the effect, before the checkpoint).
+  tests: `packages/engine/test/crash.chain.test.ts` (SIGKILL after the effect, before the checkpoint).
 - Sale sizes (`saleSize`, TS and Rust): random in [cap/2, cap], and a draw never leaves less than
   cap/2 of the period (or balance) behind: the remainder joins the sale when it fits, otherwise
   exactly cap/2 stays. Drawing from what was left instead gave plan #3 a tail of dust sales.
@@ -307,16 +304,18 @@ and that DATABASE_URL serves it; set `OUTLAYER_TICK_SECONDS` high to keep it fro
 - Confidential Intents token list and fees.
 - The vault's `STALE_SIGN_BLOCKS` (300) assumes the signer's yield times out after ~200 blocks
   (sandbox only).
-- The vault on live testnet4: a broadcast of an assembled vault spend (vault #1 is unfunded:
-  testnet4 faucets need a captcha or a login) and mempool.space's CORS for browser reads
-  (mempool.space is unreachable from the build machine; blockstream.info's testnet4 Esplora, which
-  `VAULT_MEMPOOL_API` can name, sends `Access-Control-Allow-Origin: *`). Measured on testnet
-  2026-11-14 (probe vault #2, made-up outpoints): one execute with four 40 Tgas `sign` calls to
-  `v1.signer-prod.testnet` burns 45.7 Tgas (~0.0043 NEAR) of its 300, returns in ~9 s, and all four
-  signatures verify against the vault key.
+- mempool.space's CORS for browser reads (unreachable from the build machine; blockstream.info's
+  testnet4 Esplora, which `VAULT_MEMPOOL_API` names, sends `Access-Control-Allow-Origin: *`).
+
+Verified on live testnet4 2026-11-14 (vault #1, `btc-vault.zyx-dev.testnet`): withdrawals refused
+before the delay (`delay_not_over`), executed and broadcast after it (`57a2f943…`, `975c487c…`); a
+withdrawal vetoed by the guardian; a claw-back to recovery broadcast with no delay (`e62433ab…`).
+One execute with four 40 Tgas `sign` calls burns ~45.7 Tgas and returns in ~9 s.
 
 ## Not built
 
 Confidential Intents path, an atomic relayer contract for OutLayer (runs are relayed by an
 account today), the
-blind trust on OutLayer (no published build has the `trust_*` ops yet) or on testnet (`pnpm trust:deploy --confirm`). The vault contract is not deployed to testnet yet (`pnpm vault:deploy --confirm`). The testnet registry is deployed (`deployments/testnet.json`).
+blind trust on the new registry's testnet deployment (`pnpm trust:deploy --outlayer --tokens --confirm`
+after the enclave builds are registered). The vault is deployed to testnet
+(`deployments/vault-testnet.json`) and has run end to end on testnet4.

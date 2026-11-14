@@ -1,6 +1,6 @@
 'use client';
 
-import { type ReceiptVerification, verifyReceipt } from '@vsp/verify';
+import { type ReceiptVerification, verifyReceipt } from '@glidepath/verify';
 import { useState } from 'react';
 import {
   attestationFailure,

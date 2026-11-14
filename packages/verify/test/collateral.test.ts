@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { fromBase64 } from '@vsp/core';
+import { fromBase64 } from '@glidepath/core';
 import { describe, expect, it } from 'vitest';
 import {
   appraiseTcb,

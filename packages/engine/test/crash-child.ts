@@ -1,5 +1,5 @@
 // One process of a crash test (crash.test.ts): attaches an engine to the test's world (which
-// resumes any workflow a killed process left), then runs one operation. VSP_CRASH_AT makes the
+// resumes any workflow a killed process left), then runs one operation. GLIDEPATH_CRASH_AT makes the
 // process kill itself (SIGKILL) at a named point inside that operation.
 
 import { OPERATOR } from '../src/guards.ts';

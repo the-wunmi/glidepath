@@ -9,7 +9,7 @@ export type Tx = Db | Parameters<Parameters<Db['transaction']>[0]>[0];
 
 /** The docker-compose Postgres unless DATABASE_URL says otherwise. */
 export function createPool(
-  url = process.env.DATABASE_URL ?? 'postgres://salesplans:salesplans@localhost:5437/salesplans',
+  url = process.env.DATABASE_URL ?? 'postgres://glidepath:glidepath@localhost:5437/glidepath',
 ): pg.Pool {
   return new pg.Pool({ connectionString: url, max: 10 });
 }

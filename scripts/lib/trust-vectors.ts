@@ -1,6 +1,6 @@
 /**
  * Blind trust (prototype) cases for `pnpm enclave:wasi`: the mandate rules and the rebalance
- * decision, computed by the TypeScript code (`@vsp/trust`) and compared with the Rust module's
+ * decision, computed by the TypeScript code (`@glidepath/trust`) and compared with the Rust module's
  * `trust_check_mandate` and `trust_rebalance` answers.
  */
 import {
@@ -14,7 +14,7 @@ import {
   type TrustCounters,
   type TrustEnvelope,
   type TrustMandateInput,
-} from '@vsp/trust';
+} from '@glidepath/trust';
 
 export interface TrustCase {
   name: string;

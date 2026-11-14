@@ -1,6 +1,6 @@
+import { bytesToHex, formatNearKey, hexToBytes, parseNearKey, utf8ToBytes } from '@glidepath/core';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import { sha3_256 } from '@noble/hashes/sha3.js';
-import { bytesToHex, formatNearKey, hexToBytes, parseNearKey, utf8ToBytes } from '@vsp/core';
 import {
   encodeFunctionData,
   erc20Abi,

@@ -8,10 +8,11 @@
  * naming the encryption key. Without this a server could hand the browser its own encryption key
  * while every quote check still passed.
  */
-import { ed25519 } from '@noble/curves/ed25519.js';
-import { fromBase64, parseNearKey, sha256Hex, utf8ToBytes } from '@vsp/core';
 
-export const KEY_PROOF_DOMAIN = 'vsp/key-proof/v1\n';
+import { fromBase64, parseNearKey, sha256Hex, utf8ToBytes } from '@glidepath/core';
+import { ed25519 } from '@noble/curves/ed25519.js';
+
+export const KEY_PROOF_DOMAIN = 'glidepath/key-proof/v1\n';
 
 /** The fields of OutLayer's attestation record that its report data commits to. */
 export interface OutlayerAttestationRecord {

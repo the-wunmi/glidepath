@@ -1,5 +1,4 @@
 import { readFileSync } from 'node:fs';
-import { ed25519 } from '@noble/curves/ed25519.js';
 import {
   derivationTweak,
   deriveEvmAddress,
@@ -8,7 +7,7 @@ import {
   nearSecpKey,
   unsignedTxHash,
   unsignedTxHex,
-} from '@vsp/chainsig';
+} from '@glidepath/chainsig';
 import {
   formatNearKey,
   fromBase64,
@@ -18,7 +17,8 @@ import {
   parseNearKey,
   sha256Hex,
   signingBytes,
-} from '@vsp/core';
+} from '@glidepath/core';
+import { ed25519 } from '@noble/curves/ed25519.js';
 import { type Hex, keccak256 } from 'viem';
 import { describe, expect, it } from 'vitest';
 import { nep141ActionJson, verifyReceipt } from '../src/index.ts';

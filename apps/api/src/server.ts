@@ -1,6 +1,5 @@
-import { serve } from '@hono/node-server';
-import { createDb, createPool } from '@vsp/db';
-import { runMigrations } from '@vsp/db/migrate';
+import { createDb, createPool } from '@glidepath/db';
+import { runMigrations } from '@glidepath/db/migrate';
 import {
   bootstrapLocalWorld,
   bootstrapTrustWorld,
@@ -20,9 +19,10 @@ import {
   systemDatabaseUrl,
   testnetWorld,
   type WorldConfig,
-} from '@vsp/engine';
-import { SEPOLIA_CHAIN_ID, startEvmNode } from '@vsp/evm';
-import { NearClient } from '@vsp/near';
+} from '@glidepath/engine';
+import { SEPOLIA_CHAIN_ID, startEvmNode } from '@glidepath/evm';
+import { NearClient } from '@glidepath/near';
+import { serve } from '@hono/node-server';
 import { createApp } from './app.ts';
 
 /** Nothing listens here: a stray EVM call fails at once instead of reaching some other host. */

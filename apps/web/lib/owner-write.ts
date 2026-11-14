@@ -1,6 +1,6 @@
 'use client';
 
-import { formatAmount } from '@vsp/core';
+import { formatAmount } from '@glidepath/core';
 import { ApiError, api } from './api';
 
 /** The call a plan owner's wallet must sign, as the API's 409 `wallet_signature_needed` names it. */
@@ -78,7 +78,7 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 async function pendingKey(path: string, body: unknown): Promise<string> {
   const bytes = new TextEncoder().encode(`${path}\n${JSON.stringify(body)}`);
   const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', bytes));
-  return `vsp-wallet-tx-${Array.from(digest.slice(0, 12), (b) => b.toString(16).padStart(2, '0')).join('')}`;
+  return `glidepath-wallet-tx-${Array.from(digest.slice(0, 12), (b) => b.toString(16).padStart(2, '0')).join('')}`;
 }
 
 /**
@@ -203,7 +203,7 @@ export function suggestedTopUp(b: PlanBudget, chain: 'near' | 'evm', launched: b
   return short > 0n ? short : BigInt(SUGGESTED_SALES) * saleFee(b, chain);
 }
 
-const fundKey = (planId: number) => `vsp-fund-tx-${planId}`;
+const fundKey = (planId: number) => `glidepath-fund-tx-${planId}`;
 
 /**
  * Tops up a plan's budget: the owner's wallet sends `yocto` to the relayer, and the API credits the

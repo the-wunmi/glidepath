@@ -19,22 +19,27 @@
  */
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { fromBase64, parseNearKey, sha256Hex, utf8ToBytes } from '@glidepath/core';
+import {
+  checkAttestation,
+  OutLayerClient,
+  OutLayerDeployment,
+  type RunResult,
+} from '@glidepath/engine';
+import { actions, type KeyPairString, NearClient } from '@glidepath/near';
 import { ed25519 } from '@noble/curves/ed25519.js';
-import { fromBase64, parseNearKey, sha256Hex, utf8ToBytes } from '@vsp/core';
-import { checkAttestation, OutLayerClient, OutLayerDeployment, type RunResult } from '@vsp/engine';
-import { actions, type KeyPairString, NearClient } from '@vsp/near';
 
 const NEAR = 10n ** 24n;
 const CONTRACT = 'outlayer.testnet';
 const API = 'https://testnet-api.outlayer.ai';
 const WORKER_REGISTRY = 'worker.outlayer.testnet';
 const FASTFS_HOST = 'https://test.fastfs.io';
-const KEY_PROOF_DOMAIN = 'vsp/key-proof/v1\n';
+const KEY_PROOF_DOMAIN = 'glidepath/key-proof/v1\n';
 /** register_enclave's storage deposit; the registry keeps what the entry uses. */
 const REGISTER_DEPOSIT = NEAR / 10n;
 
 const root = new URL('../', import.meta.url).pathname;
-const wasmPath = `${root}enclave-wasi/target/wasm32-wasip2/release/vsp-enclave-outlayer.wasm`;
+const wasmPath = `${root}enclave-wasi/target/wasm32-wasip2/release/glidepath-enclave-outlayer.wasm`;
 const recordPath = `${root}deployments/outlayer-testnet.json`;
 
 const optional = (k: string): string | undefined => process.env[k] || undefined;
@@ -81,15 +86,15 @@ function build() {
       '--features',
       'outlayer',
       '--bin',
-      'vsp-enclave-outlayer',
+      'glidepath-enclave-outlayer',
     ],
     {
       cwd: `${root}enclave-wasi`,
       stdio: 'inherit',
       env: {
         ...process.env,
-        VSP_QUOTE_SIGNER_KEY: testnet.quote_signer,
-        ...(backup ? { VSP_BUILD_SLOT: 'backup' } : {}),
+        GLIDEPATH_QUOTE_SIGNER_KEY: testnet.quote_signer,
+        ...(backup ? { GLIDEPATH_BUILD_SLOT: 'backup' } : {}),
       },
     },
   );

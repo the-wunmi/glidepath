@@ -14,8 +14,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::collections::{BTreeMap, BTreeSet};
 
-pub const TRUST_ACK_DOMAIN: &str = "vsp/trust-ack/v1\n";
-pub const TRUST_TRADE_DOMAIN: &str = "vsp/trust-trade/v1\n";
+pub const TRUST_ACK_DOMAIN: &str = "glidepath/trust-ack/v1\n";
+pub const TRUST_TRADE_DOMAIN: &str = "glidepath/trust-trade/v1\n";
 /// `TRUST_REQUEST_TTL_MS`: a signed trade is good for five minutes.
 const REQUEST_TTL_MS: i64 = 300_000;
 /// `TRUST_QUOTE_DEADLINE_MS`.
@@ -408,7 +408,7 @@ impl Record {
 
 /// Bound to the trust id, so the host cannot hand one trust's record to another (or to a plan).
 fn record_aad(trust_id: u64) -> Vec<u8> {
-    format!("vsp/trust-record/v1:{trust_id}").into_bytes()
+    format!("glidepath/trust-record/v1:{trust_id}").into_bytes()
 }
 
 fn seal_record(keys: &dyn Keys, trust_id: u64, r: &Record) -> Result<String> {
