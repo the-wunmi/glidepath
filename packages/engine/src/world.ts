@@ -5,7 +5,6 @@ import { base58Encode, bytesToHex, DomainError, hexToBytes, sha256Hex } from '@v
 import {
   activity,
   type Db,
-  dailyUsage,
   enclaveStore,
   executions,
   plans,
@@ -343,8 +342,6 @@ export async function saveWorld(
       await tx.delete(enclaveStore).where(like(enclaveStore.key, 'trust:%'));
       await tx.delete(simOneClickQuotes);
       await tx.delete(activity);
-      // The caps count spending on a chain that is gone (always the local sandbox).
-      await tx.delete(dailyUsage);
     }
     await tx
       .insert(world)

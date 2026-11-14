@@ -7,7 +7,7 @@ import {
   type SealedPlanInput,
   toBaseUnits,
 } from '@vsp/core';
-import { DAY_MS, fmtDateTime } from './format';
+import { DAY_MS } from './format';
 
 /** Everything the founder types, as typed. Converted to base units only when it parses. */
 export interface PlanForm {
@@ -80,8 +80,8 @@ export function msToLocal(ms: number): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-export const tokenAddressFor = (symbol: string, founder: string) =>
-  `${symbol.toLowerCase()}.${founder.split('.').slice(1).join('.') || founder}`;
+/** A new NEAR token's account: a sub-account of the world's root, which creates it at launch. */
+export const tokenAddressFor = (symbol: string, root: string) => `${symbol.toLowerCase()}.${root}`;
 
 export type Errors = Partial<Record<keyof PlanForm, string>>;
 
@@ -99,13 +99,7 @@ export function tokenErrors(f: PlanForm): Errors {
   return e;
 }
 
-export function termsErrors(
-  f: PlanForm,
-  chainNow: number | null,
-  lockDates: boolean,
-  /** The latest end the server accepts, and the plan length in days it comes from. */
-  endLimit: { ms: number; days: number } | null = null,
-): Errors {
+export function termsErrors(f: PlanForm, chainNow: number | null, lockDates: boolean): Errors {
   const e: Errors = {};
   const per = pctToBps(f.periodPct);
   const sale = pctToBps(f.perSalePct);
@@ -135,8 +129,6 @@ export function termsErrors(
     e.start = 'Start at least a minute from now (chain time)';
   if (Number.isNaN(en)) e.end = 'Pick an end time';
   else if (!Number.isNaN(s) && en <= s) e.end = 'The plan must end after it starts';
-  else if (endLimit && en > endLimit.ms)
-    e.end = `Plans here end within ${endLimit.days} days of today, by ${fmtDateTime(endLimit.ms)}`;
   if (!/^(([a-z\d]+[-_])*[a-z\d]+\.)*([a-z\d]+[-_])*[a-z\d]+$/.test(f.beneficiaryNear))
     e.beneficiaryNear = 'Not a NEAR account id';
   if (f.chain === 'evm' && !/^0x[0-9a-fA-F]{40}$/.test(f.beneficiaryEvm.trim()))

@@ -119,7 +119,7 @@ async function main() {
     label: 'ACME team allocation',
     symbol: 'ACME',
     chain: 'near',
-    tokenAddress: `acme.${meta.accounts.founder?.split('.').slice(1).join('.')}`,
+    tokenAddress: `acme.${meta.accounts.root}`,
   });
   const active = await waitFor('enclave ack', async () =>
     (await detail(near.planId)).plan.status === 'active' ? detail(near.planId) : null,
@@ -177,7 +177,7 @@ async function main() {
   ok(`BOLT launched; derived address balance ${(await detail(evm.planId)).balance}`);
 
   say('A treasury DAO adopts a sealed plan through a Sputnik proposal');
-  const root = meta.accounts.founder?.split('.').slice(1).join('.');
+  const root = meta.accounts.root;
   const dao = await createSealedPlan(meta, {
     label: 'Treasury diversification',
     symbol: 'TRSY',

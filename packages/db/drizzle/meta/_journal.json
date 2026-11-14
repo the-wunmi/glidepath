@@ -43,6 +43,13 @@
       "when": 1794659972454,
       "tag": "0005_trusts",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794673608275,
+      "tag": "0006_drop_daily_usage",
+      "breakpoints": true
     }
   ]
 }

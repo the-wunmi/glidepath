@@ -1,7 +1,7 @@
 import { createServer } from 'node:net';
 import { ed25519 } from '@noble/curves/ed25519.js';
 import { formatNearKey, oneclickQuoteMessage, sealTo, signingBytes, toBase64 } from '@vsp/core';
-import { createDb, createPool, dailyUsage, trustTrades } from '@vsp/db';
+import { createDb, createPool, trustTrades } from '@vsp/db';
 import { runMigrations } from '@vsp/db/migrate';
 import { deriveEnclaveKeys } from '@vsp/enclave';
 import { type KeyPairString, NearClient } from '@vsp/near';
@@ -16,7 +16,7 @@ import {
   type TrustEnvelope,
   verifyTrustReceipt,
 } from '@vsp/trust';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   bootstrapLocalWorld,
@@ -308,35 +308,6 @@ describe('blind trust', () => {
         deposits: [{ asset: asset('IDX'), tokens: '1' }],
       }),
     ).rejects.toMatchObject({ code: 'invalid' });
-  });
-
-  it('every trade counts against the relayer’s daily budget, and none goes out once it is spent', async () => {
-    const identity = await e.enclave.identity();
-    const { trustId } = await sealedTrust(identity.encryptionKeyHex, 'Budget');
-    const today = sql`(now() at time zone 'utc')::date`;
-    const used = async () =>
-      (
-        await e.db
-          .select({ used: dailyUsage.used })
-          .from(dailyUsage)
-          .where(and(eq(dailyUsage.day, today), eq(dailyUsage.kind, 'relayer_write')))
-      )[0]?.used ?? 0;
-    const max = e.config.MAX_RELAYER_WRITES_PER_DAY;
-    const before = await used();
-    await e.db
-      .update(dailyUsage)
-      .set({ used: max })
-      .where(and(eq(dailyUsage.day, today), eq(dailyUsage.kind, 'relayer_write')));
-    expect(await tickTrusts(e, [trustId])).toEqual([
-      { trustId, outcome: 'idle', reason: 'rate_limited' },
-    ]);
-    expect(await trade(trustId, 0)).toBeNull();
-    await e.db
-      .update(dailyUsage)
-      .set({ used: before })
-      .where(and(eq(dailyUsage.day, today), eq(dailyUsage.kind, 'relayer_write')));
-    expect(await tickTrusts(e, [trustId])).toEqual([{ trustId, outcome: 'traded', seq: 0 }]);
-    expect(await used()).toBe(before + 1);
   });
 
   it('the enclave-wasi module rebalances a trust the same way', async () => {

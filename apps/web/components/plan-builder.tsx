@@ -87,22 +87,10 @@ export interface ChangeContext {
   current: ReturnType<typeof backupPlan>;
 }
 
-/**
- * The latest end this server accepts for a new plan, or null when any is fine. The API counts its
- * days from its own clock at submit time, so this counts from now, less a few minutes for filling
- * in the form.
- */
-function latestEndMs(meta: Meta): number | null {
-  const days = meta.limits.maxPlanDays;
-  if (days === null) return null;
-  return Math.floor((Date.now() + days * DAY_MS - 10 * 60_000) / 60_000) * 60_000;
-}
+/** A new plan runs a year by default. */
+const defaultEnd = (start: number) => start + 365 * DAY_MS;
 
-/** A new plan runs a year by default, or as long as the server allows when that is shorter. */
-const defaultEnd = (meta: Meta, start: number) =>
-  Math.min(start + 365 * DAY_MS, latestEndMs(meta) ?? Number.POSITIVE_INFINITY);
-
-/** False when this server takes only EVM-token plans (the public demo). */
+/** False when this server takes only EVM-token plans. */
 const nearTokensOffered = (meta: Meta) => meta.limits.nearTokens;
 
 /** An unfinished new plan survives a reload in this tab; it holds no salt and no key. */
@@ -142,7 +130,7 @@ function defaults(
     sources: ['1click_quote', 'binance', 'coinbase'],
     agreementPct: '1.5',
     start: msToLocal(start),
-    end: msToLocal(change?.endMs ?? defaultEnd(meta, start)),
+    end: msToLocal(change?.endMs ?? defaultEnd(start)),
     beneficiaryNear: change?.beneficiaryNear ?? actor,
     beneficiaryEvm: change?.beneficiaryEvm ?? '',
     envPerPeriod: '',
@@ -351,9 +339,9 @@ export function PlanBuilder({
     if (change || !chainNow || startTouched.current) return;
     startTouched.current = true;
     const start = Math.ceil((chainNow + 3 * 60_000) / 60_000) * 60_000;
-    const end = defaultEnd(meta, start);
+    const end = defaultEnd(start);
     setForm((f) => ({ ...f, start: msToLocal(start), end: msToLocal(end) }));
-  }, [chainNow, change, meta]);
+  }, [chainNow, change]);
 
   const set = (patch: Partial<PlanForm>) =>
     setForm((f) => {
@@ -366,7 +354,7 @@ export function PlanBuilder({
   const tokenAccount = change
     ? change.token.address
     : form.chain === 'near'
-      ? tokenAddressFor(form.symbol || 'x', meta.accounts.founder)
+      ? tokenAddressFor(form.symbol || 'x', meta.accounts.root)
       : (evmNext?.evmToken ?? '');
   useEffect(() => {
     if (change || form.chain !== 'near' || !/^[A-Z0-9]{2,8}$/.test(form.symbol)) {
@@ -424,11 +412,6 @@ export function PlanBuilder({
     : nearOff
       ? (['evm'] as const)
       : (['near', 'evm'] as const);
-  const latestEnd = change ? null : latestEndMs(meta);
-  const endLimit =
-    latestEnd === null || meta.limits.maxPlanDays === null
-      ? null
-      : { ms: latestEnd, days: meta.limits.maxPlanDays };
   const enclaveSim = simReason(meta, 'enclave');
   const liveQuote = isOutlayerQuote(meta.enclave.quote) ? meta.enclave.quote : null;
   // A saved draft may predate EVM being switched off on this server.
@@ -447,7 +430,7 @@ export function PlanBuilder({
         ? { symbol: `A plan already uses an EVM token called ${form.symbol}` }
         : {}),
     },
-    terms: termsErrors(form, chainNow, !!change, endLimit),
+    terms: termsErrors(form, chainNow, !!change),
     envelope: envelopeErrors(form),
     disclosure: disclosureErrors(form, minCooling),
     review: {},
@@ -686,7 +669,7 @@ export function PlanBuilder({
               </div>
               {nearOff && (
                 <p className="hint mt-2">
-                  NEAR-token plans run locally; the public demo uses {evmChainName(meta)} tokens.
+                  This server offers plans for {evmChainName(meta)} tokens only.
                 </p>
               )}
             </fieldset>
@@ -1010,7 +993,6 @@ export function PlanBuilder({
                 onChange={(v) => set({ end: v })}
                 error={err('end')}
                 disabled={!!change}
-                max={latestEnd === null ? undefined : msToLocal(latestEnd)}
                 hint="Whatever is left then goes to the beneficiary"
               />
             </fieldset>
@@ -1178,7 +1160,7 @@ export function PlanBuilder({
                     [
                       'end_reveal',
                       'At the end',
-                      'The whole plan is revealed after it ends and checked against the commitment. Needs your backup file.',
+                      'The enclave reveals the whole plan after it ends, checked against the commitment. Your backup is the fallback.',
                     ],
                   ] as const
                 ).map(([value, title, text]) => (

@@ -463,7 +463,7 @@ export default function UnlockCasePage() {
 
           <Panel
             title="What holders could have checked, as it happened"
-            description="On the live demo these are real checks your browser runs."
+            description="Each is a check the verifier runs in your browser."
           >
             <ul className="list-disc space-y-1.5 pl-5 text-sm">
               <li>

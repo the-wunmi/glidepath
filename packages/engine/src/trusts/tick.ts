@@ -70,9 +70,8 @@ async function tickTrust(e: Engine, trustId: number): Promise<TrustTickOutcome |
   const view = await trustMarketView(e, chain);
   const decided = await enclave.tick(chain, { holdings: view.holdings, prices: view.prices }, now);
   if (decided.type === 'idle') return { trustId, outcome: 'idle', reason: decided.reason };
-  // Each trade the relayer pays for (about 0.1 NEAR of deposit and gas) counts against the shared
-  // daily budget and the reserve floor, like every plan write; a visitor's trust cannot outspend
-  // them however tightly it is set.
+  // Each trade the relayer pays for (about 0.1 NEAR of deposit and gas) waits while the relayer is
+  // under its reserve floor, like every plan write.
   try {
     await spendRelayer(e);
   } catch (error) {

@@ -39,7 +39,7 @@ import { useResource } from '@/lib/use-resource';
 
 const DAY_MS = 86_400_000;
 const SIMULATED =
-  'Runs on a local NEAR chain with demo tokens priced on a simulated market; the enclave and 1Click are simulated';
+  'Runs on a local NEAR chain with test tokens priced on a simulated market; the enclave and 1Click are simulated';
 
 /** A diversified official's starting point: an index, bonds and gold, plus two regulated sectors. */
 const DEFAULTS: Record<string, { deposit: string; target: string; excluded: boolean }> = {
@@ -343,7 +343,7 @@ function CreateTrust({ meta, onCreated }: { meta: AvailableTrustMeta; onCreated:
           <div>
             <p className="label">Assets</p>
             <p className="hint mb-2">
-              What the official moves in (whole demo tokens), the sealed target weight of each, and
+              What the official moves in (whole test tokens), the sealed target weight of each, and
               which ones the public envelope excludes.
             </p>
             <div className="hidden grid-cols-[minmax(0,1fr)_6.5rem_6.5rem_7rem] gap-3 px-3 pb-1 text-xs text-ink-3 sm:grid">

@@ -1,7 +1,6 @@
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { DomainError, toBaseUnits } from '@vsp/core';
-import { type Db, dailyUsage, type plans } from '@vsp/db';
-import { sql } from 'drizzle-orm';
+import type { plans } from '@vsp/db';
 import type { Engine } from './context.ts';
 
 /**
@@ -20,7 +19,7 @@ export const OPERATOR: PlanPrincipal = { operator: true, planKey: null };
 
 /**
  * A refusal for capacity rather than for the request: `busy` (503) when the server's own funds
- * are low, `rate_limited` (429) when a cap is used up. Not a DomainError code because
+ * are low, `rate_limited` (429) when one client sends too many requests. Not a DomainError code because
  * packages/core is part of the registered enclave measurement and cannot change for this.
  */
 export class LimitError extends Error {
@@ -61,18 +60,9 @@ export function authorizePlan(
   if (!ok) throw new DomainError('forbidden', 'This plan’s key is required to manage it');
 }
 
-const DAY_MS = 86_400_000;
-
-/** The server's caps, as /api/meta shows them. maxPlanDays is null when plans may run any length. */
+/** What this server offers, as /api/meta shows it. */
 export function serverLimits(e: Engine) {
-  const testnet = e.world.network === 'testnet';
-  return {
-    plansPerDay: e.config.MAX_PLANS_PER_DAY,
-    launchesPerDay: e.config.MAX_LAUNCHES_PER_DAY,
-    relayerWritesPerDay: e.config.MAX_RELAYER_WRITES_PER_DAY,
-    maxPlanDays: e.config.MAX_PLAN_DAYS ?? (testnet ? 30 : null),
-    nearTokens: nearTokensEnabled(e),
-  };
+  return { nearTokens: nearTokensEnabled(e) };
 }
 
 /**
@@ -82,43 +72,6 @@ export function serverLimits(e: Engine) {
 export function nearTokensEnabled(e: Engine): boolean {
   if (e.config.NEAR_TOKEN_LAUNCHES) return e.config.NEAR_TOKEN_LAUNCHES === 'on';
   return e.world.network !== 'testnet' || Boolean(e.world.demoTokenCodeHash);
-}
-
-/** Refuses a plan that would run past this server's longest plan; `nowMs` is chain time. */
-export function assertPlanLength(e: Engine, endMs: number, nowMs: number): void {
-  const days = serverLimits(e).maxPlanDays;
-  if (days !== null && endMs > nowMs + days * DAY_MS)
-    throw new DomainError(
-      'invalid',
-      `Plans on this server can run at most ${days} days from now; choose an earlier end`,
-    );
-}
-
-export type DailyKind = 'plan_created' | 'token_launched' | 'relayer_write';
-
-const DAILY_MESSAGES: Record<DailyKind, string> = {
-  plan_created: 'Today’s limit for new plans is reached; try again after 00:00 UTC',
-  token_launched: 'Today’s limit for token launches is reached; try again after 00:00 UTC',
-  relayer_write: 'Today’s limit for on-chain actions is reached; try again after 00:00 UTC',
-};
-
-/**
- * Counts one spending action against today's (UTC) cap, or refuses it. One statement, so two
- * requests racing for the last slot cannot both get it.
- */
-export async function chargeDaily(db: Db, kind: DailyKind, max: number): Promise<void> {
-  const rows = await db
-    .insert(dailyUsage)
-    .values({ day: sql`(now() at time zone 'utc')::date`, kind, used: 1 })
-    .onConflictDoUpdate({
-      target: [dailyUsage.day, dailyUsage.kind],
-      set: { used: sql`${dailyUsage.used} + 1` },
-      setWhere: sql`${dailyUsage.used} < ${max}`,
-    })
-    .returning({ used: dailyUsage.used });
-  // A first insert always succeeds, so a cap of 0 is checked here.
-  if (!rows.length || (rows[0]?.used ?? 0) > max)
-    throw new LimitError('rate_limited', DAILY_MESSAGES[kind]);
 }
 
 /** Balance reads are cached this long: a burst of requests costs one RPC call, not one each. */
@@ -158,11 +111,7 @@ export async function assertReserve(e: Engine, chain: 'near' | 'evm'): Promise<v
   if (held < toBaseUnits(e.config.EVM_RESERVE, 18)) throw new LimitError('busy', BUSY);
 }
 
-/**
- * Before a write the relayer pays for, once the request is valid and authorized: the reserve
- * floor, then one unit of the shared daily budget for all such writes.
- */
+/** Before a write the relayer pays for, once the request is valid and authorized. */
 export async function spendRelayer(e: Engine): Promise<void> {
   await assertReserve(e, 'near');
-  await chargeDaily(e.db, 'relayer_write', e.config.MAX_RELAYER_WRITES_PER_DAY);
 }

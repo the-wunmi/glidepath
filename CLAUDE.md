@@ -120,7 +120,7 @@ and that DATABASE_URL serves it; set `OUTLAYER_TICK_SECONDS` high to keep it fro
   the quote key must predate the trust (`key_too_new_for_trust`). A newly bought token joins
   `holdings` (≤12) at once, the trust account is registered on it first (`storage_deposit` →
   `on_registered` → send), and a failed trade removes it again (`added_holding`). The engine charges
-  `spendRelayer` per relayed trade, refuses gaps under a minute at creation, and stops waking
+  `spendRelayer` (the reserve floor) per relayed trade, refuses gaps under a minute at creation, and stops waking
   trusts once `trusts.ended_at` is set. No owner method moves
   assets; `propose_envelope`/`cancel` wait the cooling-off (an envelope change applies lazily, also
   in views); `finalize` after the end or an effective cancel, then anyone `release`s each holding to
@@ -183,18 +183,18 @@ and that DATABASE_URL serves it; set `OUTLAYER_TICK_SECONDS` high to keep it fro
   `actor` only picks the signing persona. Finalize and reveal are open. Plans from before keys
   (testnet #1–#3) have no hash: operator only. With PUBLIC_ORIGIN set, an API write with no Origin
   needs the operator token, and `PUT /api/sim` and `/api/sim/advance` are operator only.
-- Drain protection (`packages/engine/src/guards.ts`): daily caps in `daily_usage` (UTC day;
-  MAX_PLANS_PER_DAY, MAX_LAUNCHES_PER_DAY), charged after validation; testnet reserve floors on the
+- Abuse protection: no daily caps or plan-length bound (removed 2026-11-14; migration 0006 drops
+  `daily_usage`). The API rate-limits per client (20 plans or trusts an hour, 120 writes per 10
+  minutes, `apps/api/src/app.ts`); `packages/engine/src/guards.ts` keeps testnet reserve floors on the
   relayer's NEAR and the Sepolia funder's ETH (30 s cached reads; `busy`); a per-plan advisory lock
-  around a launch; MAX_PLAN_DAYS; EVM gas from the chain's current fee (sales × 150k × fee × 2,
+  around a launch; EVM gas from the chain's current fee (sales × 150k × fee × 2,
   0.001–0.01 ETH). The OutLayer tick pays for no run when public state rules a sale out (not
   started or ended, min gap, period cap used, no tokens, a signed sale in flight) unless a change
   awaits its ack. NEAR-token plans need the demo token's code published as a global contract
   (local bootstrap does it; testnet: `pnpm deploy:testnet --publish-demo-token --confirm`, published 2026-11-14, tx
   `4soajy8X…`, 17.2 NEAR burnt, hash `AoefKus5…` in `deployments/testnet.json`) or NEAR_TOKEN_LAUNCHES=on. Simulated prices are keyed by token address (old symbol keys
   still answer), and a symbol may name only one token.
-- One shared daily budget (`relayer_write`, MAX_RELAYER_WRITES_PER_DAY) covers every write the
-  relayer pays for. A plan may enroll only the token it launched (`plans.launched_token`), up to
+- A plan may enroll only the token it launched (`plans.launched_token`), up to
   the founder allocation it minted; no plan may name a token another plan launched, or the
   proceeds token. Finalize and reveal read the registry first and answer 409 when there is nothing
   to do. A repeat of a plan already on chain writes nothing and returns `ownerKey: null`.

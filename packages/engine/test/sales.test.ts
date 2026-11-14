@@ -272,7 +272,7 @@ describe('enrolling more tokens', () => {
       }),
     ).rejects.toMatchObject({ code: 'invalid' });
     await expect(
-      sealedPlan(e, { chain: 'near', symbol: 'ENRX', address: `enrl.${e.world.root}` }),
+      sealedPlan(e, { chain: 'near', symbol: 'ENRL', address: `enrl.${e.world.root}` }),
     ).rejects.toMatchObject({ code: 'conflict' });
     await expect(
       sealedPlan(e, { chain: 'near', symbol: 'USDX', address: e.world.usdc }),

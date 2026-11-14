@@ -53,17 +53,20 @@ const BUSY_RETRY_AFTER_S = 2;
 /** eth_getLogs ranges wider than this are refused: public nodes choke on them. */
 const MAX_LOG_BLOCKS = 5_000n;
 
-/** A founder session (create, launch, enroll, a change or two) takes about ten writes. */
-const WRITES_PER_WINDOW = 30;
+/**
+ * Per-client flood protection, set far above what a person does: a founder session (create,
+ * launch, enroll, a change or two) takes about ten writes.
+ */
+const WRITES_PER_WINDOW = 120;
 const WRITE_WINDOW_MS = 10 * 60_000;
 /** The verifier page reads a plan's receipts through /rpc: a few dozen calls per check. */
 const RPC_CALLS_PER_WINDOW = 300;
 const RPC_WINDOW_MS = 60_000;
 /**
- * Each plan deploys a plan account paid by the relayer's testnet NEAR. The total is the engine's
- * durable daily cap (MAX_PLANS_PER_DAY); this keeps one address from taking all of it.
+ * Each plan or trust deploys an account the relayer pays for; this keeps one script from emptying
+ * it, and is far above what a person creates in an hour.
  */
-const PLANS_PER_HOUR_PER_CLIENT = 3;
+const PLANS_PER_HOUR_PER_CLIENT = 20;
 
 /**
  * Read-only methods the verifier page may call on the chains through this proxy. Anything that
@@ -318,7 +321,7 @@ export function createApp(e: Engine) {
     // The raw body: createPlan validates it; this only peeks at the chain.
     const input = await body<Parameters<typeof engine.createPlan>[1]>(c);
     if (evmOff && input?.token?.chain === 'evm') refuseEvm();
-    // Only a valid plan counts against this address's hourly share; the daily cap is the engine's.
+    // Only a valid plan counts against this address's hourly share.
     await engine.checkNewPlan(e, input);
     if (behindProxy && !planCreations.take(clientKey(c))) return tooMany();
     const created = await engine.createPlan(e, input);

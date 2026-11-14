@@ -81,7 +81,7 @@ export default function OverviewPage() {
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
             <Link href="/unlock" className="btn btn-primary">
-              See it on a real unlock
+              Case study: ARB’s unlock
             </Link>
             <Link href="/app/new" className="btn btn-secondary">
               Create a plan
@@ -91,8 +91,8 @@ export default function OverviewPage() {
             </Link>
           </div>
           <p className="mt-3 max-w-[60ch] text-sm text-ink-3">
-            The real case: ARB’s March 2024 team and investor cliff, from the chain, next to the
-            same allocation under a sealed plan.
+            ARB’s March 2024 team and investor cliff, read from the chain, beside the same
+            allocation under a sealed plan.
           </p>
         </div>
         <div className="well p-5 lg:mt-3">

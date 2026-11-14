@@ -268,9 +268,9 @@ export function SimulationDrawer({ open, onClose }: { open: boolean; onClose: ()
           <div>
             <div className="flex items-center gap-2">
               <h2 id={titleId} className="text-base font-semibold">
-                Demo controls
+                Simulation controls
               </h2>
-              <SimBadge>Demo only</SimBadge>
+              <SimBadge>Simulated</SimBadge>
             </div>
             <p className="mt-1 text-sm text-ink-2">
               {meta.data?.network === 'testnet'
@@ -281,7 +281,7 @@ export function SimulationDrawer({ open, onClose }: { open: boolean; onClose: ()
           <button
             type="button"
             className="btn btn-ghost btn-sm size-8 px-0"
-            aria-label="Close demo controls"
+            aria-label="Close simulation controls"
             onClick={onClose}
           >
             <CrossIcon />

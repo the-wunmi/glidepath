@@ -31,6 +31,8 @@ export interface Meta {
   livePriceSymbols: string[];
   chainTimeMs: number;
   accounts: {
+    /** The account new NEAR tokens are created under (`<symbol>.<root>`). */
+    root: string;
     registry: string;
     signer: string;
     usdc: string;
@@ -56,13 +58,10 @@ export interface Meta {
   mpcRootPublicKey: string;
   evmChainId: number;
   sim: SimSettings;
-  /** True on the public server: owner writes need the plan key, demo controls the operator. */
+  /** True on the public server: owner writes need the plan key, simulation controls the operator. */
   public: boolean;
-  /** This server's caps on new plans; maxPlanDays is null when plans may run any length. */
+  /** What this server offers. */
   limits: {
-    plansPerDay: number;
-    launchesPerDay: number;
-    maxPlanDays: number | null;
     nearTokens: boolean;
   };
 }

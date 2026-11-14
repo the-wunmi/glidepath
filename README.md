@@ -56,11 +56,11 @@ Signatures.
 
 <img src=".github/media/verifier-mobile.png" alt="Public verifier on a phone" width="320">
 
-## Try it
+## Using it
 
 On <https://glidepath.clanker.show>:
 
-1. **See it on a real unlock** → ARB's 2024 cliff, every transfer linked, next to the same tokens under a sealed plan.
+1. **Case study: ARB's unlock** → ARB's 2024 cliff, every transfer linked, next to the same tokens under a sealed plan.
 2. **Verify a plan** → plan #4 → **Receipts** → **Verify all** → every receipt passes, checked in your browser.
 3. **Proof** tab → the plan account has 0 keys, and the enclave's attestation passes.
 4. **Create a plan** → fill in the five steps → **Seal and commit** → the plan page, with your plan key to save.
@@ -133,6 +133,10 @@ case. The contract and enclave checks need Rust with `cargo-near`, the `wasm32-w
 
 ## Limits
 
+- Founders don't sign in yet. The server's testnet account signs on their behalf, so it appears
+  as the owner of every plan, and a plan's owner key (shown once, kept in the browser that created
+  it) is what authorises changes. Next: founders sign with their own NEAR wallet, with gas
+  sponsored.
 - It proves how enrolled tokens were handled, not everything the insider does: tokens never
   enrolled, and hedges on derivatives, are out of reach.
 - Each sale is a visible transfer when it happens; random timing and sizes reduce what can be

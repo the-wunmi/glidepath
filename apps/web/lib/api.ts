@@ -43,14 +43,14 @@ function headers(init: ApiInit | undefined): Record<string, string> {
 /** The API's refusals that people meet in normal use, in our words rather than the server's. */
 function plainMessage(status: number, code: string, path: string, init?: ApiInit): string | null {
   if (code === 'rate_limited')
-    return 'The public demo’s limit is reached for now. Try again later.';
+    return 'Too many requests from this address. Try again in a few minutes.';
   if (code === 'busy') return 'Glidepath is busy right now; try again later.';
   if (status !== 403 || code !== 'forbidden') return null;
   if (init?.planId !== undefined)
     return loadPlanKey(init.planId)
       ? 'The plan refused the key this browser holds. Replace it under Proof, Plan key.'
       : 'Managing this plan needs its plan key. Paste it to manage the plan here.';
-  if (path.startsWith('/api/sim')) return 'Only the operator can change the demo.';
+  if (path.startsWith('/api/sim')) return 'Only the operator can change the simulation.';
   return null;
 }
 

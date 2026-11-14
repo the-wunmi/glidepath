@@ -18,7 +18,7 @@ const NAV = [
 
 /** Background and method pages: useful, but not where anyone starts. */
 const FOOTER = [
-  { href: '/unlock', label: 'A real unlock (ARB)' },
+  { href: '/unlock', label: 'Case study: ARB' },
   { href: '/evidence', label: 'Evidence' },
   { href: '/red-team', label: 'Red team' },
   { href: '/how-it-works', label: 'How it works' },
@@ -35,7 +35,7 @@ export function Shell({ children }: { children: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [simOpen, setSimOpen] = useState(false);
   const operator = useOperator();
-  // On the public server the demo controls steer everyone's demo, so only the operator gets them.
+  // On the public server the simulation controls steer everyone's view, so only the operator gets them.
   const demo =
     hasSimulatedParts(meta.data) && (!meta.data?.public || operator.status === 'operator');
 
@@ -76,11 +76,11 @@ export function Shell({ children }: { children: ReactNode }) {
                 className="btn btn-ghost btn-sm"
                 onClick={() => setSimOpen(true)}
                 aria-haspopup="dialog"
-                title="Demo controls: time, prices, 1Click outcomes"
+                title="Simulation controls: time, prices, 1Click outcomes"
               >
                 <SlidersIcon />
-                <span className="hidden sm:inline">Demo</span>
-                <span className="sr-only sm:hidden">Demo controls</span>
+                <span className="hidden sm:inline">Simulation</span>
+                <span className="sr-only sm:hidden">Simulation controls</span>
               </button>
             )}
             <ThemeToggle />

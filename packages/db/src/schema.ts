@@ -2,13 +2,11 @@ import { sql } from 'drizzle-orm';
 import {
   bigint,
   bigserial,
-  date,
   index,
   integer,
   jsonb,
   numeric,
   pgTable,
-  primaryKey,
   text,
   timestamp,
   uniqueIndex,
@@ -73,21 +71,6 @@ export const plans = pgTable(
     // A token is launched by one plan only, so no other plan can enroll or release it.
     uniqueIndex('plans_launched_token').on(t.launchedToken),
   ],
-);
-
-/**
- * Spending actions taken per UTC day (`plan_created`, `token_launched`, and every relayer-paid
- * write as `relayer_write`), counted before each one
- * so the daily caps hold across restarts and API processes.
- */
-export const dailyUsage = pgTable(
-  'daily_usage',
-  {
-    day: date('day').notNull(),
-    kind: text('kind').notNull(),
-    used: integer('used').notNull(),
-  },
-  (t) => [primaryKey({ columns: [t.day, t.kind] })],
 );
 
 /**

@@ -4,15 +4,7 @@ import type { AddressInfo } from 'node:net';
 import { createDb, createPool, plans } from '@vsp/db';
 import { runMigrations } from '@vsp/db/migrate';
 import type { Engine } from '@vsp/engine';
-import {
-  assertPlanLength,
-  chargeDaily,
-  loadConfig,
-  newOwnerKey,
-  REPO_DATA_DIR,
-  serverLimits,
-  spendRelayer,
-} from '@vsp/engine';
+import { loadConfig, newOwnerKey, REPO_DATA_DIR, serverLimits } from '@vsp/engine';
 import { publicRpcClient } from '@vsp/evm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from '../src/app.ts';
@@ -71,7 +63,12 @@ function engineStub(
   return {
     config,
     db,
-    world: { network, nearRpcUrl: 'http://127.0.0.1:1', evmRpcUrl: 'http://127.0.0.1:1' },
+    world: {
+      network,
+      root: 'root.sandbox',
+      nearRpcUrl: 'http://127.0.0.1:1',
+      evmRpcUrl: 'http://127.0.0.1:1',
+    },
     reads: { evm: publicRpcClient(evmUrls) },
     registry: {
       plans: async () => [{ asset: { type: 'evm_erc20', token_address: CHAIN_ONLY_TOKEN } }],
@@ -151,6 +148,41 @@ describe('the enclave a public server runs', () => {
   });
 });
 
+describe('a new NEAR-token plan', () => {
+  const plan = (address: string) => ({
+    actor: 'founder.sandbox',
+    label: 'test',
+    token: { chain: 'near', address, symbol: 'GPLN', decimals: 18 },
+    beneficiary: { near_account: 'founder.sandbox' },
+    proceeds_asset: 'nep141:usdc.sandbox',
+    envelope: {
+      period_ms: 86_400_000,
+      max_amount_per_period: '100',
+      max_amount_per_tx: '10',
+      min_price_usd_e6: '1',
+      min_gap_ms: 0,
+    },
+    disclosure: { type: 'realtime' },
+    cooling_off_ms: 600_000,
+    start_ms: 1,
+    end_ms: 2,
+    commitment: 'ab'.repeat(32),
+    sealed_box: { v: 1, epk: 'cd'.repeat(32), nonce: 'ef'.repeat(12), ct: 'x' },
+  });
+
+  it('must put its token under the account that creates tokens, or the launch could never work', async () => {
+    // On testnet the builder once derived `gpln.testnet` from the founder `zyx-dev.testnet`: a
+    // top-level account nobody can create, so plan #5 was committed with a token that cannot exist.
+    const res = await app().request('/api/plans', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(plan('gpln.sandbox')),
+    });
+    expect(res.status).toBe(422);
+    expect(JSON.stringify(await res.json())).toContain('gpln.root.sandbox');
+  });
+});
+
 describe('simulation controls', () => {
   it('cannot move time on testnet, which runs in real time', async () => {
     const live = app('testnet');
@@ -217,7 +249,7 @@ describe('behind the public proxy', () => {
 
   it('counts no invalid plan against a client’s creation limit', async () => {
     const a = app('testnet', { PUBLIC_ORIGIN: 'https://glidepath.example/' });
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 25; i++) {
       const res = await write(a, '/api/plans', {
         origin: 'https://glidepath.example',
         'x-forwarded-for': `6.6.6.6, 1.1.1.1`,
@@ -229,16 +261,16 @@ describe('behind the public proxy', () => {
   it('limits how many trusts one client can create, like plans', async () => {
     const a = app('testnet', { PUBLIC_ORIGIN: 'https://glidepath.example/' });
     const statuses: number[] = [];
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 22; i++) {
       const res = await write(a, '/api/trusts', {
         origin: 'https://glidepath.example',
         'x-forwarded-for': `7.7.7.7, 1.1.1.1`,
       });
       statuses.push(res.status);
     }
-    // Three an hour per client, as for plans; then 429 before any work is done.
-    expect(statuses.slice(3)).toEqual([429, 429]);
-    expect(statuses.slice(0, 3)).not.toContain(429);
+    // Twenty an hour per client, as for plans; then 429 before any work is done.
+    expect(statuses.slice(20)).toEqual([429, 429]);
+    expect(statuses.slice(0, 20)).not.toContain(429);
   });
 
   it('refuses an API write with no Origin unless it carries the operator token', async () => {
@@ -362,33 +394,7 @@ describe('plan authorization', () => {
   });
 });
 
-describe('drain protection', () => {
-  it('caps spending actions per UTC day in the database, refusing past the cap', async () => {
-    await chargeDaily(db, 'token_launched', 2);
-    await chargeDaily(db, 'token_launched', 2);
-    await expect(chargeDaily(db, 'token_launched', 2)).rejects.toMatchObject({
-      code: 'rate_limited',
-      message: 'Today’s limit for token launches is reached; try again after 00:00 UTC',
-    });
-  });
-
-  it('shares one daily budget across every relayer-paid write', async () => {
-    const e = engineStub('local', { MAX_RELAYER_WRITES_PER_DAY: '1' });
-    await spendRelayer(e);
-    await expect(spendRelayer(e)).rejects.toMatchObject({
-      code: 'rate_limited',
-      message: 'Today’s limit for on-chain actions is reached; try again after 00:00 UTC',
-    });
-  });
-
-  it('bounds plan length to 30 days on testnet and not locally', () => {
-    const now = Date.parse('2026-11-13T00:00:00Z');
-    const day = 86_400_000;
-    expect(() => assertPlanLength(engineStub('testnet'), now + 31 * day, now)).toThrow(/30 days/);
-    expect(() => assertPlanLength(engineStub('testnet'), now + 29 * day, now)).not.toThrow();
-    expect(() => assertPlanLength(engineStub('local'), now + 400 * day, now)).not.toThrow();
-  });
-
+describe('abuse protection', () => {
   it('offers NEAR-token plans on testnet only once the token code is published', () => {
     expect(serverLimits(engineStub('testnet')).nearTokens).toBe(false);
     expect(serverLimits(engineStub('local')).nearTokens).toBe(true);

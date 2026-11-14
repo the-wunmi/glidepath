@@ -45,7 +45,7 @@ import { useResource } from '@/lib/use-resource';
 const TABS = ['overview', 'receipts', 'proof'] as const;
 
 const SIMULATED_PRICES =
-  'Demo tokens priced on the simulated market of this local chain; real trusts would use market prices';
+  'Test tokens priced on the simulated market of this local chain; real trusts would use market prices';
 const SIMULATED_ENCLAVE =
   'The enclave is simulated in-process here; its attestation is a simulated TDX quote';
 

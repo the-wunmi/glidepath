@@ -51,6 +51,8 @@ export async function metaView(e: Engine) {
     livePriceSymbols: [...livePricePairs(e.config).keys()],
     chainTimeMs,
     accounts: {
+      /** The account new NEAR tokens are created under (`<symbol>.<root>`). */
+      root: e.world.root,
       registry: e.world.registry,
       signer: e.world.signer,
       usdc: e.world.usdc,

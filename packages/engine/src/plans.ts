@@ -35,10 +35,8 @@ import { z } from 'zod';
 import type { Engine } from './context.ts';
 import { DBOS, durableEngine, startOnce } from './durable.ts';
 import {
-  assertPlanLength,
   assertReserve,
   authorizePlan,
-  chargeDaily,
   nearTokensEnabled,
   newOwnerKey,
   type PlanPrincipal,
@@ -199,11 +197,16 @@ export async function checkNewPlan(e: Engine, input: z.input<typeof CreatePlanIn
       'unavailable',
       'NEAR-token plans are off on this server; create a plan for an ERC-20 token instead',
     );
+  // The launch creates the token as a sub-account of the world's root; any other account it could
+  // not create, and the plan would be committed with a token that can never exist.
+  const expected = `${p.token.symbol.toLowerCase()}.${e.world.root}`;
+  if (p.token.chain === 'near' && p.token.address !== expected)
+    throw new DomainError('invalid', `A new NEAR token's account must be ${expected}`);
   // The registry's floor test assumes 6-decimal USD proceeds, so only the world's USDC is offered.
   if (p.proceeds_asset !== `nep141:${e.world.usdc}`)
     throw new DomainError('invalid', `Proceeds must be paid in nep141:${e.world.usdc}`);
   assertActor(e, p.actor);
-  // The registry's own rules, checked here so a request it would refuse costs no daily budget.
+  // The registry's own rules, checked here so a request it would refuse costs nothing.
   const env = p.envelope;
   if (env.max_amount_per_tx <= 0n || env.max_amount_per_tx > env.max_amount_per_period)
     throw new DomainError('invalid', 'The per-sale cap must be positive and within the period cap');
@@ -218,8 +221,6 @@ export async function checkNewPlan(e: Engine, input: z.input<typeof CreatePlanIn
     );
   if (p.end_ms <= p.start_ms || p.end_ms <= nowMs)
     throw new DomainError('invalid', 'A plan must end after it starts, and in the future');
-  // Plan times are chain times, and the local chain can be fast-forwarded past the wall clock.
-  assertPlanLength(e, p.end_ms, nowMs);
   // A plan may not name the proceeds token, or a token another plan launched: finalizing would
   // release whatever of it the plan account holds, and enroll moves the relayer's own balance.
   if (p.token.address === e.world.usdc)
@@ -263,7 +264,6 @@ export async function createPlan(e: Engine, input: z.input<typeof CreatePlanInpu
   if (onChain)
     return { planId: onChain.id, txHash: null, planAccount: onChain.plan_account, ownerKey: null };
   await spendRelayer(e);
-  await chargeDaily(e.db, 'plan_created', e.config.MAX_PLANS_PER_DAY);
   const owner = newOwnerKey();
   // Started before the chain call: if this process dies after the plan is created, the workflow
   // finds it on-chain, records it (with the key's hash, never the key) and hands it to the
@@ -749,7 +749,6 @@ export async function launchToken(
     }
     // A NEAR launch is paid by the relayer; an EVM launch by the Sepolia funder.
     await (row.tokenChain === 'near' ? spendRelayer(e) : assertReserve(e, 'evm'));
-    await chargeDaily(e.db, 'token_launched', e.config.MAX_LAUNCHES_PER_DAY);
     // The simulated market learns the listing price first: a crash after the launch must not
     // leave a token the 1Click simulator cannot price (a no-op for listed tokens, priced live).
     await updateSimSettings(e.db, (s) => {

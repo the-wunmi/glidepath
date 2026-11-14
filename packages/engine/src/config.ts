@@ -63,21 +63,6 @@ export const Config = z.object({
    * script write without an Origin. Unset, nobody is the operator.
    */
   OPERATOR_TOKEN: unsetIfEmpty(z.string().min(24).optional()),
-  /** Plan creations per UTC day across all clients (each deploys a plan account on the relayer's NEAR). */
-  MAX_PLANS_PER_DAY: z.coerce.number().int().min(0).default(10),
-  /** Token launches per UTC day across all clients (each deploys a token and funds gas). */
-  MAX_LAUNCHES_PER_DAY: z.coerce.number().int().min(0).default(10),
-  /**
-   * Writes the relayer pays for (create, launch, enroll, change, cancel, withdraw, finalize,
-   * reveal, bypass demos) per UTC day across all clients, so spam meets a 429 well before the
-   * relayer's reserve floor turns everyone away.
-   */
-  MAX_RELAYER_WRITES_PER_DAY: z.coerce.number().int().min(0).default(300),
-  /**
-   * Longest plan accepted, in days from now. Every active plan costs OutLayer runs until it ends.
-   * Unset: 30 on testnet, no bound on the local network.
-   */
-  MAX_PLAN_DAYS: unsetIfEmpty(z.coerce.number().int().min(1).optional()),
   /** Testnet only: spending actions answer busy while the relayer holds less NEAR than this. */
   NEAR_RESERVE: z
     .string()

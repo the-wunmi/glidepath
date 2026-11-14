@@ -8,7 +8,7 @@ import { PageHeader } from '@/components/ui';
 /**
  * Sign-in for the people running this deployment. The token stays in this browser and goes out
  * as the bearer on API calls; it lets the operator manage plans that have no plan key here
- * (the showcase plans) and, on the public server, use the demo controls.
+ * (the showcase plans) and, on the public server, use the simulation controls.
  */
 export default function OperatorPage() {
   const uid = useId();
@@ -30,7 +30,7 @@ export default function OperatorPage() {
           </p>
           <p className="mt-0.5 text-sm text-ink-2">
             {status === 'operator'
-              ? `This browser can manage every plan${meta.data?.public ? ' and use the demo controls' : ''}.`
+              ? `This browser can manage every plan${meta.data?.public ? ' and use the simulation controls' : ''}.`
               : 'The API could not check it just now; it is sent with every call from this browser.'}
           </p>
           <button type="button" className="btn btn-secondary mt-3" onClick={signOut}>

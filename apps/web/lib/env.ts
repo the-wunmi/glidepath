@@ -61,6 +61,6 @@ export type SimulatedPart = keyof typeof SIM_REASONS;
 export const simReason = (meta: Meta | null, part: SimulatedPart): string | null =>
   meta && meta.modes[part] === 'mock' ? SIM_REASONS[part] : null;
 
-/** True when anything outside is simulated: the demo controls exist only then. */
+/** True when anything outside is simulated: the simulation controls exist only then. */
 export const hasSimulatedParts = (meta: Meta | null) =>
   !!meta && Object.values(meta.modes).some((m) => m === 'mock');

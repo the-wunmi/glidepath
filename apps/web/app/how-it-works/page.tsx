@@ -111,13 +111,13 @@ const SIMULATED: {
   {
     part: 'Price feeds',
     mode: 'prices',
-    here: 'Binance and Coinbase, keyless, for listed tokens (NEAR, wNEAR). A demo token has no market, so it is priced on a seeded simulated market, with per-source offsets to rehearse manipulation.',
+    here: 'Binance and Coinbase, keyless, for listed tokens (NEAR, wNEAR). A newly launched token has no market yet, so it is priced on a seeded simulated market, with per-source offsets to rehearse manipulation.',
     real: 'Exchange APIs and 1Click quotes, fetched inside the enclave.',
   },
   {
     part: 'NEAR',
     mode: 'near',
-    here: 'NEAR testnet with the deployed registry. Tests and offline work use a local NEAR sandbox, whose time the demo controls can move forward.',
+    here: 'NEAR testnet with the deployed registry. Tests and offline work use a local NEAR sandbox, whose clock can be moved forward.',
     real: 'NEAR mainnet.',
   },
   {

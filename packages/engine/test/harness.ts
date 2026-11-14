@@ -64,9 +64,6 @@ export const testEnv = (ports: { api: number; near: number; evm: number }) => ({
   EVM_NODE_PORT: String(ports.evm),
   SETTLE_IN_DOUBT_SECONDS: '2',
   EVM_STUCK_BLOCKS: '3',
-  // A test world creates more plans than a server's daily cap allows; the caps have their own test.
-  MAX_PLANS_PER_DAY: '1000',
-  MAX_LAUNCHES_PER_DAY: '1000',
   DATA_DIR: `${process.env.TMPDIR ?? '/tmp'}/vsp-engine-test`,
 });
 
