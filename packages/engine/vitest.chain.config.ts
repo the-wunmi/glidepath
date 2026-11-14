@@ -8,7 +8,7 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig(async () => ({
   test: {
     include: ['test/**/*.chain.test.ts'],
-    maxWorkers: 6,
+    maxWorkers: 4,
     testTimeout: 300_000,
     // Setup starts the chains, deploys every contract and fast-forwards past the enclave
     // activation delay; on a busy machine that alone can take minutes.

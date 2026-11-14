@@ -39,7 +39,8 @@ import {
   vaultDeployment,
 } from '@/lib/vault';
 
-const mempool = new MempoolClient();
+/** Bitcoin testnet4 reads: blockstream.info's Esplora API answers browsers (CORS) reliably. */
+const mempool = new MempoolClient('https://blockstream.info/testnet4/api');
 
 const SIMULATED_SIGNER =
   'On this local chain a stand-in signer plays the MPC network, and the rehearsal’s UTXOs are made up';
@@ -294,13 +295,13 @@ function Balance({ resource }: { resource: Resource<AddressBalance> }) {
   if (resource.error && !resource.data)
     return (
       <span className="text-ink-2">
-        Could not be read from mempool.space.{' '}
+        Could not be read from Bitcoin testnet4.{' '}
         <button type="button" className="link" onClick={() => void resource.reload()}>
           Try again
         </button>
       </span>
     );
-  if (!resource.data) return <span className="text-ink-3">Reading mempool.space…</span>;
+  if (!resource.data) return <span className="text-ink-3">Reading Bitcoin testnet4…</span>;
   const { confirmed, unconfirmed } = resource.data;
   return (
     <span>
@@ -432,11 +433,11 @@ function SignedTransaction({ spend, publicKey }: { spend: SpendView; publicKey: 
         <Hash value={tx.txid} label="transaction id" href={mempoolTxUrl(tx.txid)} />
         <span className="text-xs text-ink-3">
           {status.error && !status.data
-            ? 'status could not be read from mempool.space'
+            ? 'status could not be read from Bitcoin testnet4'
             : status.loading
-              ? 'checking mempool.space…'
+              ? 'checking Bitcoin testnet4…'
               : status.data === null
-                ? 'not seen by mempool.space yet'
+                ? 'not seen on Bitcoin testnet4 yet'
                 : status.data.confirmed
                   ? `confirmed in block ${status.data.block_height}`
                   : 'in the mempool, unconfirmed'}

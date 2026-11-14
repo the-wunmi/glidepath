@@ -175,7 +175,7 @@ Postgres must be running (`pnpm db:up`, or a running `pnpm dev:local`).
 
 ```sh
 pnpm test && pnpm typecheck && pnpm lint     # every package, about 35 seconds
-pnpm test:chain                             # the engine on real local chains, about CHAIN_TIME minutes
+pnpm test:chain                             # the engine on real local chains, about 8 minutes
 pnpm contracts:test                         # the contracts in a NEAR sandbox, about 15 minutes
 pnpm enclave:wasi                           # the Rust enclave against its TypeScript reference
 ```
@@ -275,16 +275,17 @@ way to move the assets, and everything goes to a fixed beneficiary at the end. T
 rules, yes/no statements per trade and receipts it can check; the page shows the official only the
 total value.
 
-Limits: balances and each trade's pair and size are public on NEAR, so this hides the holdings from
-a casual look, not from someone reading the chain, and an official who remembers the mandate could
-work out its trades. "Within the mandate" is the enclave's word; the contract checks the rest. It
-runs on a local chain with the simulated enclave and 1Click; the published OutLayer build includes
-its operations, but the trust does not use it yet and the contract is not deployed to testnet.
+Balances and each trade's pair and size are public on NEAR, so the trust keeps the holdings from a
+casual look rather than from someone reading the chain. "Within the mandate" is the enclave's
+statement; the contract checks every public rule itself. The contract runs on NEAR testnet
+(`glidepath-trust.zyx-dev.testnet`, with five `glidepath-labs-*` tokens), and its trades are decided
+by the same OutLayer enclave builds as plans.
 
-- `pnpm dev:local`, then footer → **Labs** → **Blind trust** → **Seal and create the trust**.
-- Open the trust → within a minute the enclave sells the excluded sectors and rebalances →
-  **Receipts** → **Verify all**: every check passes in your browser.
-- `pnpm trust:deploy` prints the testnet deployment; `--confirm` sends it (about 6 NEAR).
+- Footer → **Labs** → **Blind trust** → **Seal and create the trust**.
+- Open the trust → the enclave sells the excluded sectors and rebalances → **Receipts** →
+  **Verify all**: every check passes in your browser.
+- `pnpm dev:local` runs the same flow on a local chain with the simulated enclave.
+- `pnpm trust:deploy` prints a deployment; `--confirm` sends it (about 6 NEAR).
 
 ## Repository
 
