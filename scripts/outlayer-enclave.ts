@@ -160,7 +160,10 @@ async function fetchHash(url: string): Promise<string | null> {
 async function prove() {
   const sha = sha256Hex(new Uint8Array(readFileSync(wasmPath)));
   const wasm = { url: wasmUrl(sha), sha256: sha };
-  const client = new OutLayerClient(caller, CONTRACT);
+  const client = new OutLayerClient(
+    () => near.account(caller.accountId, env('RELAYER_PRIVATE_KEY') as KeyPairString),
+    CONTRACT,
+  );
   type Proof = { json: string; signature: string; enclave_key: string };
   // `--tx <hash>` re-checks a run already paid for instead of starting another.
   const earlier = process.argv[process.argv.indexOf('--tx') + 1];

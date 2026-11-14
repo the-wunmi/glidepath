@@ -162,11 +162,19 @@ export interface OutLayerRunner {
 /** Sends `request_execution` transactions and reads the module's answer. */
 export class OutLayerClient implements OutLayerRunner {
   private queue: Promise<unknown> = Promise.resolve();
+  private caller: Account;
 
+  /**
+   * `account` makes the relayer's account. An Account caches its next nonce, and other code signs
+   * with the same key, so after a nonce error the client starts over with a new one, which reads
+   * the key's nonce from the chain again.
+   */
   constructor(
-    private readonly caller: Account,
+    private readonly account: () => Account,
     private readonly contract: string,
-  ) {}
+  ) {
+    this.caller = account();
+  }
 
   /** One run; queued, so this process never signs two of them with the same nonce. */
   run<T>(build: Pick<OutLayerBuild, 'wasm'>, input: object): Promise<RunResult<T>> {
@@ -190,7 +198,6 @@ export class OutLayerClient implements OutLayerRunner {
       teraToGas(RUN_GAS_TERA),
       RUN_DEPOSIT_YOCTO,
     );
-    const provider = this.caller.provider;
     let txHash = '';
     for (let attempt = 0; ; attempt++) {
       const signed = await this.caller.createSignedTransaction({
@@ -200,10 +207,11 @@ export class OutLayerClient implements OutLayerRunner {
       txHash = base58Encode(hexToBytes(sha256Hex(signed.transaction.encode())));
       try {
         // Wait for inclusion: an async broadcast that loses a nonce race is dropped silently.
-        await provider.sendTransactionUntil(signed, 'INCLUDED');
+        await this.caller.provider.sendTransactionUntil(signed, 'INCLUDED');
         break;
       } catch (error) {
         if (attempt < NONCE_RETRIES && /InvalidNonce|nonce/i.test(String(error))) {
+          this.caller = this.account();
           await sleep(500 + attempt * 500);
           continue;
         }
@@ -960,7 +968,7 @@ export function buildOutLayerEnclave(
     throw new Error(`The OutLayer key belongs to ${deployment.caller}, not ${w.relayer}`);
   if (deployment.quoteSignerKey !== quoteSignerKey)
     throw new Error('The OutLayer module was built for another 1Click quote key');
-  const caller = near.account(w.relayer, w.keys[w.relayer] as KeyPairString);
+  const caller = () => near.account(w.relayer, w.keys[w.relayer] as KeyPairString);
   return new OutLayerEnclave({
     store: dbOutLayerStore(db),
     client: new OutLayerClient(caller, deployment.contract),

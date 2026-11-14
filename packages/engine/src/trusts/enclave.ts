@@ -71,7 +71,8 @@ function outlayerTrustEnclave(e: Engine): ModuleTrustEnclave {
     throw new Error(`The OutLayer key belongs to ${deployment.caller}, not ${e.world.relayer}`);
   if (deployment.quoteSignerKey !== oneclickQuoteKey(e.config, e.world))
     throw new Error('The OutLayer module was built for another 1Click quote key');
-  const caller = e.near.account(e.world.relayer, e.world.keys[e.world.relayer] as KeyPairString);
+  const caller = () =>
+    e.near.account(e.world.relayer, e.world.keys[e.world.relayer] as KeyPairString);
   return new ModuleTrustEnclave(e, new OutLayerClient(caller, deployment.contract), deployment);
 }
 
