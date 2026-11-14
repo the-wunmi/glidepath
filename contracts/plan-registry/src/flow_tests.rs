@@ -88,6 +88,11 @@ impl Chain {
     }
 
     fn execute_evm(&mut self, amount: u128) {
+        self.execute_evm_as("relayer.near", amount);
+    }
+
+    /// Sends an enclave-signed sale as `caller`: the registry checks the request, not the sender.
+    fn execute_evm_as(&mut self, caller: &str, amount: u128) {
         let plan = self.registry.get_plan(PLAN_ID).unwrap();
         let min_out = amount * 1_500_000 / 10u128.pow(18);
         let payload = stable_stringify(&json!({
@@ -121,7 +126,7 @@ impl Chain {
         })
         .to_string();
         let signature = self.sign(&self.enclave, "vsp/execute/v1\n", &request);
-        self.as_caller("relayer.near", NearToken::from_near(1));
+        self.as_caller(caller, NearToken::from_near(1));
         let _ = self
             .registry
             .execute(PLAN_ID, request, signature, enclave_key(&self.enclave));
@@ -280,6 +285,17 @@ fn a_correct_mpc_signature_settles_the_sale() {
     assert!(!plan.evm_sign_pending && plan.evm_pending_sign.is_none());
     let receipt = &chain.registry.get_receipts(PLAN_ID, None, None)[0];
     assert_eq!(receipt.status, ReceiptStatus::Done);
+}
+
+#[test]
+fn anyone_can_send_an_enclave_signed_sale_so_no_relayer_can_hold_one_back() {
+    let mut chain = active_evm_plan();
+    chain.execute_evm_as("anyone.near", 10u128.pow(19));
+    let result = chain.signature_by(&chain.mpc.clone(), 0);
+    assert!(chain.deliver_signature(0, result).is_some());
+    let receipt = &chain.registry.get_receipts(PLAN_ID, None, None)[0];
+    assert_eq!(receipt.status, ReceiptStatus::Done);
+    assert_eq!(receipt.receiver, EVM_VENUE);
 }
 
 #[test]

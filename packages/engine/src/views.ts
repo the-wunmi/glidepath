@@ -2,12 +2,13 @@ import { DomainError } from '@vsp/core';
 import { activity, executions, plans } from '@vsp/db';
 import type { EnclaveIdentity } from '@vsp/enclave';
 import type { ChainEnclave, ChainPlan, RegistryConfig } from '@vsp/near';
-import { desc, eq } from 'drizzle-orm';
+import { and, desc, eq, lt } from 'drizzle-orm';
 import { erc20Abi, type Hex } from 'viem';
 import { livePricePairs } from './config.ts';
 import { type Engine, oneclickQuoteKey } from './context.ts';
 import { serverLimits } from './guards.ts';
 import { readSimSettings } from './sim-settings.ts';
+import { EXECUTE_DEPOSIT } from './workflows.ts';
 
 /**
  * How each outside system runs, so the UI can label it honestly: `live` is a public network or
@@ -263,4 +264,49 @@ export async function planBalance(e: Engine, plan: ChainPlan): Promise<bigint> {
   }
   if (!plan.evm_address) return 0n;
   return e.evm.tokenBalance(plan.asset.token_address as Hex, plan.evm_address as Hex);
+}
+
+/** How long a signed sale may wait for the relayer before anyone is shown how to send it. */
+export const SEND_YOURSELF_AFTER_MS = 3 * 60_000;
+
+/**
+ * Signed sales the relayer has not sent within the grace period. The registry's `execute` accepts
+ * an enclave-signed sale from any caller, so anyone can send these themselves and the relayer
+ * cannot hold a signed sale back. Shown only after the grace period: once sent, the request is
+ * public on chain anyway, so this reveals nothing earlier than a relayed sale would.
+ */
+export async function unsentSales(e: Engine, planId: number) {
+  const rows = await e.db
+    .select()
+    .from(executions)
+    .where(
+      and(
+        eq(executions.planId, planId),
+        eq(executions.status, 'signed'),
+        lt(executions.createdAt, new Date(Date.now() - SEND_YOURSELF_AFTER_MS)),
+      ),
+    );
+  const out = [];
+  for (const r of rows) {
+    // Already on chain (the relayer, or someone else, sent it): nothing to do.
+    const receipt = await e.registry.receipt(planId, r.seq);
+    if (receipt?.request_json === r.requestJson) continue;
+    out.push({
+      seq: r.seq,
+      signedAt: r.createdAt.toISOString(),
+      call: {
+        receiverId: e.world.registry,
+        method: 'execute',
+        args: {
+          plan_id: planId,
+          request_json: r.requestJson,
+          signature: r.signature,
+          enclave_key: r.enclaveKey,
+        },
+        gasTera: 300,
+        deposit: EXECUTE_DEPOSIT.toString(),
+      },
+    });
+  }
+  return out;
 }

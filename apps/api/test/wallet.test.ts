@@ -1,5 +1,5 @@
 import { ed25519 } from '@noble/curves/ed25519.js';
-import { createDb, createPool, planBudget, plans } from '@vsp/db';
+import { createDb, createPool, executions, planBudget, plans } from '@vsp/db';
 import { runMigrations } from '@vsp/db/migrate';
 import type { Engine } from '@vsp/engine';
 import {
@@ -42,6 +42,8 @@ interface SentTx {
 function engineStub(chain: {
   keys?: Record<string, 'full' | 'function_call'>;
   txs?: Record<string, SentTx>;
+  /** Sales already executed on chain, by sequence number. */
+  onChain?: number[];
 }) {
   const config = loadConfig({
     NEAR_NETWORK: 'testnet',
@@ -81,6 +83,8 @@ function engineStub(chain: {
       },
     },
     registry: {
+      receipt: async (_plan: number, seq: number) =>
+        chain.onChain?.includes(seq) ? { request_json: `request ${seq}` } : null,
       plans: async () => [],
       plan: async () => ({ pending_change: { effective_at_ms: 1 } }),
     },
@@ -404,5 +408,46 @@ describe('a founder’s plan budget', () => {
     await chargePlan(db, personasOf(e), PERSONA_PLAN, 'run');
     expect(await budgetBalance(db, PERSONA_PLAN)).toBe(0n);
     expect(await canAfford(db, personasOf(e), PERSONA_PLAN, 10n ** 30n)).toBe(true);
+  });
+});
+
+describe('a signed sale the relayer has not sent', () => {
+  const sale = (seq: number, ageMs: number) => ({
+    planId: WALLET_PLAN,
+    seq,
+    kind: 'nep141_transfer',
+    amount: '1',
+    correlationId: `c${seq}`,
+    depositAddress: 'd',
+    minAmountOut: '1',
+    quote: {},
+    requestJson: `request ${seq}`,
+    signature: 'sig',
+    enclaveKey: 'ed25519:key',
+    status: 'signed',
+    createdAt: new Date(Date.now() - ageMs),
+  });
+
+  it('is shown to anyone, with the exact call to send it, once it has waited past the grace period', async () => {
+    await db.delete(executions).where(eq(executions.planId, WALLET_PLAN));
+    await db
+      .insert(executions)
+      .values([sale(0, 10 * 60_000), sale(1, 10_000), sale(2, 10 * 60_000)]);
+    const res = await createApp(engineStub({ onChain: [2] })).request(
+      `/api/plans/${WALLET_PLAN}/unsent`,
+    );
+    const unsent = (await res.json()) as { seq: number; call: Record<string, unknown> }[];
+    // Seq 1 is still within the grace period, and seq 2 is already on chain.
+    expect(unsent.map((u) => u.seq)).toEqual([0]);
+    expect(unsent[0]?.call).toMatchObject({
+      receiverId: 'registry.testnet',
+      method: 'execute',
+      args: {
+        plan_id: WALLET_PLAN,
+        request_json: 'request 0',
+        signature: 'sig',
+        enclave_key: 'ed25519:key',
+      },
+    });
   });
 });

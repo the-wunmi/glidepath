@@ -443,6 +443,8 @@ export function createApp(e: Engine) {
     json(await engine.revealFromBackup(e, planId(c), await body(c))),
   );
   app.post('/api/plans/:id/finalize', async (c) => json(await engine.finalizePlan(e, planId(c))));
+  /** Enclave-signed sales the relayer has not sent: anyone may send them (see `unsentSales`). */
+  app.get('/api/plans/:id/unsent', async (c) => json(await engine.unsentSales(e, planId(c))));
   app.post('/api/plans/:id/fund', async (c) => {
     const input = parseInput(z.object({ tx_hash: z.string() }), await body(c));
     return json(await engine.fundPlan(e, principal(c), planId(c), input.tx_hash));

@@ -37,7 +37,7 @@ import { record } from './timeline.ts';
 
 const NEAR = 10n ** 24n;
 /** Covers a receipt's storage (about 1.5 KB) plus a 0.00125 NEAR registration; the rest is refunded. */
-const EXECUTE_DEPOSIT = NEAR / 20n;
+export const EXECUTE_DEPOSIT = NEAR / 20n;
 /** Covers the storage an ack or change adds; the registry refunds what it does not use. */
 export const STORAGE_DEPOSIT = NEAR / 20n;
 /** A 1Click swap normally settles in seconds; once in doubt it is polled slowly, never dropped. */

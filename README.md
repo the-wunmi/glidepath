@@ -141,9 +141,12 @@ case. The contract and enclave checks need Rust with `cargo-near`, the `wasm32-w
 - Each sale is a visible transfer when it happens; random timing and sizes reduce what can be
   inferred. Hiding sales needs NEAR's confidential Intents, which are not built: they need a 1Click
   partner key and run on mainnet with real funds.
-- OutLayer runs are relayed by an account, which could withhold a signed sale but cannot forge or
-  change one. A relay contract would remove even that; it is not built, because OutLayer binds the
-  enclave's keys to the calling account, so it would need its own key set and registration.
+- Glidepath's relayer asks the enclave when to sell; it cannot forge or change a sale, and it
+  cannot hold back a signed one: the registry accepts an enclave-signed sale from anyone, and a
+  sale left unsent for 3 minutes is shown on the plan's pages for any visitor to send with their
+  own wallet. It could stop asking the enclave at all, which shows publicly as a plan that stops
+  selling but is not provable on chain: OutLayer binds the enclave's keys to the account that
+  calls it, so only that account's runs carry them.
 - Trust in the enclave hardware and the MPC network is narrowed (an allowlist with a public
   activation delay, revocation, and on-chain limits that hold whatever the enclave says), not
   removed. The browser checks the enclave's TDX quote itself: it hashes to the one the registry

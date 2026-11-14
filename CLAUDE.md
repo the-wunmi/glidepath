@@ -193,6 +193,11 @@ and that DATABASE_URL serves it; set `OUTLAYER_TICK_SECONDS` high to keep it fro
   transfers to the relayer (`/fund`, tx counted once), debits a fixed fee per relayed action (runs,
   executes, launch, finalize, reveal); ticks skip a plan under `SALE_RESERVE` (`budget_low`).
   Personas (operator, tests, demo) are never charged. API tests: `apps/api/test/wallet.test.ts`.
+- Withheld sales: `GET /api/plans/:id/unsent` lists enclave-signed sales still `signed` 3 minutes
+  after signing and not on chain, with the exact `execute` call; the plan page's `UnsentSales`
+  lets any signed-in visitor send it with their wallet (the verifier links there). The registry's
+  `execute` has no caller check (`flow_tests`: `anyone_can_send_an_enclave_signed_sale…`), and the
+  relay workflow treats a request already on chain as executed.
 - Abuse protection: no daily caps or plan-length bound (removed 2026-11-14; migration 0006 drops
   `daily_usage`). The API rate-limits per client (20 plans or trusts an hour, 120 writes per 10
   minutes, `apps/api/src/app.ts`); `packages/engine/src/guards.ts` keeps testnet reserve floors on the

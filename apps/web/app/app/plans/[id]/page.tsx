@@ -44,6 +44,7 @@ import {
   Tabs,
   useHashTab,
 } from '@/components/ui';
+import { UnsentSales } from '@/components/unsent-sales';
 import { ApiError, api } from '@/lib/api';
 import { isOutlayerQuote, onEarlierBuild, planEnclave } from '@/lib/attestation';
 import { backupPlan, loadBackup, type StoredPlanKey } from '@/lib/backup';
@@ -797,6 +798,7 @@ export default function PlanPage() {
             <BudgetLowBanner d={d} budget={b} onFunded={reloadAll} />
           )}
         {ownWallet && resignNeeded(d) && <ResignNeededPanel d={d} onDone={reload} />}
+        {p.status === 'active' && <UnsentSales planId={p.id} canSend />}
         {needsLaunch &&
           (canManage ? (
             <LaunchPanel d={d} meta={meta.data} budget={ownWallet ? b : null} onDone={reloadAll} />

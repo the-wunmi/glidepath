@@ -27,6 +27,7 @@ import {
   Tabs,
   useHashTab,
 } from '@/components/ui';
+import { UnsentSales } from '@/components/unsent-sales';
 import { isOutlayerQuote, onEarlierBuild, planEnclave } from '@/lib/attestation';
 import {
   accessKeys,
@@ -578,6 +579,7 @@ export default function VerifyPlanPage() {
 
       <TabPanel idBase="verify" id="receipts" current={tab}>
         <RevealPanel plan={plan} reveal={d.reveal} receipts={d.receipts} />
+        {plan.status === 'active' && <UnsentSales planId={plan.id} canSend={false} />}
         <Panel
           id="receipts"
           title="Receipt trail"
