@@ -1215,10 +1215,10 @@ export function PlanBuilder({
               )}
               {form.disclosure === 'end_reveal' && (
                 <p className="mt-3 rounded-lg border border-wait/40 bg-wait-soft px-4 py-2.5 text-sm text-wait">
-                  To reveal the plan at the end, you publish the plan and its salt, and anyone
-                  checks they hash to the commitment. Only you will have them: the enclave never
-                  reveals the plan. The next step asks you to download the backup file; without it,
-                  the end reveal is impossible.
+                  When the plan ends, the enclave publishes it with its salt, and anyone checks they
+                  hash to the commitment; it does so only once the chain shows the plan has ended.
+                  The next step asks you to download the backup file: with it you can reveal the
+                  plan yourself if the enclave cannot.
                 </p>
               )}
             </fieldset>
@@ -1381,8 +1381,8 @@ export function PlanBuilder({
                     <p className="mt-3 text-sm text-ink-2">
                       Save the plan and its salt. You need them to prove the plan later (for an end
                       reveal) and to start a change from the same terms on another device. This
-                      browser also keeps a copy; the only other copy is inside the enclave, which
-                      never reveals it.
+                      browser also keeps a copy; the other is inside the enclave, which releases it
+                      only for an end reveal, after the plan ends.
                     </p>
                     <button
                       type="button"
@@ -1418,8 +1418,8 @@ export function PlanBuilder({
                       onChange={(e) => setSkipBackup(e.target.checked)}
                     />
                     <span>
-                      I will not download the backup. I understand that without it this plan can
-                      never be revealed at the end.
+                      I will not download the backup. I understand that if the enclave cannot reveal
+                      this plan at the end, nobody can.
                     </span>
                   </label>
                 )}
@@ -1442,7 +1442,7 @@ export function PlanBuilder({
             {id === 'review' && !downloaded && plan && (
               <span className="hint hidden sm:inline">
                 {needsBackup && !skipBackup
-                  ? 'An end reveal needs the backup: download it first.'
+                  ? 'Download the backup first: it is the fallback for the end reveal.'
                   : 'You have not saved the backup yet.'}
               </span>
             )}

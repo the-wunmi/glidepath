@@ -470,6 +470,24 @@ describe('the read proxies’ memory of final answers', () => {
     expect(calls).toBe(2);
   });
 
+  it('counts an answer once when two reads of it finish together', async () => {
+    const answers = new ChainAnswers({ answers: 100, bytes: 100_000, perAnswer: 10_000 });
+    // isFinal resolves after a tick, so both reads are past the first check before either keeps it.
+    const slowFinal = async () => {
+      await new Promise((r) => setTimeout(r, 10));
+      return true;
+    };
+    const load = async () => 'z'.repeat(1_000);
+    await Promise.all([
+      answers.get('tx', { tx_hash: 'same' }, load, slowFinal),
+      answers.get('tx', { tx_hash: 'same' }, load, slowFinal),
+    ]);
+    const one =
+      JSON.stringify(['tx', { tx_hash: 'same' }]).length + JSON.stringify('z'.repeat(1_000)).length;
+    expect(answers.size).toBe(1);
+    expect(answers.keptBytes).toBe(one);
+  });
+
   it('drops the oldest answers to stay within its byte budget', async () => {
     const answers = new ChainAnswers({ answers: 100, bytes: 2_000, perAnswer: 1_000 });
     for (let i = 0; i < 10; i++)

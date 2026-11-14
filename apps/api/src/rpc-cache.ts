@@ -88,7 +88,9 @@ export class ChainAnswers {
     const kept = this.final.get(key);
     if (kept) return kept.result;
     const result = await this.recent.get(key, load);
-    if (this.final.has(key) || !(await isFinal(result))) return result;
+    if (!(await isFinal(result))) return result;
+    // Concurrent reads of one key all get here; only the first keeps it, so bytes count it once.
+    if (this.final.has(key)) return result;
     const bytes = key.length + (JSON.stringify(result) ?? '').length;
     if (bytes > this.limits.perAnswer) return result;
     while (
