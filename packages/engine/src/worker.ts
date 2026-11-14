@@ -5,8 +5,9 @@
  * started as a DBOS workflow under its own key (workflows.ts).
  */
 import { sha256Hex } from '@vsp/core';
-import { executions } from '@vsp/db';
-import { and, eq } from 'drizzle-orm';
+import { activity, executions } from '@vsp/db';
+import { and, desc, eq } from 'drizzle-orm';
+import { canAfford, personasOf, SALE_RESERVE } from './budget.ts';
 import type { Engine } from './context.ts';
 import { startOnce, wfId } from './durable.ts';
 import { readSimSettings } from './sim-settings.ts';
@@ -31,6 +32,23 @@ const lastSkip = new Map<number, string>();
 const revealsStarted = new Set<string>();
 
 /** One enclave wake-up for every active plan (or only those `only` names, in tests). */
+/** Says once on the plan's timeline that it waits for budget, not on every wake-up. */
+async function noteBudgetLow(e: Engine, planId: number): Promise<void> {
+  const [last] = await e.db
+    .select({ kind: activity.kind })
+    .from(activity)
+    .where(eq(activity.planId, planId))
+    .orderBy(desc(activity.id))
+    .limit(1);
+  if (last?.kind === 'budget_low') return;
+  await record(
+    e.db,
+    planId,
+    'budget_low',
+    'Sales are paused: the plan’s budget is too low; the owner can top it up from their wallet',
+  );
+}
+
 export async function tickPlans(e: Engine, only?: number[]): Promise<void> {
   const all = await e.registry.plans();
   // Anyone may finalize a plan, not only this app: an end_reveal plan that ended without us still
@@ -49,6 +67,11 @@ export async function tickPlans(e: Engine, only?: number[]): Promise<void> {
       // EVM nonces are ordered and the registry re-signs only the latest transfer, so an ERC-20
       // plan takes no new sale while its previous transfer is still unmined.
       if (plan.asset.type !== 'nep141' && (await evmTransferInFlight(e, plan.id))) return;
+      // A founder's plan pays for its own runs and sales: without budget it waits for a top-up.
+      if (!(await canAfford(e.db, personasOf(e), plan.id, SALE_RESERVE))) {
+        await noteBudgetLow(e, plan.id);
+        return;
+      }
       ticking.add(plan.id);
       try {
         const result = await e.enclave.tick(plan);
@@ -139,7 +162,15 @@ export async function tickPlans(e: Engine, only?: number[]): Promise<void> {
         if (lastSkip.get(plan.id) !== reason.replace(/\d+/g, '#')) {
           lastSkip.set(plan.id, reason.replace(/\d+/g, '#'));
           e.log('enclave tick failed', { planId: plan.id, error: full });
-          await record(e.db, plan.id, 'enclave_unavailable', reason);
+          // The timeline says it in plain words; the cause (often a busy enclave host) stays in the
+          // log and the entry's data.
+          await record(
+            e.db,
+            plan.id,
+            'enclave_unavailable',
+            'The enclave could not be reached this time; it will try again shortly',
+            { reason },
+          );
         }
       } finally {
         ticking.delete(plan.id);

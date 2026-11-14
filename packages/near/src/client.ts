@@ -34,6 +34,16 @@ export type TxOutcome<T = unknown> =
       events: ChainEvent[];
     };
 
+/** One action of a transaction read back from the chain. */
+export interface WalletAction {
+  type: string;
+  method?: string;
+  /** The call's arguments as the signer sent them (UTF-8). */
+  args?: string;
+  deposit?: bigint;
+  gas?: bigint;
+}
+
 export interface CallOptions {
   gasTera?: number;
   deposit?: bigint;
@@ -295,6 +305,29 @@ export class NearClient {
     return list.keys.filter((k) => k.access_key.permission === 'FullAccess').length;
   }
 
+  /**
+   * What one public key may do on an account (`view_access_key`): anything, only some calls, or it
+   * isn't there. A missing account or key is null; any other failure throws, so a sign-in fails
+   * closed.
+   */
+  async accessKeyPermission(
+    accountId: string,
+    publicKey: string,
+  ): Promise<'full' | 'function_call' | null> {
+    try {
+      const key = await this.provider.viewAccessKey({ accountId, publicKey });
+      return key.permission === 'FullAccess' ? 'full' : 'function_call';
+    } catch (err) {
+      if (
+        /does not exist|doesn't exist|UNKNOWN_ACCOUNT|UNKNOWN_ACCESS_KEY|AccessKeyDoesNotExist|AccountDoesNotExist/i.test(
+          String(err),
+        )
+      )
+        return null;
+      throw err;
+    }
+  }
+
   async accessKeyCount(accountId: string): Promise<number> {
     const list = await this.provider.viewAccessKeyList({ accountId });
     return list.keys.length;
@@ -311,6 +344,73 @@ export class NearClient {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * A transaction someone else signed (a founder's wallet), once final: who signed it, where it
+   * went, its actions, and its outcome. Null while the chain does not know it yet.
+   */
+  async signedTransaction<T = unknown>(
+    txHash: string,
+    signerId: string,
+  ): Promise<{
+    signerId: string;
+    receiverId: string;
+    actions: WalletAction[];
+    outcome: TxOutcome<T>;
+    innerFailure: string | null;
+  } | null> {
+    const res = await fetch(this.rpcUrl, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 'tx',
+        method: 'tx',
+        params: { tx_hash: txHash, sender_account_id: signerId, wait_until: 'FINAL' },
+      }),
+      signal: AbortSignal.timeout(30_000),
+    });
+    const body = (await res.json()) as {
+      result?: RawOutcome & {
+        transaction: {
+          hash: string;
+          signer_id: string;
+          receiver_id: string;
+          actions: (string | Record<string, Record<string, unknown>>)[];
+        };
+      };
+      error?: { cause?: { name?: string } };
+    };
+    if (!body.result) {
+      if (
+        /UNKNOWN_TRANSACTION|TIMEOUT_ERROR|INVALID_TRANSACTION/.test(body.error?.cause?.name ?? '')
+      )
+        return null;
+      throw new Error(`tx lookup failed: ${JSON.stringify(body.error).slice(0, 300)}`);
+    }
+    const tx = body.result.transaction;
+    const actions: WalletAction[] = tx.actions.map((a) => {
+      if (typeof a === 'string') return { type: a };
+      const [type, v] = Object.entries(a)[0] as [string, Record<string, unknown>];
+      if (type === 'FunctionCall')
+        return {
+          type,
+          method: String(v.method_name),
+          args: new TextDecoder().decode(fromBase64(String(v.args))),
+          deposit: BigInt(String(v.deposit)),
+          gas: BigInt(String(v.gas)),
+        };
+      if (type === 'Transfer') return { type, deposit: BigInt(String(v.deposit)) };
+      return { type };
+    });
+    return {
+      signerId: tx.signer_id,
+      receiverId: tx.receiver_id,
+      actions,
+      outcome: readOutcome<T>(body.result),
+      innerFailure: innerFailure(body.result),
+    };
   }
 
   /** Chain time in ms from the latest final block: the enclave trusts this, not the host clock. */

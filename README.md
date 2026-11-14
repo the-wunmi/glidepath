@@ -17,7 +17,7 @@ public selling schedule gets sold into early: in our replay of four large unlock
 STRK), three tokens did 24–42 points worse than BTC in the 30 days before the date
 ([method](data/replay/METHOD.md)). A quiet sale can't be checked, which is how the
 [Movement scandal](https://www.coindesk.com/tech/2025/04/30/the-protocol-inside-movement-s-token-dump-scandal)
-happened. A plan written as an ordinary smart contract would be public, and a broker has to be trusted.
+happened. A plan written openly on-chain would be public, and a broker has to be trusted.
 
 With Glidepath the founder writes the plan in the browser, for example "sell at most 2% a month,
 never below $1.50, at random times". The browser encrypts it to an enclave, hardware that runs code
@@ -34,6 +34,11 @@ broken enclave could not sell more or cheaper than they allow. Every sale leaves
 anyone can check in the browser. Changing or cancelling the plan is public at once and waits out a
 cooling-off period. When the plan ends, what is left goes to the beneficiary, and the plan can be
 revealed and checked against the hash published on day one.
+
+Founders sign in with their own NEAR testnet wallet. It owns the plan on chain and signs and pays
+for every owner action; Glidepath never holds its keys. The work Glidepath's relayer does for a plan
+(enclave runs, sales, the token launch) is paid from a budget the founder funds from that wallet,
+at published prices; a plan without budget pauses until it is topped up.
 
 ## Screenshots
 
@@ -63,10 +68,10 @@ On <https://glidepath.clanker.show>:
 1. **Case study: ARB's unlock** → ARB's 2024 cliff, every transfer linked, next to the same tokens under a sealed plan.
 2. **Verify a plan** → plan #4 → **Receipts** → **Verify all** → every receipt passes, checked in your browser.
 3. **Proof** tab → the plan account has 0 keys, and the enclave's attestation passes.
-4. **Create a plan** → fill in the five steps → **Seal and commit** → the plan page, with your plan key to save.
-5. **Launch** *SYMBOL* → the team allocation is minted into the plan (an ERC-20 on Sepolia, or a NEAR token).
+4. **Sign in** with a NEAR testnet wallet (Meteor, for example) → **Create a plan** → fill in the five steps → **Seal and commit** → your wallet signs and pays for the commit.
+5. **Fund the plan** from your wallet → **Launch** *SYMBOL* → the team allocation is minted into the plan (an ERC-20 on Sepolia, or a NEAR token).
 6. Wait → sales arrive at random times, up to about 10 minutes apart, each with a receipt.
-7. **Proof** → **Try to bypass the plan** → under "Add a key to the plan account", **Try it** → refused on-chain.
+7. On plan #4: **Proof** → **Try to bypass the plan** → under "Add a key to the plan account", **Try it** → refused on-chain.
 8. After the end date → **Finalize plan** → the rest goes to the beneficiary; footer → **Red team** shows 26 more attempts.
 
 ## Run it locally
@@ -133,12 +138,6 @@ case. The contract and enclave checks need Rust with `cargo-near`, the `wasm32-w
 
 ## Limits
 
-- Founders don't sign in yet. The server's testnet account signs on their behalf, so it appears
-  as the owner of every plan, and a plan's owner key (shown once, kept in the browser that created
-  it) is what authorises changes. Next: founders sign with their own NEAR wallet, with gas
-  sponsored.
-- It proves how enrolled tokens were handled, not everything the insider does: tokens never
-  enrolled, and hedges on derivatives, are out of reach.
 - Each sale is a visible transfer when it happens; random timing and sizes reduce what can be
   inferred. Hiding sales needs NEAR's confidential Intents, which are not built: they need a 1Click
   partner key and run on mainnet with real funds.
@@ -155,7 +154,6 @@ case. The contract and enclave checks need Rust with `cargo-near`, the `wasm32-w
   (patch level): Intel serves that data without CORS, so a browser cannot fetch it.
 - On testnet, 1Click quotes are signed by the simulator's key. The registry still binds every quote
   to the sale, the beneficiary and the floor.
-- No regulator recognises this as a 10b5-1 plan for tokens.
 
 ## Labs: Bitcoin vault (prototype)
 
@@ -166,8 +164,7 @@ the vault was made. Someone with the owner's key, or forcing the owner, cannot m
 faster than the delay. After it, anyone can execute: the contract builds the transaction itself and
 the MPC network signs it.
 
-Limits: a withdrawal that has started signing can no longer be vetoed, only replaced by a
-claw-back, and replacement is best effort. The contract cannot read Bitcoin, so it trusts the coin
+Limits: the contract cannot read Bitcoin, so it trusts the coin
 amounts a request names; a wrong amount only produces signatures the network rejects. Not yet run
 against live testnet4.
 

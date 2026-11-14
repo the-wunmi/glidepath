@@ -1,6 +1,7 @@
 import { deriveEvmAddress, planPath } from '@vsp/chainsig';
 import {
   AccountId,
+  canonicalJson,
   concatBytes,
   DomainError,
   Envelope,
@@ -17,7 +18,7 @@ import {
   usdToE6,
   utf8ToBytes,
 } from '@vsp/core';
-import { plans } from '@vsp/db';
+import { activity, plans } from '@vsp/db';
 import { DEPLOY_GAS } from '@vsp/evm';
 import {
   actions,
@@ -32,6 +33,7 @@ import { and, eq, ne, sql } from 'drizzle-orm';
 import { getContractAddress, type Hex } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { z } from 'zod';
+import { assertAfford, chargePlan, personasOf } from './budget.ts';
 import type { Engine } from './context.ts';
 import { DBOS, durableEngine, startOnce } from './durable.ts';
 import {
@@ -39,8 +41,10 @@ import {
   authorizePlan,
   nearTokensEnabled,
   newOwnerKey,
+  OPERATOR,
   type PlanPrincipal,
   spendRelayer,
+  WalletCallNeeded,
 } from './guards.ts';
 import { updateSimSettings } from './sim-settings.ts';
 import { record } from './timeline.ts';
@@ -58,10 +62,20 @@ import { CREATE_PLAN_DEPOSIT_YOCTO, demoTokenWasm } from './world.ts';
 const NEAR = 10n ** 24n;
 
 /** The personas a local user may act as: the founder, and the treasury DAO they sit on. */
-function assertActor(e: Engine, actor: string) {
-  const allowed = [e.world.founder, ...(e.world.dao ? [e.world.dao] : [])];
-  if (!allowed.includes(actor))
-    throw new DomainError('forbidden', 'You cannot act as this account');
+/** The server's own personas: the founder and the treasury DAO it sits on (operator and tests). */
+export const isPersona = (e: Engine, actor: string) =>
+  actor === e.world.founder || (!!e.world.dao && actor === e.world.dao);
+
+/**
+ * Who may act as `actor`: a signed-in wallet for its own account only; for the server's personas,
+ * the operator, or the holder of a plan's key acting on that plan (owners of plans made before
+ * wallets; the key is checked against the plan before any call is made). Creating a plan as a
+ * persona needs the operator: no key exists yet.
+ */
+function assertActor(e: Engine, actor: string, principal: PlanPrincipal, creating = false) {
+  if (principal.account && principal.account === actor && !isPersona(e, actor)) return;
+  if (isPersona(e, actor) && (principal.operator || (!creating && principal.planKey))) return;
+  throw new DomainError('forbidden', 'Sign in with this account’s wallet to act as it');
 }
 
 /** The founder's own signing account (a sandbox key locally, the relayer's key on testnet). */
@@ -73,9 +87,11 @@ function founderAccount(e: Engine) {
 const PROPOSAL_BOND = NEAR;
 
 /**
- * The one path for an owner's action. A personal owner signs directly. The treasury DAO acts the way
- * a DAO does: its council member (the founder) proposes a FunctionCall and approves it, and the
- * DAO itself makes the call, so the registry sees the DAO as the caller.
+ * The one path for an owner's action. A founder's wallet signs its own calls: without a
+ * transaction this answers with the call to sign (`WalletCallNeeded`), and with one it checks on
+ * chain that the wallet sent exactly that call, and returns its outcome. The server's personas
+ * sign directly; the treasury DAO acts the way a DAO does: its council member (the founder)
+ * proposes a FunctionCall and approves it, and the DAO itself makes the call.
  */
 export async function ownerCall<T = unknown>(
   e: Engine,
@@ -84,8 +100,11 @@ export async function ownerCall<T = unknown>(
   method: string,
   args: Record<string, unknown>,
   opts: { gasTera?: number; deposit?: bigint } = {},
+  principal: PlanPrincipal = OPERATOR,
 ): Promise<TxOutcome<T> & { proposalId?: number }> {
-  assertActor(e, actor);
+  assertActor(e, actor, principal);
+  if (!isPersona(e, actor))
+    return walletCall<T>(e, actor, receiverId, method, args, opts, principal);
   if (actor !== e.world.dao)
     return e.near.call<T>(founderAccount(e), receiverId, method, args, opts);
   const kind = {
@@ -188,7 +207,11 @@ export const CreatePlanInput = z.object({
  * Checks a new plan against this server's rules without spending anything, so the API can count
  * a request against its limits only once it is a real plan.
  */
-export async function checkNewPlan(e: Engine, input: z.input<typeof CreatePlanInput>) {
+export async function checkNewPlan(
+  e: Engine,
+  input: z.input<typeof CreatePlanInput>,
+  principal: PlanPrincipal = OPERATOR,
+) {
   const p = parseInput(CreatePlanInput, input);
   if (p.token.chain === 'evm' && !p.beneficiary.evm_address)
     throw new DomainError('invalid', 'An EVM token needs a beneficiary EVM address');
@@ -205,7 +228,7 @@ export async function checkNewPlan(e: Engine, input: z.input<typeof CreatePlanIn
   // The registry's floor test assumes 6-decimal USD proceeds, so only the world's USDC is offered.
   if (p.proceeds_asset !== `nep141:${e.world.usdc}`)
     throw new DomainError('invalid', `Proceeds must be paid in nep141:${e.world.usdc}`);
-  assertActor(e, p.actor);
+  assertActor(e, p.actor, principal, true);
   // The registry's own rules, checked here so a request it would refuse costs nothing.
   const env = p.envelope;
   if (env.max_amount_per_tx <= 0n || env.max_amount_per_tx > env.max_amount_per_period)
@@ -253,22 +276,30 @@ export async function checkNewPlan(e: Engine, input: z.input<typeof CreatePlanIn
  * Returns the plan's owner key once; only its hash is kept. A repeat of a plan already on chain
  * returns `ownerKey: null`: the key went to the first request.
  */
-export async function createPlan(e: Engine, input: z.input<typeof CreatePlanInput>) {
-  const p = await checkNewPlan(e, input);
+export async function createPlan(
+  e: Engine,
+  input: z.input<typeof CreatePlanInput>,
+  principal: PlanPrincipal = OPERATOR,
+) {
+  const p = await checkNewPlan(e, input, principal);
+  // A founder's wallet creates the plan itself and pays for it; its session is the credential, so
+  // it gets no owner key. The server's personas (operator, tests) are paid by the relayer.
+  const wallet = !isPersona(e, p.actor);
   // A repeat of a plan already on chain under this owner and commitment creates nothing and writes
   // nothing: the commitment is public by then, so the caller may not be its author. The original
-  // request's plan_created workflow records the row; the key went to that request.
+  // request's plan_created workflow records the row; the key went to that request. (A wallet's
+  // second request is how its own plan gets recorded, checked against its transaction below.)
   const onChain = (await e.registry.plans()).find(
     (x) => x.commitment === p.commitment && x.owner === p.actor,
   );
-  if (onChain)
+  if (onChain && !wallet)
     return { planId: onChain.id, txHash: null, planAccount: onChain.plan_account, ownerKey: null };
-  await spendRelayer(e);
-  const owner = newOwnerKey();
+  if (!wallet) await spendRelayer(e);
+  const owner = wallet ? null : newOwnerKey();
   // Started before the chain call: if this process dies after the plan is created, the workflow
   // finds it on-chain, records it (with the key's hash, never the key) and hands it to the
   // enclave. If the call is refused, it ends.
-  await startOnce(planCreatedWorkflow, `created:${p.commitment}`, input, owner.hash);
+  await startOnce(planCreatedWorkflow, `created:${p.commitment}`, input, owner?.hash);
   const asset =
     p.token.chain === 'near'
       ? { type: 'nep141', token_id: p.token.address }
@@ -296,15 +327,16 @@ export async function createPlan(e: Engine, input: z.input<typeof CreatePlanInpu
       label: p.label,
     },
     { gasTera: 200, deposit: CREATE_PLAN_DEPOSIT_YOCTO },
+    principal,
   );
   if (!out.ok)
     throw new DomainError('policy_error', `The registry refused the plan: ${out.code}`, {
       code: out.code,
       txHash: out.txHash,
     });
-  const recorded = await recordPlan(e, p, out.value, out.txHash, owner.hash);
+  const recorded = await recordPlan(e, p, out.value, out.txHash, owner?.hash);
   await recordProposal(e, out.value, out, 'create the plan');
-  return { ...recorded, ownerKey: owner.key };
+  return { ...recorded, ownerKey: owner?.key ?? null };
 }
 
 /** The follow-up of createPlan: waits for the plan on-chain, then records it (safe to run twice). */
@@ -325,6 +357,59 @@ async function planCreated(
   return 'recorded';
 }
 export const planCreatedWorkflow = DBOS.registerWorkflow(planCreated, { name: 'plan_created' });
+
+/**
+ * A founder's own call: asks for the wallet's signature, or checks the transaction the wallet
+ * sent. The checks pin everything the server would have sent itself (signer, receiver, method,
+ * arguments, at least the deposit), so a transaction for anything else is refused.
+ */
+async function walletCall<T>(
+  e: Engine,
+  actor: string,
+  receiverId: string,
+  method: string,
+  args: Record<string, unknown>,
+  opts: { gasTera?: number; deposit?: bigint },
+  principal: PlanPrincipal,
+): Promise<TxOutcome<T>> {
+  const deposit = opts.deposit ?? 0n;
+  if (!principal.walletTx)
+    throw new WalletCallNeeded({
+      receiverId,
+      method,
+      args,
+      gasTera: opts.gasTera ?? 100,
+      deposit: deposit.toString(),
+    });
+  if (!/^[1-9A-HJ-NP-Za-km-z]{43,44}$/.test(principal.walletTx))
+    throw new DomainError('invalid', 'Not a transaction hash');
+  const tx = await e.near.signedTransaction<T>(principal.walletTx, actor);
+  if (!tx)
+    throw new DomainError(
+      'conflict',
+      'That transaction is not final yet; try again in a few seconds',
+    );
+  const [action] = tx.actions;
+  const same =
+    tx.signerId === actor &&
+    tx.receiverId === receiverId &&
+    tx.actions.length === 1 &&
+    action?.type === 'FunctionCall' &&
+    action.method === method &&
+    (action.deposit ?? 0n) >= deposit &&
+    sameArgs(action.args ?? '', args);
+  if (!same) throw new DomainError('invalid', 'That transaction is not the call this needs');
+  return tx.outcome;
+}
+
+/** Whether a call's sent arguments are these, whatever the key order or spacing. */
+function sameArgs(sent: string, args: Record<string, unknown>): boolean {
+  try {
+    return canonicalJson(JSON.parse(sent)) === canonicalJson(args);
+  } catch {
+    return false;
+  }
+}
 
 /** A DAO-owned plan's actions are proposals; the timeline names each one. */
 async function recordProposal(
@@ -401,7 +486,7 @@ export async function requestChange(
 ) {
   const p = parseInput(ChangeInput, input);
   const row = await loadPlanRow(e, principal, planId, p.actor);
-  await spendRelayer(e);
+  if (isPersona(e, p.actor)) await spendRelayer(e);
   // The box is kept first, and the delivery workflow started before the chain call: a crash after
   // the call still leaves the enclave its new plan, delivered once the change shows on-chain.
   await e.db
@@ -420,6 +505,7 @@ export async function requestChange(
       envelope: envelopeJson(p.envelope),
     },
     { deposit: STORAGE_DEPOSIT },
+    principal,
   );
   if (!out.ok) {
     // Put back whatever was pending before (a refusal may be change_pending for an earlier change).
@@ -448,7 +534,7 @@ export async function requestCancel(
 ) {
   const p = parseInput(ActorOnly, input);
   await loadPlanRow(e, principal, planId, p.actor);
-  await spendRelayer(e);
+  if (isPersona(e, p.actor)) await spendRelayer(e);
   const out = await ownerCall(
     e,
     p.actor,
@@ -456,6 +542,7 @@ export async function requestCancel(
     'request_cancel',
     { plan_id: planId },
     { deposit: STORAGE_DEPOSIT },
+    principal,
   );
   if (!out.ok) throw refusal('The registry refused the cancellation', out);
   await recordProposal(e, planId, out, 'cancel the plan');
@@ -475,10 +562,16 @@ export async function withdrawChange(
 ) {
   const p = parseInput(ActorOnly, input);
   await loadPlanRow(e, principal, planId, p.actor);
-  await spendRelayer(e);
-  const out = await ownerCall(e, p.actor, e.world.registry, 'withdraw_change', {
-    plan_id: planId,
-  });
+  if (isPersona(e, p.actor)) await spendRelayer(e);
+  const out = await ownerCall(
+    e,
+    p.actor,
+    e.world.registry,
+    'withdraw_change',
+    { plan_id: planId },
+    {},
+    principal,
+  );
   if (!out.ok) throw refusal('The registry refused to withdraw the change', out);
   await recordProposal(e, planId, out, 'withdraw the pending change');
   await e.db
@@ -528,6 +621,7 @@ export async function finalizePlan(e: Engine, planId: number): Promise<{ txHash:
     );
     return { txHash: null };
   }
+  await assertAfford(e, planId, 'finalize');
   await spendRelayer(e);
   // Started first, so a crash after finalizing still publishes an end_reveal plan's terms.
   await startOnce(revealPlanWorkflow, `reveal:${planId}`, planId);
@@ -540,6 +634,7 @@ export async function finalizePlan(e: Engine, planId: number): Promise<{ txHash:
     { gasTera: 200 },
   );
   if (!out.ok) throw refusal('The registry refused to finalize', out);
+  await chargePlan(e.db, personasOf(e), planId, 'finalize', out.txHash);
   // The registry pays out a NEAR token itself; an ERC-20 needs one MPC-signed transfer.
   if (evm) await startOnce(releaseEvmWorkflow, `release:${planId}:${chain.next_seq}`, planId);
   await record(
@@ -584,8 +679,11 @@ export async function revealFromBackup(
     throw new DomainError('invalid', 'These terms and salt do not match the plan’s commitment');
   if (await e.near.view(e.world.registry, 'get_reveal', { plan_id: planId }))
     throw new DomainError('conflict', 'This plan’s terms are already revealed');
+  await assertAfford(e, planId, 'reveal');
   await spendRelayer(e);
-  return submitReveal(e, planId, p.plan_json, p.salt, 'owner backup');
+  const out = await submitReveal(e, planId, p.plan_json, p.salt, 'owner backup');
+  await chargePlan(e.db, personasOf(e), planId, 'reveal', out.txHash);
+  return out;
 }
 
 /** The one call that publishes a reveal on-chain; the registry accepts it once, against the commitment. */
@@ -747,7 +845,10 @@ export async function launchToken(
       if ((await predictEvmTokenAddress(e)) !== row.tokenAddress)
         throw new DomainError('conflict', 'The launchpad address moved on; create the plan again');
     }
-    // A NEAR launch is paid by the relayer; an EVM launch by the Sepolia funder.
+    // A NEAR launch is paid by the relayer; an EVM launch by the Sepolia funder. A founder's plan
+    // pays it back from its budget.
+    const fee = row.tokenChain === 'near' ? 'launch_near' : 'launch_evm';
+    await assertAfford(e, planId, fee);
     await (row.tokenChain === 'near' ? spendRelayer(e) : assertReserve(e, 'evm'));
     // The simulated market learns the listing price first: a crash after the launch must not
     // leave a token the 1Click simulator cannot price (a no-op for listed tokens, priced live).
@@ -760,6 +861,7 @@ export async function launchToken(
       row.tokenChain === 'near'
         ? await launchNearToken(e, row, chain.plan_account, p)
         : await launchEvmToken(e, row, chain, p);
+    await chargePlan(e.db, personasOf(e), planId, fee, txHash);
     // From now on this plan alone may enroll this token, and only up to what it minted the founder.
     await e.db
       .update(plans)
@@ -891,7 +993,22 @@ export async function enroll(
     throw new DomainError('invalid', 'Only the token this plan launched can be enrolled');
   const amount = toBaseUnits(p.amount, row.tokenDecimals);
   if (amount <= 0n) throw new DomainError('invalid', 'Enroll a positive amount');
-  await spendRelayer(e);
+  if (isPersona(e, p.actor)) await spendRelayer(e);
+  // A wallet's transfer is counted once, however often its hash is sent.
+  if (principal.walletTx) {
+    const [seen] = await e.db
+      .select({ id: activity.id })
+      .from(activity)
+      .where(
+        and(
+          eq(activity.planId, planId),
+          eq(activity.kind, 'enrolled'),
+          sql`${activity.data}->>'txHash' = ${principal.walletTx}`,
+        ),
+      )
+      .limit(1);
+    if (seen) throw new DomainError('conflict', 'That transfer is already enrolled');
+  }
   // Reserved before the transfer in one statement, so concurrent requests cannot together pass
   // the founder allocation; given back if the transfer is refused.
   const reserve = (delta: bigint) =>
@@ -917,7 +1034,12 @@ export async function enroll(
     'ft_transfer',
     { receiver_id: row.planAccount, amount: amount.toString(), memo: `enroll plan ${planId}` },
     { deposit: 1n, gasTera: 50 },
-  );
+    principal,
+  ).catch(async (err) => {
+    // Asked for the wallet's signature, or its transaction refused: nothing moved yet.
+    await reserve(-amount);
+    throw err;
+  });
   if (!out.ok) {
     await reserve(-amount);
     throw refusal('The transfer was refused', out);

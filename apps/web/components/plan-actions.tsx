@@ -3,17 +3,19 @@
 import { canonicalJson, newSaltHex, planCommitment, sealTo } from '@vsp/core';
 import Link from 'next/link';
 
-import { type FormEvent, useEffect, useId, useState } from 'react';
-import { api, errorMessage, refusalCode } from '@/lib/api';
+import { type FormEvent, type ReactNode, useEffect, useId, useRef, useState } from 'react';
+import { api, errorMessage } from '@/lib/api';
 import { attestationFailure, useAttestation } from '@/lib/attestation';
 import { backupPlan, loadBackup, type PlanBackup, parseBackupFile, saveBackup } from '@/lib/backup';
 import { plainTokens, usdE6, wholeTokens } from '@/lib/builder';
 import { refusalText } from '@/lib/copy';
 import { evmChainName, explorer } from '@/lib/env';
 import { DAY_MS, duration, fmtDateTime, tokens } from '@/lib/format';
+import { nearAmount, ownerWrite, type PlanBudget } from '@/lib/owner-write';
 import type { AttemptResult, Meta, PlanDetail } from '@/lib/types';
 import { EnvelopeDiff } from './envelope-diff';
 import { useMeta } from './meta';
+import { actionError, FeeList, FundForm, useWalletPrompt } from './owner-wallet';
 import { PlanKeyNeeded } from './plan-key';
 import { Badge, ErrorNote, Field, Hash, Panel } from './ui';
 
@@ -44,8 +46,7 @@ function useAction() {
     try {
       return await fn();
     } catch (e) {
-      const code = refusalCode(e);
-      setError(code ? `${errorMessage(e)}` : errorMessage(e));
+      setError(actionError(e));
       return null;
     } finally {
       setBusy(false);
@@ -62,10 +63,13 @@ function useAction() {
 export function LaunchPanel({
   d,
   meta,
+  budget,
   onDone,
 }: {
   d: PlanDetail;
   meta: Meta | null;
+  /** A wallet-owned plan's budget, which pays for the launch; null for the server's own plans. */
+  budget: PlanBudget | null;
   onDone: () => void;
 }) {
   const uid = useId();
@@ -107,6 +111,12 @@ export function LaunchPanel({
   };
   const valid = Object.values(errs).every((e) => !e);
   const form = editing || !fromBuilder;
+  const chain = d.summary.token.chain;
+  const fee = budget
+    ? BigInt(chain === 'evm' ? budget.fees.launch_evm : budget.fees.launch_near)
+    : 0n;
+  // The relayer pays for the launch from the plan's budget, so it must hold the launch fee first.
+  const unfunded = !!budget && BigInt(budget.balance) < fee;
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -154,7 +164,7 @@ export function LaunchPanel({
               <button type="button" className="btn btn-ghost" onClick={() => setEditing(true)}>
                 Edit details
               </button>
-              <button type="submit" className="btn btn-primary" disabled={busy}>
+              <button type="submit" className="btn btn-primary" disabled={busy || unfunded}>
                 {busy ? 'Launching…' : `Launch ${symbol}`}
               </button>
             </div>
@@ -248,7 +258,7 @@ export function LaunchPanel({
               />
             </Field>
             <div className="flex flex-wrap gap-2 sm:col-span-2">
-              <button type="submit" className="btn btn-primary" disabled={busy}>
+              <button type="submit" className="btn btn-primary" disabled={busy || unfunded}>
                 {busy ? 'Launching…' : `Launch ${symbol}`}
               </button>
               {fromBuilder && (
@@ -259,12 +269,39 @@ export function LaunchPanel({
             </div>
           </div>
         )}
+        {budget && (
+          <p className="mt-3 text-sm text-ink-2">
+            Glidepath’s relayer sends the launch and pays {nearAmount(fee)} for it from the plan’s
+            budget, which holds {nearAmount(budget.balance)}.
+          </p>
+        )}
         {error && (
           <div className="mt-3">
             <ErrorNote error={error} />
           </div>
         )}
       </form>
+      {budget && unfunded && (
+        <div className="mt-4 border-t border-rule-2 pt-4">
+          <h3 className="font-semibold">First: fund the plan</h3>
+          <p className="mt-0.5 max-w-[68ch] text-sm text-ink-2">
+            The relayer’s work for this plan (the launch, each enclave run and sale, closing it) is
+            paid from the plan’s budget. Your wallet funds it with a plain NEAR transfer; Glidepath
+            never holds your keys.
+          </p>
+          <div className="mt-3 grid gap-6 lg:grid-cols-2">
+            <FundForm
+              planId={d.plan.id}
+              budget={budget}
+              chain={chain}
+              launched={false}
+              onFunded={onDone}
+              cta="Fund the plan"
+            />
+            <FeeList budget={budget} chain={chain} />
+          </div>
+        </div>
+      )}
     </section>
   );
 }
@@ -274,6 +311,7 @@ export function EnrollForm({ d, onDone }: { d: PlanDetail; onDone: () => void })
   const [amount, setAmount] = useState('');
   const [done, setDone] = useState<string | null>(null);
   const { busy, error, run, setError } = useAction();
+  const wallet = useWalletPrompt();
   const symbol = d.summary.token.symbol;
   return (
     <form
@@ -286,10 +324,11 @@ export function EnrollForm({ d, onDone }: { d: PlanDetail; onDone: () => void })
           return;
         }
         const r = await run(() =>
-          api<{ txHash: string }>(`/api/plans/${d.plan.id}/enroll`, {
-            planId: d.plan.id,
-            body: { actor: d.plan.owner, amount: amount.trim() },
-          }),
+          ownerWrite<{ txHash: string }>(
+            `/api/plans/${d.plan.id}/enroll`,
+            { actor: d.plan.owner, amount: amount.trim() },
+            { planId: d.plan.id, confirm: wallet.confirm },
+          ),
         );
         if (r) {
           setDone(r.txHash);
@@ -317,6 +356,7 @@ export function EnrollForm({ d, onDone }: { d: PlanDetail; onDone: () => void })
       <p className="hint mt-1">
         Moves tokens into the plan account. Once there, they follow the plan like the rest.
       </p>
+      {wallet.prompt}
       {error && <p className="mt-1 text-xs text-fail">{error}</p>}
       {done && <Outcome tone="pass" text="Enrolled." txHash={done} />}
     </form>
@@ -350,8 +390,10 @@ export function MoveEnclavePanel({
   const [backup, setBackup] = useState<PlanBackup | null | undefined>(undefined);
   const { result: attestation, error: attestationError } = useAttestation(meta);
   const { busy, error, run } = useAction();
+  const wallet = useWalletPrompt();
   useEffect(() => setBackup(loadBackup(p.id, p.commitment)), [p.id, p.commitment]);
   const plan = backupPlan(backup ?? null);
+  const moveBody = useRef<Record<string, unknown> | null>(null);
   const attestationNote = attestationError
     ? 'The current enclave’s attestation could not be checked, so nothing is sealed to it yet.'
     : attestation && !attestation.ok
@@ -360,30 +402,35 @@ export function MoveEnclavePanel({
 
   async function move() {
     if (!plan || !attestation?.ok) return;
-    const salt = newSaltHex();
-    const terms = JSON.parse(canonicalJson(plan));
-    const commitment = planCommitment(plan, salt);
-    // Kept first: the owner's copy of the new commitment must outlive a lost response.
-    saveBackup(p.id, {
-      kind: 'verified-sales-plan-backup',
-      commitment,
-      salt,
-      plan: terms,
-      envelope: p.envelope,
-      created_at: new Date().toISOString(),
-    });
+    // One sealed request per move, so a retry after the wallet signed sends the same body again.
+    if (!moveBody.current) {
+      const salt = newSaltHex();
+      const terms = JSON.parse(canonicalJson(plan));
+      const commitment = planCommitment(plan, salt);
+      // Kept first: the owner's copy of the new commitment must outlive a lost response.
+      saveBackup(p.id, {
+        kind: 'verified-sales-plan-backup',
+        commitment,
+        salt,
+        plan: terms,
+        envelope: p.envelope,
+        created_at: new Date().toISOString(),
+      });
+      moveBody.current = {
+        actor: p.owner,
+        commitment,
+        envelope: p.envelope,
+        sealed_box: sealTo(meta.enclave.encryptionKeyHex, JSON.stringify({ plan: terms, salt })),
+      };
+    }
+    const body = moveBody.current;
     const r = await run(() =>
-      api(`/api/plans/${p.id}/change`, {
-        planId: p.id,
-        body: {
-          actor: p.owner,
-          commitment,
-          envelope: p.envelope,
-          sealed_box: sealTo(meta.enclave.encryptionKeyHex, JSON.stringify({ plan: terms, salt })),
-        },
-      }),
+      ownerWrite(`/api/plans/${p.id}/change`, body, { planId: p.id, confirm: wallet.confirm }),
     );
-    if (r) onDone();
+    if (r) {
+      moveBody.current = null;
+      onDone();
+    }
   }
 
   return (
@@ -427,6 +474,7 @@ export function MoveEnclavePanel({
       ) : (
         attestationNote && <p className="mt-2 text-sm text-fail">{attestationNote}</p>
       )}
+      {wallet.prompt}
       {error && (
         <div className="mt-3">
           <ErrorNote error={error} />
@@ -464,6 +512,7 @@ export function PendingChangePanel({
 }) {
   const p = d.plan.pending_change;
   const { busy, error, run } = useAction();
+  const wallet = useWalletPrompt();
   if (!p) return null;
   const phase = pendingPhase(p, chainNow);
   const left = chainNow ? p.effective_at_ms - chainNow : null;
@@ -546,10 +595,11 @@ export function PendingChangePanel({
             disabled={busy}
             onClick={async () => {
               const r = await run(() =>
-                api(`/api/plans/${d.plan.id}/withdraw-change`, {
-                  planId: d.plan.id,
-                  body: { actor: d.plan.owner },
-                }),
+                ownerWrite(
+                  `/api/plans/${d.plan.id}/withdraw-change`,
+                  { actor: d.plan.owner },
+                  { planId: d.plan.id, confirm: wallet.confirm },
+                ),
               );
               if (r) onDone();
             }}
@@ -561,6 +611,7 @@ export function PendingChangePanel({
           </span>
         </div>
       )}
+      {wallet.prompt}
       {error && (
         <div className="mt-3">
           <ErrorNote error={error} />
@@ -573,6 +624,7 @@ export function PendingChangePanel({
 export function CancelControl({ d, onDone }: { d: PlanDetail; onDone: () => void }) {
   const [confirming, setConfirming] = useState(false);
   const { busy, error, run } = useAction();
+  const wallet = useWalletPrompt();
   const disabled = d.plan.status !== 'active' || !!d.plan.pending_change;
   return (
     <div>
@@ -597,10 +649,11 @@ export function CancelControl({ d, onDone }: { d: PlanDetail; onDone: () => void
             disabled={busy}
             onClick={async () => {
               const r = await run(() =>
-                api(`/api/plans/${d.plan.id}/cancel`, {
-                  planId: d.plan.id,
-                  body: { actor: d.plan.owner },
-                }),
+                ownerWrite(
+                  `/api/plans/${d.plan.id}/cancel`,
+                  { actor: d.plan.owner },
+                  { planId: d.plan.id, confirm: wallet.confirm },
+                ),
               );
               if (r) {
                 setConfirming(false);
@@ -615,6 +668,7 @@ export function CancelControl({ d, onDone }: { d: PlanDetail; onDone: () => void
           </button>
         </div>
       )}
+      {wallet.prompt}
       {d.plan.status === 'ended' && <p className="hint mt-1">The plan has ended.</p>}
       {error && <p className="mt-2 text-xs text-fail">{error}</p>}
     </div>
@@ -637,7 +691,7 @@ export function releaseOwed(d: PlanDetail): boolean {
 }
 
 /** The latest receipt is a release, so the transfer is being signed or sent right now. */
-function releaseInFlight(d: PlanDetail): boolean {
+export function releaseInFlight(d: PlanDetail): boolean {
   const latest = d.receipts.reduce<PlanDetail['receipts'][number] | null>(
     (a, r) => (!a || r.seq > a.seq ? r : a),
     null,
@@ -933,5 +987,155 @@ export function BypassPanel({
         )}
       </div>
     </Panel>
+  );
+}
+
+/** Whether the newest timeline entry of `kind` is newer than every entry of `clearedBy`. */
+function stillNeeded(d: PlanDetail, kind: string, clearedBy: string[]): boolean {
+  // The timeline is newest first.
+  const at = d.activity.findIndex((a) => a.kind === kind);
+  if (at === -1) return false;
+  const cleared = d.activity.findIndex((a) => clearedBy.includes(a.kind));
+  return cleared === -1 || at < cleared;
+}
+
+/** An ended ERC-20 plan of the owner's wallet, waiting for the owner to ask for the release. */
+export const releaseNeeded = (d: PlanDetail): boolean =>
+  releaseOwed(d) && !releaseInFlight(d) && d.activity.some((a) => a.kind === 'release_needed');
+
+/** A sale's EVM transfer is stuck below the network's fees and only the owner's wallet may re-sign it. */
+export const resignNeeded = (d: PlanDetail): boolean =>
+  stillNeeded(d, 'evm_resign_needed', ['evm_resigned']) &&
+  d.executions.some((x) => x.status === 'broadcast' || x.status === 'signed');
+
+/** A plan action the owner's wallet must sign, as a banner above the plan's tabs. */
+function OwnerCallBanner({
+  title,
+  children,
+  button,
+  busyText,
+  path,
+  d,
+  onDone,
+}: {
+  title: string;
+  children: ReactNode;
+  button: string;
+  busyText: string;
+  path: string;
+  d: PlanDetail;
+  onDone: () => void;
+}) {
+  const { busy, error, run } = useAction();
+  const wallet = useWalletPrompt();
+  return (
+    <section className="panel border-accent/50 px-5 py-4" aria-label={title}>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="max-w-[62ch]">
+          <h2 className="font-semibold">{title}</h2>
+          <p className="mt-0.5 text-sm text-ink-2">{children}</p>
+        </div>
+        <button
+          type="button"
+          className="btn btn-primary"
+          disabled={busy}
+          onClick={async () => {
+            const r = await run(() =>
+              ownerWrite(path, {}, { planId: d.plan.id, confirm: wallet.confirm }),
+            );
+            if (r) onDone();
+          }}
+        >
+          {busy ? busyText : button}
+        </button>
+      </div>
+      {wallet.prompt}
+      {error && (
+        <div className="mt-3">
+          <ErrorNote error={error} />
+        </div>
+      )}
+    </section>
+  );
+}
+
+export function ReleaseNeededPanel({ d, onDone }: { d: PlanDetail; onDone: () => void }) {
+  return (
+    <OwnerCallBanner
+      d={d}
+      onDone={onDone}
+      path={`/api/plans/${d.plan.id}/release`}
+      title="Action needed: release the remaining tokens"
+      button="Release to the beneficiary"
+      busyText="Releasing…"
+    >
+      The plan has ended and its address still holds {tokens(d.balance, d.plan.token_decimals)}{' '}
+      {d.summary.token.symbol}. Your wallet asks the registry to sign one transfer of all of it to
+      the beneficiary; Glidepath then sends it and watches it like a sale.
+    </OwnerCallBanner>
+  );
+}
+
+export function ResignNeededPanel({ d, onDone }: { d: PlanDetail; onDone: () => void }) {
+  return (
+    <OwnerCallBanner
+      d={d}
+      onDone={onDone}
+      path={`/api/plans/${d.plan.id}/resign`}
+      title="Action needed: re-sign with higher fees"
+      button="Re-sign with higher fees"
+      busyText="Re-signing…"
+    >
+      A sale’s transfer is waiting below the network’s current fees. Your wallet asks the registry
+      to sign the same transfer again with fees at least 12.5% higher; nothing else about it
+      changes.
+    </OwnerCallBanner>
+  );
+}
+
+/** Sales wait while a wallet-owned plan's budget is below the cost of one sale. */
+export function BudgetLowBanner({
+  d,
+  budget,
+  onFunded,
+}: {
+  d: PlanDetail;
+  budget: PlanBudget;
+  onFunded: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <section
+      className="rounded-lg border border-wait/40 bg-wait-soft px-4 py-3 text-sm"
+      aria-label="Plan budget is low"
+    >
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-wait">
+          Sales are paused: the plan’s budget holds {nearAmount(budget.balance)}, less than the{' '}
+          {nearAmount(budget.saleReserve)} sales need to run. They resume once you top it up from
+          your wallet.
+        </p>
+        <button
+          type="button"
+          className="btn btn-secondary btn-sm"
+          aria-expanded={open}
+          onClick={() => setOpen((v) => !v)}
+        >
+          {open ? 'Close' : 'Top up'}
+        </button>
+      </div>
+      {open && (
+        <div className="mt-3 rounded-lg bg-surface px-4 py-3">
+          <FundForm
+            planId={d.plan.id}
+            budget={budget}
+            chain={d.summary.token.chain}
+            launched
+            onFunded={onFunded}
+            cta="Top up"
+          />
+        </div>
+      )}
+    </section>
   );
 }

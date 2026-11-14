@@ -50,6 +50,13 @@
       "when": 1794673608275,
       "tag": "0006_drop_daily_usage",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1794676043972,
+      "tag": "0007_wallet_sessions_budget",
+      "breakpoints": true
     }
   ]
 }

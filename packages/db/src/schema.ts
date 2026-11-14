@@ -207,3 +207,49 @@ export const trustTrades = pgTable(
   },
   (t) => [uniqueIndex('trust_trades_trust_seq').on(t.trustId, t.seq)],
 );
+
+/**
+ * One-time challenges a NEAR wallet signs to sign in (NEP-413). Bound to the browser that asked:
+ * only the hash of a random http-only cookie is kept.
+ */
+export const walletChallenges = pgTable('wallet_challenges', {
+  /** Base64 of the 32-byte nonce. */
+  nonce: text('nonce').primaryKey(),
+  bindingHash: text('binding_hash').notNull(),
+  message: text('message').notNull(),
+  recipient: text('recipient').notNull(),
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  usedAt: timestamp('used_at', { withTimezone: true }),
+  createdAt: createdAt(),
+});
+
+/** Signed-in browsers: the sha256 of the session cookie and the NEAR account that signed in. */
+export const sessions = pgTable('sessions', {
+  tokenHash: text('token_hash').primaryKey(),
+  accountId: text('account_id').notNull(),
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  createdAt: createdAt(),
+});
+
+/**
+ * Each plan's budget for the work the server's relayer does for it, in yoctoNEAR: credits are the
+ * owner's own transfers to the relayer (a tx hash counts once), debits the published fee for each
+ * relayed action. A plan whose budget cannot pay the next action waits for a top-up.
+ */
+export const planBudget = pgTable(
+  'plan_budget',
+  {
+    id: bigserial('id', { mode: 'number' }).primaryKey(),
+    planId: bigint('plan_id', { mode: 'number' }).notNull(),
+    /** Positive for a credit, negative for a debit. */
+    yocto: numeric('yocto', { precision: 40, scale: 0 }).notNull(),
+    kind: text('kind').notNull(),
+    /** The owner's transfer for a credit (unique), the relayed tx for a debit when there is one. */
+    txHash: text('tx_hash'),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    index('plan_budget_plan').on(t.planId),
+    uniqueIndex('plan_budget_credit_tx').on(t.txHash).where(sql`${t.kind} = 'credit'`),
+  ],
+);

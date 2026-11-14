@@ -12,10 +12,36 @@ export interface PlanPrincipal {
   operator: boolean;
   /** The `x-plan-key` header as sent, unchecked. */
   planKey: string | null;
+  /** The NEAR account this browser signed in with, from its session. */
+  account?: string | null;
+  /**
+   * A transaction the signed-in wallet already sent for this request (`x-wallet-tx`): the owner's
+   * call is then checked on chain instead of signed by the server.
+   */
+  walletTx?: string | null;
 }
 
 /** Scripts and tests acting for the server itself. */
 export const OPERATOR: PlanPrincipal = { operator: true, planKey: null };
+
+/** The call an owner's wallet must sign before the request can go on (answered as 409). */
+export interface WalletCall {
+  receiverId: string;
+  method: string;
+  args: Record<string, unknown>;
+  /** Gas in Tgas. */
+  gasTera: number;
+  /** Attached deposit in yoctoNEAR, as a string. */
+  deposit: string;
+}
+
+/** The owner signs with their own wallet: the request is answered with the call to sign. */
+export class WalletCallNeeded extends Error {
+  constructor(readonly call: WalletCall) {
+    super('Sign this with your wallet, then send the request again with the transaction hash');
+    this.name = 'WalletCallNeeded';
+  }
+}
 
 /**
  * A refusal for capacity rather than for the request: `busy` (503) when the server's own funds
@@ -45,12 +71,16 @@ export function sameSecret(presented: string, expected: string): boolean {
   return timingSafeEqual(sha256(presented), sha256(expected));
 }
 
-/** Throws unless the principal may manage this plan: the operator, or the holder of its key. */
+/**
+ * Throws unless the principal may manage this plan: the operator, the plan's owner signed in with
+ * their wallet, or the holder of its key.
+ */
 export function authorizePlan(
-  row: Pick<typeof plans.$inferSelect, 'ownerKeyHash'>,
+  row: Pick<typeof plans.$inferSelect, 'ownerKeyHash' | 'owner'>,
   principal: PlanPrincipal,
 ): void {
   if (principal.operator) return;
+  if (principal.account && principal.account === row.owner) return;
   const key = principal.planKey;
   const ok =
     !!row.ownerKeyHash &&

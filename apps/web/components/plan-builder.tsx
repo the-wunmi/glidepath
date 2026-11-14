@@ -52,9 +52,12 @@ import { nearAccountExists, useChainNow } from '@/lib/chain';
 import { envelopeLines, plainLines } from '@/lib/copy';
 import { evmChainName, simReason } from '@/lib/env';
 import { DAY_MS, duration, fmtDateTime, periodWords, tokens } from '@/lib/format';
+import { ownerWrite, type PlanBudget } from '@/lib/owner-write';
 import type { Meta } from '@/lib/types';
+import { useResource } from '@/lib/use-resource';
 import { OUTLAYER_LABEL, OutlayerEvidence } from './enclave-evidence';
 import { DownloadIcon, LockIcon } from './icons';
+import { actionError, FeeList, FundStep, useWalletPrompt } from './owner-wallet';
 import { Badge, CheckList, ErrorNote, Field, Hash, Panel, SimBadge } from './ui';
 
 type StepId = 'token' | 'terms' | 'envelope' | 'disclosure' | 'review';
@@ -93,8 +96,16 @@ const defaultEnd = (start: number) => start + 365 * DAY_MS;
 /** False when this server takes only EVM-token plans. */
 const nearTokensOffered = (meta: Meta) => meta.limits.nearTokens;
 
-/** An unfinished new plan survives a reload in this tab; it holds no salt and no key. */
-const draftKey = (actor: string) => `vsp-builder-draft-${actor}`;
+/**
+ * An unfinished new plan survives a reload in this tab, and signing in on the way; it holds no salt
+ * and no key. It notes whose it was, so a default beneficiary follows the account.
+ */
+const DRAFT_KEY = 'vsp-builder-draft';
+
+interface Draft {
+  actor: string;
+  form: PlanForm;
+}
 
 function defaults(
   meta: Meta,
@@ -104,8 +115,17 @@ function defaults(
 ): PlanForm {
   if (!change) {
     try {
-      const saved = sessionStorage.getItem(draftKey(actor));
-      if (saved) return { ...(JSON.parse(saved) as PlanForm), envSeed: newEnvelopeSeed() };
+      const saved = JSON.parse(sessionStorage.getItem(DRAFT_KEY) ?? 'null') as Draft | null;
+      if (saved?.form) {
+        const form = { ...saved.form, envSeed: newEnvelopeSeed() };
+        // The beneficiary was the account then; the account now takes its place.
+        if (
+          saved.actor !== actor &&
+          (!form.beneficiaryNear || form.beneficiaryNear === saved.actor)
+        )
+          form.beneficiaryNear = actor;
+        return form;
+      }
     } catch {
       // A broken draft just means starting over.
     }
@@ -284,12 +304,18 @@ export interface BuilderResult {
 export function PlanBuilder({
   meta,
   actor,
+  walletOwner = false,
   change,
   onDone,
 }: {
   meta: Meta;
-  /** The plan owner: the founder, or the treasury DAO acting through a proposal. */
+  /**
+   * The plan owner: the signed-in account, whose wallet signs; or, for the operator, the server's
+   * founder account or its treasury DAO acting through a proposal.
+   */
   actor: string;
+  /** The owner's own wallet signs and pays; its relayer work is paid from the plan's budget. */
+  walletOwner?: boolean;
   change?: ChangeContext;
   onDone: (r: BuilderResult) => void;
 }) {
@@ -302,6 +328,8 @@ export function PlanBuilder({
   const [reached, setReached] = useState(0);
   const [showErrors, setShowErrors] = useState(false);
   const [form, setForm] = useState<PlanForm>(() => defaults(meta, actor, chainNow, change));
+  /** The relayer's prices, shown before the founder signs anything. */
+  const fees = useResource(() => api<Omit<PlanBudget, 'balance'>>('/api/fees'), []);
   const [nameAvailable, setNameAvailable] = useState<boolean | null>(null);
   const [evmNext, setEvmNext] = useState<{ evmToken: string; planEvmAddress: string } | null>(null);
   const [evmError, setEvmError] = useState<string | null>(null);
@@ -311,6 +339,18 @@ export function PlanBuilder({
   const [skipBackup, setSkipBackup] = useState(false);
   const [loadedFrom, setLoadedFrom] = useState<string | null>(null);
   const [evmSymbols, setEvmSymbols] = useState<string[]>([]);
+  /** A committed wallet-owned plan, at its funding step. */
+  const [created, setCreated] = useState<number | null>(null);
+  /** The sealed request for one commitment, so a retry after the wallet signed sends it again. */
+  const sealed = useRef<{ commitment: string; body: Record<string, unknown> } | null>(null);
+  const wallet = useWalletPrompt(
+    change ? undefined : (
+      <>
+        Next, you fund the plan’s budget from your wallet: it pays Glidepath’s relayer for the
+        launch, each sale and closing the plan.
+      </>
+    ),
+  );
   const headingRef = useRef<HTMLHeadingElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const { result: attestation, error: attestationError } = useAttestation(meta);
@@ -320,7 +360,7 @@ export function PlanBuilder({
 
   // Keep an unfinished new plan across reloads of this tab.
   useEffect(() => {
-    if (!change) sessionStorage.setItem(draftKey(actor), JSON.stringify(form));
+    if (!change) sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ actor, form } satisfies Draft));
   }, [form, change, actor]);
 
   // EVM symbols already used by plans, so a second token cannot share one.
@@ -541,76 +581,94 @@ export function PlanBuilder({
     setSubmitting(true);
     setSubmitError(null);
     try {
-      // The plan leaves this browser only encrypted to the attested enclave key.
-      const payload = JSON.stringify({ plan: JSON.parse(canonicalJson(plan)), salt });
-      const box = sealTo(meta.enclave.encryptionKeyHex, payload);
-      const backupBoxes = backups.map((b) => ({
-        signing_key: b.identity.signingKey,
-        sealed_box: sealTo(b.identity.encryptionKeyHex, payload),
-      }));
-      if (change) {
-        const r = await api<{ txHash: string; effectiveAtMs: number | null }>(
-          `/api/plans/${change.planId}/change`,
-          {
-            planId: change.planId,
-            body: {
+      if (sealed.current?.commitment !== commitment) {
+        // The plan leaves this browser only encrypted to the attested enclave key.
+        const payload = JSON.stringify({ plan: JSON.parse(canonicalJson(plan)), salt });
+        const box = sealTo(meta.enclave.encryptionKeyHex, payload);
+        const backupBoxes = backups.map((b) => ({
+          signing_key: b.identity.signingKey,
+          sealed_box: sealTo(b.identity.encryptionKeyHex, payload),
+        }));
+        const cooling = coolingMs(form) ?? minCooling;
+        const body: Record<string, unknown> = change
+          ? {
               actor,
               commitment,
               envelope: envelopeJson(envelope),
               sealed_box: box,
               backup_boxes: backupBoxes,
-            },
-          },
+            }
+          : {
+              actor,
+              label: form.label.trim(),
+              token,
+              beneficiary: {
+                near_account: form.beneficiaryNear,
+                ...(form.beneficiaryEvm.trim() ? { evm_address: form.beneficiaryEvm.trim() } : {}),
+              },
+              envelope: envelopeJson(envelope),
+              disclosure:
+                form.disclosure === 'delayed'
+                  ? { type: 'delayed', delay_ms: Number(form.delayDays) * DAY_MS }
+                  : { type: form.disclosure },
+              cooling_off_ms: cooling,
+              start_ms: Date.parse(plan.start),
+              end_ms: Date.parse(plan.end),
+              commitment,
+              sealed_box: box,
+              backup_boxes: backupBoxes,
+              proceeds_asset: proceedsAsset,
+            };
+        sealed.current = { commitment, body };
+      }
+      const body = sealed.current.body;
+      if (change) {
+        const r = await ownerWrite<{ txHash: string; effectiveAtMs: number | null }>(
+          `/api/plans/${change.planId}/change`,
+          body,
+          { planId: change.planId, confirm: wallet.confirm },
         );
         const b = backup();
         if (b) saveBackup(change.planId, b);
+        sealed.current = null;
         onDone({ effectiveAtMs: r.effectiveAtMs });
         return;
       }
-      const cooling = coolingMs(form) ?? minCooling;
-      const created = await api<{
+      const out = await ownerWrite<{
         planId: number;
         txHash: string;
         planAccount: string;
-        /** Null when this create was a retry: the key went to the first request. */
+        /** Null for a wallet's plan (the wallet is the credential) or a retry of a create. */
         ownerKey: string | null;
-      }>('/api/plans', {
-        body: {
-          actor,
-          label: form.label.trim(),
-          token,
-          beneficiary: {
-            near_account: form.beneficiaryNear,
-            ...(form.beneficiaryEvm.trim() ? { evm_address: form.beneficiaryEvm.trim() } : {}),
-          },
-          envelope: envelopeJson(envelope),
-          disclosure:
-            form.disclosure === 'delayed'
-              ? { type: 'delayed', delay_ms: Number(form.delayDays) * DAY_MS }
-              : { type: form.disclosure },
-          cooling_off_ms: cooling,
-          start_ms: Date.parse(plan.start),
-          end_ms: Date.parse(plan.end),
-          commitment,
-          sealed_box: box,
-          backup_boxes: backupBoxes,
-          proceeds_asset: proceedsAsset,
-        },
-      });
+      }>('/api/plans', body, { confirm: wallet.confirm });
       const b = backup();
-      if (b) saveBackup(created.planId, b);
-      const ownerKey = created.ownerKey ? parsePlanKey(created.ownerKey) : null;
-      if (ownerKey) savePlanKey(created.planId, { key: ownerKey, saved: false });
-      sessionStorage.removeItem(draftKey(actor));
-      onDone({ planId: created.planId });
+      if (b) saveBackup(out.planId, b);
+      const ownerKey = out.ownerKey ? parsePlanKey(out.ownerKey) : null;
+      if (ownerKey) savePlanKey(out.planId, { key: ownerKey, saved: false });
+      sessionStorage.removeItem(DRAFT_KEY);
+      sealed.current = null;
+      if (walletOwner) {
+        setSubmitting(false);
+        setCreated(out.planId);
+        return;
+      }
+      onDone({ planId: out.planId });
     } catch (e) {
-      setSubmitError(errorMessage(e));
+      setSubmitError(actionError(e));
       setSubmitting(false);
     }
   }
 
   const symbol = token?.symbol || form.symbol || 'TOKEN';
   const f = (k: keyof PlanForm | 'asset' | 'envPeriod') => `${uid}-${k}`;
+
+  if (created !== null && token)
+    return (
+      <div>
+        <h2 className="mb-3 text-lg font-semibold">Fund the plan</h2>
+        <FundStep planId={created} chain={token.chain} onDone={() => onDone({ planId: created })} />
+      </div>
+    );
 
   return (
     <div>
@@ -1407,6 +1465,49 @@ export function PlanBuilder({
                 )}
               </>
             )}
+            {walletOwner && plan && envelope && (
+              <Panel
+                level={3}
+                title="What your wallet signs and pays"
+                description="Glidepath never holds your keys. Each step opens your wallet, which shows the transaction before you approve it."
+              >
+                <ol className="list-decimal space-y-1.5 pl-5 text-sm">
+                  {change ? (
+                    <li>
+                      Your wallet signs the change request on the registry and pays its gas. You see
+                      the exact call, and anything it attaches, before the wallet opens.
+                    </li>
+                  ) : (
+                    <>
+                      <li>
+                        <span className="font-medium">Commit the plan.</span> Your wallet signs it
+                        on the registry as <span className="mono">{actor}</span> and pays the
+                        deposit for the plan’s keyless account plus gas. The exact amount is shown
+                        before the wallet opens.
+                      </li>
+                      <li>
+                        <span className="font-medium">Fund the plan’s budget.</span> A NEAR transfer
+                        from your wallet that pays Glidepath’s relayer for the launch, each enclave
+                        run and sale, and closing the plan, at these prices:
+                        {fees.data && (
+                          <div className="mt-2">
+                            <FeeList
+                              budget={{ ...fees.data, balance: '0' }}
+                              chain={form.chain === 'near' ? 'near' : 'evm'}
+                            />
+                          </div>
+                        )}
+                      </li>
+                      <li>
+                        <span className="font-medium">Launch {symbol}.</span> The relayer launches
+                        it with the team allocation minted into the plan, paid from the budget.
+                      </li>
+                    </>
+                  )}
+                </ol>
+              </Panel>
+            )}
+            {wallet.prompt}
             {submitError && <ErrorNote error={submitError} />}
           </div>
         )}
@@ -1442,7 +1543,13 @@ export function PlanBuilder({
                 }
               >
                 <LockIcon />
-                {submitting ? 'Sealing…' : change ? 'Seal and request change' : 'Seal and commit'}
+                {wallet.call
+                  ? 'Waiting for your go-ahead…'
+                  : submitting
+                    ? 'Sealing…'
+                    : change
+                      ? 'Seal and request change'
+                      : 'Seal and commit'}
               </button>
             ) : (
               <button type="submit" className="btn btn-primary">

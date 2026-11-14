@@ -183,6 +183,16 @@ and that DATABASE_URL serves it; set `OUTLAYER_TICK_SECONDS` high to keep it fro
   `actor` only picks the signing persona. Finalize and reveal are open. Plans from before keys
   (testnet #1–#3) have no hash: operator only. With PUBLIC_ORIGIN set, an API write with no Origin
   needs the operator token, and `PUT /api/sim` and `/api/sim/advance` are operator only.
+- Founders' wallets (docs/WALLET.md): sign-in is NEP-413 (`auth.ts`, session
+  cookie `glidepath_session`, `GET /api/me`). A non-persona owner signs every owner action itself:
+  `ownerCall` answers `WalletCallNeeded` (409 `wallet_signature_needed` with the exact call), and
+  the same request with `x-wallet-tx` is checked on chain (`NearClient.signedTransaction`: signer,
+  receiver, method, canonical args, deposit ≥). Release and re-sign of a founder's EVM plan need
+  their wallet (`ownerReleaseEvm`/`ownerResignEvm`; workflows note `release_needed` /
+  `evm_resign_needed` and wait). `plan_budget` ledger (`budget.ts`): credits are the owner's
+  transfers to the relayer (`/fund`, tx counted once), debits a fixed fee per relayed action (runs,
+  executes, launch, finalize, reveal); ticks skip a plan under `SALE_RESERVE` (`budget_low`).
+  Personas (operator, tests, demo) are never charged. API tests: `apps/api/test/wallet.test.ts`.
 - Abuse protection: no daily caps or plan-length bound (removed 2026-11-14; migration 0006 drops
   `daily_usage`). The API rate-limits per client (20 plans or trusts an hour, 120 writes per 10
   minutes, `apps/api/src/app.ts`); `packages/engine/src/guards.ts` keeps testnet reserve floors on the

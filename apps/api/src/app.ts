@@ -5,6 +5,7 @@ import { rpcUnavailable } from '@vsp/evm';
 import { nearRpcUnavailable } from '@vsp/near';
 import { type Context, Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
+import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
 import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
@@ -35,6 +36,10 @@ const MAX_BODY_BYTES = 128 * 1024;
 const READ_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
 const LOOPBACK = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
 const HOUR_MS = 3_600_000;
+/** Each sign-in stores a challenge row; far above what a person needs. */
+const SIGN_INS_PER_HOUR_PER_CLIENT = 30;
+const SESSION_COOKIE = 'glidepath_session';
+const WALLET_CHALLENGE_COOKIE = 'glidepath_wallet_challenge';
 
 /**
  * A page view makes a handful of API reads and polls a plan every few seconds; 120 a minute is
@@ -101,6 +106,10 @@ const fail = (code: string, message: string, status: ContentfulStatusCode, detai
 /** The raw body; the engine function it goes to validates it. Malformed JSON fails there. */
 const body = <T>(c: Context): Promise<T> => c.req.json<T>().catch(() => undefined as T);
 
+/** A JSON answer that keeps the cookies set on the context (`json` builds a bare Response). */
+const withCookies = (c: Context, value: unknown) =>
+  c.newResponse(toJson(value), 200, { 'content-type': 'application/json' });
+
 const planId = (c: Context) => parseInput(z.coerce.number().int().positive(), c.req.param('id'));
 
 export function createApp(e: Engine) {
@@ -113,6 +122,9 @@ export function createApp(e: Engine) {
       return fail(err.code, err.message, STATUS[err.code], err.details);
     if (err instanceof engine.LimitError)
       return fail(err.code, err.message, err.code === 'busy' ? 503 : 429);
+    // The owner's wallet signs this call; the browser sends the request again with its hash.
+    if (err instanceof engine.WalletCallNeeded)
+      return fail('wallet_signature_needed', err.message, 409, { call: err.call });
     e.log('request failed', { error: err instanceof Error ? err.stack : String(err) });
     return fail('internal', 'Something went wrong on our side', 500);
   });
@@ -134,11 +146,25 @@ export function createApp(e: Engine) {
     const bearer = /^Bearer (.+)$/.exec(c.req.header('authorization') ?? '')?.[1];
     return !!operatorToken && !!bearer && engine.sameSecret(bearer, operatorToken);
   };
-  /** Who is asking to manage a plan; the engine checks it against the plan's key hash. */
+  /**
+   * Who is asking to manage a plan: the operator, the account this browser signed in with (read
+   * from its session cookie by the middleware below), or the holder of a plan's key. A wallet's
+   * already-sent transaction comes as `x-wallet-tx`.
+   */
   const principal = (c: Context): engine.PlanPrincipal => ({
     operator: isOperator(c),
     planKey: c.req.header('x-plan-key') ?? null,
+    account: (c.get('account' as never) as string | null | undefined) ?? null,
+    walletTx: c.req.header('x-wallet-tx') ?? null,
   });
+  app.use('/api/*', async (c, next) => {
+    c.set(
+      'account' as never,
+      (await engine.sessionAccount(e, getCookie(c, SESSION_COOKIE))) as never,
+    );
+    await next();
+  });
+  const secureCookies = publicOrigin?.startsWith('https://') ?? false;
 
   // Founder actions sign with keys this process holds, so a page on another site must not be able
   // to trigger them: API writes need a JSON body (a cross-site form or no-cors fetch cannot send one
@@ -184,6 +210,7 @@ export function createApp(e: Engine) {
   const rpcCalls = new RateLimit(RPC_CALLS_PER_WINDOW, RPC_WINDOW_MS);
   const planCreations = new RateLimit(PLANS_PER_HOUR_PER_CLIENT, HOUR_MS);
   const tooMany = () => fail('rate_limited', 'Too many requests from here. Try again later.', 429);
+  const signIns = new RateLimit(SIGN_INS_PER_HOUR_PER_CLIENT, HOUR_MS);
   app.use('*', async (c, next) => {
     if (!behindProxy) return next();
     const path = c.req.path;
@@ -314,19 +341,83 @@ export function createApp(e: Engine) {
     });
   });
 
-  // ── Founder actions (personas sign with keys this process holds) ───────────
-  // Anyone may create a plan; it comes back with its owner key, the only credential for the owner
-  // actions below (or the operator token). Finalize and reveal are open to anyone, as on chain.
+  // ── Sign-in with a NEAR wallet (NEP-413) ─────────────────────────────────────
+  // What the wallet signs for (the NEP-413 recipient): the public site's host.
+  const walletRecipient = publicOrigin ? new URL(publicOrigin).host : 'localhost';
+  app.post('/api/auth/wallet/challenge', async (c) => {
+    if (behindProxy && !signIns.take(clientKey(c))) return tooMany();
+    // Binds the challenge to this browser: only the cookie's hash is stored with the nonce.
+    const binding = engine.newToken();
+    setCookie(c, WALLET_CHALLENGE_COOKIE, binding, {
+      httpOnly: true,
+      sameSite: 'Lax',
+      path: '/api/auth/wallet',
+      secure: secureCookies,
+      maxAge: 10 * 60,
+    });
+    return withCookies(c, await engine.startWalletLogin(e, binding, walletRecipient));
+  });
+  // Not rate-limited itself: every attempt needs a fresh challenge, which is.
+  app.post('/api/auth/wallet/verify', async (c) => {
+    const { accountId, sessionToken } = await engine.verifyWalletLogin(
+      e,
+      getCookie(c, WALLET_CHALLENGE_COOKIE),
+      await body(c),
+    );
+    deleteCookie(c, WALLET_CHALLENGE_COOKIE, { path: '/api/auth/wallet' });
+    setCookie(c, SESSION_COOKIE, sessionToken, {
+      httpOnly: true,
+      sameSite: 'Lax',
+      path: '/',
+      secure: secureCookies,
+      maxAge: 30 * 24 * 3600,
+    });
+    return withCookies(c, { account: accountId });
+  });
+  app.post('/api/auth/logout', async (c) => {
+    const token = getCookie(c, SESSION_COOKIE);
+    if (token) await engine.endSession(e, token);
+    deleteCookie(c, SESSION_COOKIE, { path: '/' });
+    return withCookies(c, { ok: true });
+  });
+  app.get('/api/me', (c) => {
+    const account = principal(c).account;
+    return json(account ? { account } : null);
+  });
+
+  // ── Founder actions ─────────────────────────────────────────────────────────
+  // A founder signs in with their wallet and signs every owner action with it: a request answers
+  // 409 with the call to sign, and the same request sent again with `x-wallet-tx` is checked
+  // against the chain. The operator may act as the server's own personas. Finalize and reveal are
+  // open to anyone, as on chain.
   app.post('/api/plans', async (c) => {
     // The raw body: createPlan validates it; this only peeks at the chain.
     const input = await body<Parameters<typeof engine.createPlan>[1]>(c);
     if (evmOff && input?.token?.chain === 'evm') refuseEvm();
-    // Only a valid plan counts against this address's hourly share.
-    await engine.checkNewPlan(e, input);
-    if (behindProxy && !planCreations.take(clientKey(c))) return tooMany();
-    const created = await engine.createPlan(e, input);
+    const who = principal(c);
+    // Only a valid plan counts against this address's hourly share, and only once: the second
+    // request carries the wallet's transaction for the same plan.
+    await engine.checkNewPlan(e, input, who);
+    if (behindProxy && !who.walletTx && !planCreations.take(clientKey(c))) return tooMany();
+    const created = await engine.createPlan(e, input, who);
     clearReadCaches();
     return json(created, 201);
+  });
+  const fees = () =>
+    Object.fromEntries(Object.entries(engine.FEES).map(([k, v]) => [k, v.toString()]));
+  /** What the server charges founders' plans for its relayer's work (yoctoNEAR). */
+  app.get('/api/fees', () =>
+    json({ fees: fees(), saleReserve: engine.SALE_RESERVE.toString(), relayer: e.world.relayer }),
+  );
+  /** What the server charges founders' plans for its relayer's work, and this plan's budget. */
+  app.get('/api/plans/:id/budget', async (c) => {
+    const id = planId(c);
+    return json({
+      balance: (await engine.budgetBalance(e.db, id)).toString(),
+      fees: fees(),
+      saleReserve: engine.SALE_RESERVE.toString(),
+      relayer: e.world.relayer,
+    });
   });
   // Every write below changes what plan reads show.
   app.use('/api/plans/:id/*', async (c, next) => {
@@ -352,6 +443,16 @@ export function createApp(e: Engine) {
     json(await engine.revealFromBackup(e, planId(c), await body(c))),
   );
   app.post('/api/plans/:id/finalize', async (c) => json(await engine.finalizePlan(e, planId(c))));
+  app.post('/api/plans/:id/fund', async (c) => {
+    const input = parseInput(z.object({ tx_hash: z.string() }), await body(c));
+    return json(await engine.fundPlan(e, principal(c), planId(c), input.tx_hash));
+  });
+  app.post('/api/plans/:id/release', async (c) =>
+    json(await engine.ownerReleaseEvm(e, principal(c), planId(c))),
+  );
+  app.post('/api/plans/:id/resign', async (c) =>
+    json(await engine.ownerResignEvm(e, principal(c), planId(c))),
+  );
   app.post('/api/plans/:id/attempts/direct-transfer', async (c) =>
     json(await engine.tryDirectTransfer(e, principal(c), planId(c), await body(c))),
   );

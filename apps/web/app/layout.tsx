@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { IBM_Plex_Mono, Public_Sans } from 'next/font/google';
 import type { ReactNode } from 'react';
-import { ActorProvider } from '@/components/actor';
 import { MetaProvider } from '@/components/meta';
 import { OperatorProvider } from '@/components/operator';
 import { Shell } from '@/components/shell';
@@ -55,9 +54,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         <MetaProvider>
           <OperatorProvider>
-            <ActorProvider>
-              <Shell>{children}</Shell>
-            </ActorProvider>
+            <Shell>{children}</Shell>
           </OperatorProvider>
         </MetaProvider>
       </body>

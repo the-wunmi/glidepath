@@ -6,7 +6,9 @@ import { type ReactNode, useEffect, useState } from 'react';
 import { OUTLAYER_LABEL, OutlayerEvidence } from '@/components/enclave-evidence';
 import { useMeta } from '@/components/meta';
 import { useOperator } from '@/components/operator';
+import { BudgetPanel, OwnerOnlyNote, usePlanBudget } from '@/components/owner-wallet';
 import {
+  BudgetLowBanner,
   BypassPanel,
   CancelControl,
   EnrollForm,
@@ -15,8 +17,12 @@ import {
   LaunchPanel,
   MoveEnclavePanel,
   PendingChangePanel,
+  ReleaseNeededPanel,
+  ResignNeededPanel,
   RevealControl,
+  releaseNeeded,
   releaseOwed,
+  resignNeeded,
 } from '@/components/plan-actions';
 import { type ChangeContext, PlanBuilder } from '@/components/plan-builder';
 import { PlanKeyNeeded, PlanKeyPanel, SavePlanKeyNotice, usePlanKey } from '@/components/plan-key';
@@ -56,6 +62,7 @@ import {
   usdE6,
 } from '@/lib/format';
 import { failedAmount, soldAmount, tokenLaunched } from '@/lib/plan-state';
+import { useMe } from '@/lib/session';
 import type { Execution, Meta, OutlayerQuote, PlanDetail } from '@/lib/types';
 import { useResource } from '@/lib/use-resource';
 
@@ -368,11 +375,14 @@ function OverviewTab({
   meta,
   chainNow,
   goTo,
+  budget,
 }: {
   d: PlanDetail;
   meta: Meta | null;
   chainNow: number | null;
   goTo: (t: Tab) => void;
+  /** The owner's budget panel, for a plan their wallet owns. */
+  budget?: ReactNode;
 }) {
   const p = d.plan;
   const dec = p.token_decimals;
@@ -535,6 +545,8 @@ function OverviewTab({
         </Panel>
       </div>
 
+      {budget}
+
       <ProofDetails summary={`Activity log (${d.activity.length})`}>
         <div className="pt-2">
           <ActivityLog d={d} ex={ex} />
@@ -549,11 +561,14 @@ function ProofTab({
   meta,
   canManage,
   planKey,
+  walletPlan,
 }: {
   d: PlanDetail;
   meta: Meta | null;
   canManage: boolean;
   planKey: StoredPlanKey | null;
+  /** Owned by a founder's wallet: the server holds no key of theirs to try a bypass with. */
+  walletPlan: boolean;
 }) {
   const p = d.plan;
   const ex = explorer(meta);
@@ -636,7 +651,7 @@ function ProofTab({
         </Panel>
       )}
       <BackupBuilds d={d} />
-      {canManage && (
+      {canManage && !walletPlan && (
         <BypassPanel d={d} daoOwned={meta?.accounts.dao === p.owner} onDone={() => undefined} />
       )}
       <p className="text-sm text-ink-2">
@@ -662,6 +677,13 @@ export default function PlanPage() {
   const d = detail.data;
   const planKey = usePlanKey(Number(id));
   const operator = useOperator();
+  const me = useMe();
+  const owner = d?.plan.owner ?? null;
+  const accounts = meta.data?.accounts;
+  // A plan owned by a founder's own wallet, not by one of the server's accounts.
+  const walletPlan = !!owner && !!accounts && owner !== accounts.founder && owner !== accounts.dao;
+  const isOwner = !!owner && me.data?.account === owner;
+  const budget = usePlanBudget(Number(id), walletPlan && isOwner);
 
   if (detail.error && !d)
     return detail.error instanceof ApiError && detail.error.status === 404 ? (
@@ -695,6 +717,19 @@ export default function PlanPage() {
   const symbol = s.token.symbol;
   const launched = tokenLaunched(d);
   const reload = () => void detail.reload();
+  const reloadAll = () => {
+    void detail.reload();
+    void budget.reload();
+  };
+  const b = budget.data;
+  const ownWallet = walletPlan && isOwner;
+  const path = `/app/plans/${p.id}`;
+  /** What someone who cannot manage the plan sees where the owner's actions would be. */
+  const notOwner = walletPlan ? (
+    <OwnerOnlyNote owner={p.owner} path={path} />
+  ) : (
+    <PlanKeyNeeded planId={p.id} />
+  );
   const canChange = p.status === 'active' && !p.pending_change;
   const enclaveUp = meta.data?.sim.enclaveUp ?? true;
   const ex = explorer(meta.data);
@@ -702,8 +737,8 @@ export default function PlanPage() {
   const needsLaunch = !launched && p.status !== 'ended' && !finalizeReady(d, chainNow);
   const oneclickSim = simReason(meta.data, 'oneclick');
   const dao = meta.data?.accounts.dao === p.owner;
-  // Owner actions need this plan's key or the operator's token; the API refuses them otherwise.
-  const canManage = !!planKey || operator.status === 'operator';
+  // Owner actions need the owner's signed-in wallet, this plan's key or the operator's token.
+  const canManage = isOwner || !!planKey || operator.status === 'operator';
 
   return (
     <div>
@@ -730,7 +765,9 @@ export default function PlanPage() {
             {symbol} on{' '}
             {s.token.chain === 'near' ? nearChainName(meta.data) : evmChainName(meta.data)}. Owned
             by <span className="mono text-[0.9em]">{p.owner}</span>
+            {isOwner ? ' (you)' : ''}
             {dao ? ', acting through DAO proposals' : ''}.
+            {ownWallet && ' Your wallet signs and pays for every owner action.'}
           </>
         }
         actions={
@@ -752,23 +789,35 @@ export default function PlanPage() {
         )}
         {planKey && !planKey.saved && <SavePlanKeyNotice planId={p.id} stored={planKey} />}
         {!enclaveUp && p.status === 'active' && <EnclaveDownNote />}
+        {ownWallet &&
+          b &&
+          launched &&
+          p.status === 'active' &&
+          BigInt(b.balance) < BigInt(b.saleReserve) && (
+            <BudgetLowBanner d={d} budget={b} onFunded={reloadAll} />
+          )}
+        {ownWallet && resignNeeded(d) && <ResignNeededPanel d={d} onDone={reload} />}
         {needsLaunch &&
           (canManage ? (
-            <LaunchPanel d={d} meta={meta.data} onDone={reload} />
+            <LaunchPanel d={d} meta={meta.data} budget={ownWallet ? b : null} onDone={reloadAll} />
           ) : (
             <section className="panel px-5 py-4" aria-label={`Launch ${symbol}`}>
               <h2 className="font-semibold">Next: launch {symbol}</h2>
-              <div className="mt-0.5">
-                <PlanKeyNeeded planId={p.id} />
-              </div>
+              <div className="mt-0.5">{notOwner}</div>
             </section>
           ))}
-        {!needsLaunch && (finalizeReady(d, chainNow) || releaseOwed(d)) && (
-          <FinalizeControl d={d} chainNow={chainNow} onDone={reload} prominent />
+        {ownWallet && releaseNeeded(d) ? (
+          <ReleaseNeededPanel d={d} onDone={reload} />
+        ) : (
+          !needsLaunch &&
+          (finalizeReady(d, chainNow) || releaseOwed(d)) && (
+            <FinalizeControl d={d} chainNow={chainNow} onDone={reload} prominent />
+          )
         )}
         {!needsLaunch &&
           meta.data &&
           canChange &&
+          (canManage || !walletPlan) &&
           !finalizeReady(d, chainNow) &&
           onEarlierBuild(meta.data, p.acked_by) && (
             <MoveEnclavePanel
@@ -811,7 +860,25 @@ export default function PlanPage() {
         />
 
         <TabPanel idBase="plan" id="overview" current={tab}>
-          <OverviewTab d={d} meta={meta.data} chainNow={chainNow} goTo={setTab} />
+          <OverviewTab
+            d={d}
+            meta={meta.data}
+            chainNow={chainNow}
+            goTo={setTab}
+            budget={
+              // Before the launch, the launch panel above shows the budget and its funding.
+              ownWallet &&
+              !needsLaunch && (
+                <BudgetPanel
+                  planId={p.id}
+                  chain={s.token.chain}
+                  launched={launched}
+                  budget={budget}
+                  onFunded={reloadAll}
+                />
+              )
+            }
+          />
         </TabPanel>
 
         <TabPanel idBase="plan" id="sales" current={tab}>
@@ -882,12 +949,12 @@ export default function PlanPage() {
               description={`Every change is public at once and waits ${duration(p.cooling_off_ms)} before it applies.`}
             >
               <div className="grid gap-6 md:grid-cols-2">
-                {needsLaunch ? (
+                {needsLaunch && !walletPlan ? (
                   <p className="text-sm text-ink-2">
                     Owner actions need this plan’s key; paste it above.
                   </p>
                 ) : (
-                  <PlanKeyNeeded planId={p.id} />
+                  notOwner
                 )}
                 {!finalizeReady(d, chainNow) && !releaseOwed(d) && (
                   <FinalizeControl d={d} chainNow={chainNow} onDone={reload} />
@@ -954,7 +1021,13 @@ export default function PlanPage() {
         </TabPanel>
 
         <TabPanel idBase="plan" id="proof" current={tab}>
-          <ProofTab d={d} meta={meta.data} canManage={canManage} planKey={planKey} />
+          <ProofTab
+            d={d}
+            meta={meta.data}
+            canManage={canManage}
+            planKey={planKey}
+            walletPlan={walletPlan}
+          />
         </TabPanel>
       </div>
     </div>

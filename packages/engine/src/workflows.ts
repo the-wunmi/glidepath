@@ -1,10 +1,10 @@
 import { signatureParts } from '@vsp/chainsig';
-import { maxBig, type SealedBox } from '@vsp/core';
+import { DomainError, maxBig, type SealedBox } from '@vsp/core';
 import { activity, executions, plans, type Tx } from '@vsp/db';
 import type { BackupBox, BackupOutcome } from '@vsp/enclave';
 import { SALE_GAS } from '@vsp/evm';
 import type { ChainEnclave, ChainPlan, ChainReceipt, KeyPairString } from '@vsp/near';
-import { and, eq, inArray, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, sql } from 'drizzle-orm';
 import {
   type Hex,
   keccak256,
@@ -12,6 +12,7 @@ import {
   serializeTransaction,
   type TransactionSerializableEIP1559,
 } from 'viem';
+import { chargePlan, isServerAccount, personasOf } from './budget.ts';
 import type { Engine } from './context.ts';
 import {
   crashPoint,
@@ -23,6 +24,7 @@ import {
   sleep,
   startOnce,
 } from './durable.ts';
+import { authorizePlan, type PlanPrincipal } from './guards.ts';
 import { ownerCall, revealOnChain } from './plans.ts';
 import { record } from './timeline.ts';
 
@@ -427,6 +429,12 @@ async function relayExecute(planId: number, seq: number): Promise<string> {
     });
     return 'refused';
   }
+  // The relayer paid for this execute: a founder's plan pays it back from its budget.
+  if (out.txHash) {
+    const kind = ex.kind === 'evm_erc20_transfer' ? 'evm_execute' : 'execute';
+    const executeTx = out.txHash;
+    await inTx('charge execute', (db) => chargePlan(db, personasOf(e), planId, kind, executeTx));
+  }
   let status = out.receiptStatus;
   // An EVM sale's receipt stays pending until the MPC signature arrives.
   while (status === 'pending') {
@@ -621,6 +629,17 @@ async function releaseEvm(planId: number): Promise<string> {
       await e.evm.ensureBalance(holder, need, await e.evm.gasCostWei(SALE_GAS));
       return null;
     });
+    // A founder's own plan: only their wallet (or the beneficiary's) may ask for the release, so
+    // the timeline says so once and this waits for the request to show on chain.
+    if (!isServerAccount(personasOf(e), plan.owner)) {
+      await noteOnce(
+        planId,
+        'release_needed',
+        'The plan has ended: the owner or beneficiary signs the release of the remaining tokens',
+      );
+      await sleep(OWNER_WAIT_MS);
+      continue;
+    }
     const out = await effect('release_evm', async () => {
       // Someone (the owner or beneficiary, or a repeat of this step) may already have asked.
       const now = await e.registry.plan(planId);
@@ -671,6 +690,22 @@ async function releaseEvm(planId: number): Promise<string> {
 }
 export const releaseEvmWorkflow = DBOS.registerWorkflow(releaseEvm, { name: 'release_evm' });
 
+/** How often a workflow waiting on the owner's wallet looks at the chain again. */
+const OWNER_WAIT_MS = 60_000;
+
+/** Records a timeline entry unless it is already the plan's latest one (a durable step). */
+async function noteOnce(planId: number, kind: string, message: string) {
+  await inTx(`note ${kind}`, async (db) => {
+    const [last] = await db
+      .select({ kind: activity.kind })
+      .from(activity)
+      .where(eq(activity.planId, planId))
+      .orderBy(desc(activity.id))
+      .limit(1);
+    if (last?.kind !== kind) await record(db, planId, kind, message);
+  });
+}
+
 /** Whether a mined release is already on the timeline, so a repeated run of the workflow (a later
  * finalize) does not record it twice. */
 async function releaseRecorded(e: Engine, planId: number, evmTxHash: string): Promise<boolean> {
@@ -711,6 +746,15 @@ async function resignStuck(
     return;
   const plan = await readStep('read plan', () => e.registry.plan(planId));
   if (!plan) return;
+  // Only the owner's wallet (or the beneficiary's) may re-sign a founder's own plan's transfer.
+  if (!isServerAccount(personasOf(e), plan.owner)) {
+    await noteOnce(
+      planId,
+      'evm_resign_needed',
+      `${what} is stuck below the network's fees: the owner signs a re-sign with higher fees`,
+    );
+    return;
+  }
   const network = await readStep('evm fees', async () => {
     const f = await e.evm.fees();
     return { max: f.maxFeePerGas.toString(), tip: f.maxPriorityFeePerGas.toString() };
@@ -791,15 +835,16 @@ async function revealPlan(planId: number): Promise<string> {
       return revealOnChain(e, planId, terms.planJson, terms.salt);
     });
     if (!out.ok) return out.code;
-    await inTx('record reveal', (db) =>
-      record(
+    await inTx('record reveal', async (db) => {
+      await record(
         db,
         planId,
         'plan_revealed',
         'The sealed terms were published from the enclave and match the commitment',
         { txHash: out.txHash },
-      ),
-    );
+      );
+      if (out.txHash) await chargePlan(db, personasOf(e), planId, 'reveal', out.txHash);
+    });
     return 'revealed';
   }
 }
@@ -920,3 +965,107 @@ async function settle(planId: number, seq: number): Promise<string> {
   }
 }
 export const settleWorkflow = DBOS.registerWorkflow(settle, { name: 'settle' });
+
+/**
+ * The owner's own release of an ended ERC-20 plan's remainder (a founder's plan: only their wallet
+ * or the beneficiary's may ask). Answers with the call to sign, then checks the signed one; the
+ * release_evm workflow sends the signed transfer and watches it as for the server's plans.
+ */
+export async function ownerReleaseEvm(e: Engine, principal: PlanPrincipal, planId: number) {
+  const plan = await e.registry.plan(planId);
+  if (!plan) throw new DomainError('not_found', 'Plan not found');
+  await authorizeOwner(e, principal, planId);
+  if (plan.status !== 'ended' || plan.asset.type !== 'evm_erc20' || !plan.evm_address)
+    throw new DomainError('conflict', 'Only an ended ERC-20 plan releases its remainder');
+  const token = plan.asset.token_address as Hex;
+  const holder = plan.evm_address as Hex;
+  const left = await e.evm.tokenBalance(token, holder);
+  if (left === 0n) throw new DomainError('conflict', 'Nothing is left to release');
+  const fees = await e.evm.fees();
+  await e.evm.ensureBalance(holder, SALE_GAS * fees.maxFeePerGas, await e.evm.gasCostWei(SALE_GAS));
+  const out = await ownerCall(
+    e,
+    plan.owner,
+    e.world.registry,
+    'release_evm',
+    {
+      plan_id: planId,
+      amount: left.toString(),
+      nonce: plan.evm_nonce,
+      gas_limit: Number(SALE_GAS),
+      max_fee_per_gas: fees.maxFeePerGas.toString(),
+      max_priority_fee_per_gas: fees.maxPriorityFeePerGas.toString(),
+    },
+    { gasTera: 300, deposit: EXECUTE_DEPOSIT },
+    principal,
+  );
+  if (!out.ok)
+    throw new DomainError('policy_error', `The registry refused the release: ${out.code}`, {
+      code: out.code,
+      txHash: out.txHash,
+    });
+  await record(
+    e.db,
+    planId,
+    'release_requested',
+    'The registry asked the MPC network to sign the release of the remaining tokens',
+    { txHash: out.txHash },
+  );
+  await startOnce(releaseEvmWorkflow, `release:${planId}:${plan.next_seq}`, planId);
+  return { txHash: out.txHash };
+}
+
+/**
+ * The owner's own re-sign of the plan's latest EVM transfer when it is stuck below the network's
+ * fees: both fees at least 12.5% higher and at least what the network wants now.
+ */
+export async function ownerResignEvm(e: Engine, principal: PlanPrincipal, planId: number) {
+  const plan = await e.registry.plan(planId);
+  if (!plan) throw new DomainError('not_found', 'Plan not found');
+  await authorizeOwner(e, principal, planId);
+  const seq = plan.next_seq - 1;
+  const receipt = seq >= 0 ? await e.registry.receipt(planId, seq) : null;
+  if (!receipt?.evm_signature)
+    throw new DomainError('conflict', 'This plan has no signed EVM transfer to re-sign');
+  const network = await e.evm.fees();
+  const maxFee = maxBig(bumped(BigInt(receipt.evm_max_fee_per_gas ?? '0')), network.maxFeePerGas);
+  const tip = maxBig(
+    bumped(BigInt(receipt.evm_max_priority_fee_per_gas ?? '0')),
+    network.maxPriorityFeePerGas,
+  );
+  if (maxFee > MAX_FEE_PER_GAS || tip > maxFee)
+    throw new DomainError('conflict', 'Its fees cannot rise further within the registry’s caps');
+  const out = await ownerCall(
+    e,
+    plan.owner,
+    e.world.registry,
+    'resign_evm',
+    {
+      plan_id: planId,
+      seq,
+      max_fee_per_gas: maxFee.toString(),
+      max_priority_fee_per_gas: tip.toString(),
+    },
+    { gasTera: 200, deposit: STORAGE_DEPOSIT },
+    principal,
+  );
+  if (!out.ok)
+    throw new DomainError('policy_error', `The registry refused to re-sign: ${out.code}`, {
+      code: out.code,
+      txHash: out.txHash,
+    });
+  await record(
+    e.db,
+    planId,
+    'evm_resigned',
+    `Transfer #${seq} was re-signed with higher fees by its owner`,
+    { txHash: out.txHash, maxFeePerGas: maxFee.toString() },
+  );
+  return { txHash: out.txHash };
+}
+
+async function authorizeOwner(e: Engine, principal: PlanPrincipal, planId: number) {
+  const [row] = await e.db.select().from(plans).where(eq(plans.id, planId));
+  if (!row) throw new DomainError('not_found', 'Plan not found');
+  authorizePlan(row, principal);
+}

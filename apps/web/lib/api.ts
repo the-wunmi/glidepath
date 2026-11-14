@@ -28,6 +28,8 @@ interface ApiInit {
   body?: unknown;
   /** An owner action on this plan: sends the plan key this browser holds for it. */
   planId?: number;
+  /** Extra request headers, e.g. `x-wallet-tx` with the transaction a wallet sent. */
+  headers?: Record<string, string>;
 }
 
 function headers(init: ApiInit | undefined): Record<string, string> {
@@ -37,7 +39,7 @@ function headers(init: ApiInit | undefined): Record<string, string> {
   if (operator) h.authorization = `Bearer ${operator}`;
   const key = init?.planId === undefined ? null : loadPlanKey(init.planId);
   if (key) h['x-plan-key'] = key.key;
-  return h;
+  return { ...h, ...init?.headers };
 }
 
 /** The API's refusals that people meet in normal use, in our words rather than the server's. */

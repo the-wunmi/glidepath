@@ -2,8 +2,11 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { type ReactNode, useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { hasSimulatedParts } from '@/lib/env';
+import { type Me, signOut, useMe } from '@/lib/session';
+import type { Resource } from '@/lib/use-resource';
+import { usesWallet } from '@/lib/wallet';
 import { EnvironmentBadge } from './environment';
 import { MenuIcon, SealMark, SlidersIcon } from './icons';
 import { useMeta } from './meta';
@@ -41,6 +44,8 @@ export function Shell({ children }: { children: ReactNode }) {
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: close the menu whenever the route changes.
   useEffect(() => setMenuOpen(false), [path]);
+  useWalletPolicyBoundary(path);
+  const me = useMe();
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -70,6 +75,7 @@ export function Shell({ children }: { children: ReactNode }) {
           </nav>
           <div className="ml-auto flex items-center gap-2">
             <EnvironmentBadge />
+            <Account path={path} me={me} />
             {demo && (
               <button
                 type="button"
@@ -115,6 +121,11 @@ export function Shell({ children }: { children: ReactNode }) {
                 </li>
               ))}
             </ul>
+            {me.data && (
+              <p className="mt-2 border-t border-rule-2 px-3 pt-3 text-xs text-ink-3">
+                Signed in as <span className="mono text-ink-2">{me.data.account}</span>
+              </p>
+            )}
           </nav>
         )}
       </header>
@@ -142,6 +153,75 @@ export function Shell({ children }: { children: ReactNode }) {
         </div>
       </footer>
       {demo && <SimulationDrawer open={simOpen} onClose={() => setSimOpen(false)} />}
+    </div>
+  );
+}
+
+/**
+ * Wallet pages are served with a wider content security policy than the rest (see `usesWallet`),
+ * and a policy belongs to the document, so moving between the two kinds of page must load the
+ * page afresh. Links are caught before Next navigates; anything else (router.push, back and
+ * forward) reloads once the route has changed.
+ */
+function useWalletPolicyBoundary(path: string) {
+  const loadedAsWalletPage = useRef<boolean | null>(null);
+  useEffect(() => {
+    loadedAsWalletPage.current ??= usesWallet(path);
+    if (usesWallet(path) !== loadedAsWalletPage.current) window.location.reload();
+  }, [path]);
+  useEffect(() => {
+    const cross = (e: MouseEvent) => {
+      const link = (e.target as Element | null)?.closest?.('a[href]') as HTMLAnchorElement | null;
+      if (!link || link.target === '_blank' || e.defaultPrevented) return;
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const url = new URL(link.href, window.location.href);
+      if (url.origin !== window.location.origin) return;
+      if (usesWallet(url.pathname) === loadedAsWalletPage.current) return;
+      e.preventDefault();
+      e.stopPropagation();
+      window.location.assign(url.href);
+    };
+    document.addEventListener('click', cross, true);
+    return () => document.removeEventListener('click', cross, true);
+  }, []);
+}
+
+function Account({ path, me }: { path: string; me: Resource<Me | null> }) {
+  const [busy, setBusy] = useState(false);
+  if (me.loading) return null;
+  if (!me.data) {
+    if (path === '/sign-in') return null;
+    return (
+      <a href={`/sign-in?next=${encodeURIComponent(path)}`} className="btn btn-secondary btn-sm">
+        Sign in
+      </a>
+    );
+  }
+  return (
+    <div className="flex min-w-0 items-center gap-1">
+      <span
+        className="mono hidden max-w-[16ch] truncate text-xs text-ink-2 sm:inline"
+        title={me.data.account}
+      >
+        {me.data.account}
+      </span>
+      <button
+        type="button"
+        className="btn btn-ghost btn-sm"
+        disabled={busy}
+        title={`Signed in as ${me.data.account}`}
+        onClick={async () => {
+          setBusy(true);
+          try {
+            await signOut();
+          } finally {
+            // Every page re-reads who is signed in.
+            window.location.reload();
+          }
+        }}
+      >
+        Sign out
+      </button>
     </div>
   );
 }

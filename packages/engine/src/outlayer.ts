@@ -35,6 +35,7 @@ import {
 import type { QuoteRequest } from '@vsp/oneclick';
 import { and, eq } from 'drizzle-orm';
 import { z } from 'zod';
+import { chargePlan } from './budget.ts';
 import type { Config } from './config.ts';
 import type { WorldConfig } from './world.ts';
 
@@ -510,6 +511,8 @@ export interface OutLayerEnclaveOptions {
    */
   pollMs: number;
   log: (message: string, data?: Record<string, unknown>) => void;
+  /** Called after each paid run, so the plan's budget can be charged for it. */
+  onRun?: (planId: number, op: string, txHash: string) => Promise<void>;
 }
 
 /** Failed runs in a row after which a plan's sales go to a backup build. */
@@ -616,6 +619,7 @@ export class OutLayerEnclave implements Enclave {
   private async run<T>(op: string, build: OutLayerBuild, planId: number, input: object) {
     const out = await this.o.client.run<T>(build, { op, ...input });
     this.o.log('outlayer run', { op, planId, wasm: build.wasm.sha256, txHash: out.txHash });
+    await this.o.onRun?.(planId, op, out.txHash);
     return out.result;
   }
 
@@ -964,5 +968,7 @@ export function buildOutLayerEnclave(
     host,
     pollMs: config.OUTLAYER_TICK_SECONDS * 1_000,
     log,
+    onRun: (planId, _op, txHash) =>
+      chargePlan(db, { founder: w.founder, dao: w.dao }, planId, 'run', txHash),
   });
 }
